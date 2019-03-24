@@ -76,6 +76,13 @@ The latest version of this documentation is to be found at the `official Mobile 
 Overview
 ========
 
+
+Important note::
+
+  Currently the implementation of Ceylan-Mobile is just started, and does nothing (except returning the Gammu version!).
+
+
+
 A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, UPS notifications, etc.).
 
 For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:
@@ -224,17 +231,7 @@ For that, as root, following package shall be installed first::
 
 It should install a udev rule file (``/usr/lib/udev/rules.d/40-usb_modeswitch.rules``) suitable for most 3G devices (otherwise you will have to enrich it).
 
-Then the key should be plugged again; the vendor identifier is not expected to change, but the product identifier should, so that the key is now considered as a modem. ``journatctl -xe`` should allow to check [#]_.
-
-
-.. [#] This mode switch can also be done manually, like in::
-
-		 $ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
-
-	   ``lsusb`` would then ultimately report, for ``K3G-2``::
-
-		 Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem / E230/E270/E870 HSDPA/HSUPA Modem
-
+Then the key should be plugged again; the vendor identifier is not expected to change, but the product identifier should, so that the key is now considered as a modem. ``journatctl -xe`` should allow to check.
 
 
 For example, once connected, our ``K3G-1`` key is to spontaneously switch (almost immediately) from the previous::
@@ -247,6 +244,16 @@ to a newer::
 
 
 Bye bye mass storage, hello modem!
+
+
+This mode switch can also be done manually, like in::
+
+  $ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
+
+``lsusb`` would then ultimately report, for ``K3G-2``::
+
+		 Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem / E230/E270/E870 HSDPA/HSUPA Modem
+
 
 
 Managing /dev/ttyUSB* entries
