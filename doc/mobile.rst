@@ -518,13 +518,26 @@ Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sen
 
 
 
-Mobile Inner Workings
-======================
+Ceylan-Mobile Inner Workings
+============================
 
 Mobile relies on:
 
 - `libGammu <https://wammu.eu/libgammu/>`_ (GPLv2), for the actual mobile phone support
 - `Ceylan-Seaplus <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_ (LGPLv3), for the integration of the previous library to Erlang
+
+Ceylan-Mobile links directly to (lower-level) Gammu library services, instead of using the Gammu SMSD daemon, as it provides similar features, such as driving the mobile-side operations and polling it for incoming events.
+
+Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration file (no change needed, the same configuration can be used on the command-line and with Ceylan-Mobile).
+
+Internally, Gammu uses state machines.
+
+Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.
+
+Please feel free to enrich Ceylan-Mobile!
+
+A source of inspiration has been `python-gammu <https://github.com/gammu/python-gammu/>`_.
+
 
 
 A Few Information Pointers
