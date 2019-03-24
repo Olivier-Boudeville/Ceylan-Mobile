@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.14: http://docutils.sourceforge.net/" />
+<title>Welcome to the Ceylan-Mobile 1.0 documentation</title>
+<meta content="Mobile, cellular, phone, 3G, SMS, MMS, Erlang" name="keywords" />
+<link rel="stylesheet" href="pygments-default.css" type="text/css" />
+<link rel="stylesheet" href="mobile.css" type="text/css" />
+<link href="mobile-icon.png" rel="icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div class="document">
+
+
+<span class="target" id="top"></span><p><span class="raw-html"><a name="mobile_top"></a></span></p>
+<p><span class="raw-html"><div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile-1.0.html">browse mirror</a> <a href="mobile-1.0.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile 1.0]%20Remark">email us</a></p></div></span></p>
+<p><span class="raw-html"><center><img src="mobile-title.png" width="50%"></img></center></span>
+</p>
+<div class="section" id="mobile-controlling-mobile-phones-and-3g-keys-from-erlang">
+<h1><a class="toc-backref" href="#id11">Mobile: Controlling Mobile Phones and 3G Keys from Erlang</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body">Copyright (C) 2019-2019 Olivier Boudeville</td>
+</tr>
+<tr class="field"><th class="field-name">Contact:</th><td class="field-body">about (dash) mobile (at) esperide (dot) com</td>
+</tr>
+<tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, March 3, 2019</td>
+</tr>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, March 24, 2019</td>
+</tr>
+<tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library, version 1.0.</td>
+</tr>
+<tr class="field"><th class="field-name">Abstract:</th><td class="field-body">The role of the <tt class="docutils literal">Mobile</tt> library is to control mobile phones from Erlang.
+A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.</td>
+</tr>
+</tbody>
+</table>
+<p>The latest version of this documentation is to be found at the <a class="reference external" href="http://mobile.esperide.org">official Mobile website</a> (<tt class="docutils literal"><span class="pre">http://mobile.esperide.org</span></tt>).</p>
+<p><span class="raw-html">This Mobile documentation is also available in the PDF format (see <a href="mobile-1.0.pdf">mobile.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Mobile/mobile-1.0.html">here</a>.</span></p>
+<p></p>
+<p></p>
+<div class="contents topic" id="id1">
+<span id="table-of-contents"></span><p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#mobile-controlling-mobile-phones-and-3g-keys-from-erlang" id="id11">Mobile: Controlling Mobile Phones and 3G Keys from Erlang</a><ul>
+<li><a class="reference internal" href="#overview" id="id12">Overview</a></li>
+<li><a class="reference internal" href="#securing-the-prerequisites" id="id13">Securing the Prerequisites</a><ul>
+<li><a class="reference internal" href="#carrier-subscription-getting-a-relevant-sim-card-first" id="id14">Carrier Subscription: Getting a relevant SIM Card first</a></li>
+<li><a class="reference internal" href="#relying-on-a-suitable-usb-mobile-phone-or-3g-key" id="id15">Relying on a Suitable USB Mobile Phone or 3G Key</a></li>
+<li><a class="reference internal" href="#usb-supply-connection" id="id16">USB Supply &amp; Connection</a></li>
+<li><a class="reference internal" href="#operating-system-support-configuration" id="id17">Operating-System Support &amp; Configuration</a></li>
+<li><a class="reference internal" href="#software" id="id18">Software</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#issues-planned-enhancements" id="id19">Issues &amp; Planned Enhancements</a></li>
+<li><a class="reference internal" href="#support" id="id20">Support</a></li>
+<li><a class="reference internal" href="#ceylan-mobile-inner-workings" id="id21">Ceylan-Mobile Inner Workings</a></li>
+<li><a class="reference internal" href="#a-few-information-pointers" id="id22">A Few Information Pointers</a></li>
+<li><a class="reference internal" href="#troubleshooting-telecom-level-issues" id="id23">Troubleshooting Telecom-level Issues</a></li>
+<li><a class="reference internal" href="#please-react" id="id24">Please React!</a></li>
+<li><a class="reference internal" href="#ending-word" id="id25">Ending Word</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p></p>
+<div class="section" id="overview">
+<h2><a class="toc-backref" href="#id12">Overview</a></h2>
+<p>Important note:</p>
+<pre class="literal-block">
+Currently the implementation of Ceylan-Mobile is just started, and does nothing (except returning the Gammu version!).
+</pre>
+<p>A typical use-case is when one wants to <strong>send SMS from a gateway</strong> (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, UPS notifications, etc.).</p>
+<p>For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:</p>
+<ul class="simple">
+<li>an <strong>USB-connected 3G device</strong> (typically an older, dedicated phone or, more preferably, a suitable key)</li>
+<li>a <strong>SIM card</strong> enabling the use of the 3G network of a telecom carrier of one's choice</li>
+<li>a proper <strong>operating-system support</strong> thereof (a GNU/Linux box, most probably)</li>
+</ul>
+<p>All these points are detailed below.</p>
+<p>An alternate, less satisfying solution <a class="footnote-reference" href="#id3" id="id2">[1]</a> could be to use the services of a SMS provider through a web gateway; one may look at <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/sms_utils.erl">sms_utils.erl</a> for a basic example of it.</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>Not nearly as fun: more constraints (ex: credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...</td></tr>
+</tbody>
+</table>
+<p>The solution presented here relies on the <a class="reference external" href="https://wammu.eu/gammu/">Gammu</a> library for the actual control of the 3G device, and on <a class="reference external" href="http://seaplus.esperide.org/">Ceylan-Seaplus</a> to make it available to Erlang.</p>
+</div>
+<div class="section" id="securing-the-prerequisites">
+<h2><a class="toc-backref" href="#id13">Securing the Prerequisites</a></h2>
+<p>Please read the full document prior to operating, as iterations, trials and errors will probably have to be performed before, hopefully, succeeding ultimately.</p>
+<div class="section" id="carrier-subscription-getting-a-relevant-sim-card-first">
+<h3><a class="toc-backref" href="#id14">Carrier Subscription: Getting a relevant SIM Card first</a></h3>
+<p>A 3G device without a companion SIM card would not be of much use.</p>
+<p>Finding a good mobile package is quite country-specific. For example French customers might enjoy rather inexpensive, if not free, <a class="reference external" href="http://mobile.free.fr/fiche-forfait-2-euros.html">options</a>.</p>
+<p>As we want an automated use of this SIM card (through the 3G device selected in the next section), one should ensure that, in the card's configuration, the request for the PIN code has been disabled.</p>
+<p>This can be done by inserting the SIM card in a mobile phone, and through the settings disabling once for all said verification. This may also be a good way of checking whether the SIM card works properly before hacking around.</p>
+</div>
+<div class="section" id="relying-on-a-suitable-usb-mobile-phone-or-3g-key">
+<h3><a class="toc-backref" href="#id15">Relying on a Suitable USB Mobile Phone or 3G Key</a></h3>
+<p>Basically, one just has to insert the SIM card, connect the device to the computer and start sending SMS to friends.</p>
+<p>Well, no. Welcome to a surprising mess instead!</p>
+<p>First of all, as we understand it, mobiles are far less appropriate than 3G keys for this exercice (they are not well supported, they tend to enter various sleep modes), but be reassured that your mileage may vary with keys as well.</p>
+<p>In order to select a proper device (phone or key), first of all one should look at the <a class="reference external" href="https://wammu.eu/phones/">Gammu Phone Database</a> (which lists keys as well).</p>
+<p>We tried to favour the <em>acknowledged</em> entries in this database, moreover the ones with multiple success reports.</p>
+<p>For the record, we selected only Huawei chips (supposedly becoming, for better or for worse, a de facto standard) of various quite widespread offers, and bought 4 secondhand 3G keys of different models <a class="footnote-reference" href="#id5" id="id4">[2]</a>, which we named that way:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">K3G-1</span></tt>: a black and orange generic model (no specific brand apparently), labelled HSDPA, with a Huawei E169 chip</li>
+<li><tt class="docutils literal"><span class="pre">K3G-2</span></tt> : white (with a green LED, invisible unless lit), from a former operator, based on a Huawei E170</li>
+<li><tt class="docutils literal"><span class="pre">K3G-3</span></tt> : white, from another former operator, based on a Huawei E172 (labelled as E1752); can host an additional MicroSD card</li>
+<li><tt class="docutils literal"><span class="pre">K3G-4</span></tt> : white, from same former operator as <tt class="docutils literal"><span class="pre">K3G-2</span></tt>, based on Huawei E180 (firmware <tt class="docutils literal">11.104.16.01.00</tt>), with a rotating USB connection; can also host an additional MicroSD card</li>
+</ul>
+</blockquote>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>For a whopping expensively bill of 10 euros.</td></tr>
+</tbody>
+</table>
+<p>To anticipate a bit:</p>
+<ul class="simple">
+<li>we have been able to make good use of <tt class="docutils literal"><span class="pre">K3G-2</span></tt> (which became our &quot;reference&quot; key, used operationally) and <tt class="docutils literal"><span class="pre">K3G-4</span></tt> (kept as a spare key, should the previous one fail)</li>
+<li>we have not been able to durably use <tt class="docutils literal"><span class="pre">K3G-1</span></tt> and <tt class="docutils literal"><span class="pre">K3G-4</span></tt> (notably: they were regularly not responding anymore after a few, normal interactions)</li>
+</ul>
+<p>So, from then on, we will mostly consider here the use of <tt class="docutils literal"><span class="pre">K3G-2</span></tt>.</p>
+<p>Finally, one should ensure that one's 3G device is not locked to a specific network or carrier. In most cases the device will have to be unlocked, so that it can accept SIM cards issued by any operator (and not just the one devices are generally bundled with).</p>
+<p>We were told that our 4 keys were unlocked, yet none of them seemed to properly work on Linux (blocking at various steps, like when fetching their IMEI) until we tried to install them on a Windows box and also to unlock them.</p>
+<p>Not sure which operation unblocked them, as most of the attempted operations reportedly failed or could not be properly interpreted in terms of result. This <a class="reference external" href="http://www.deblokgsm.com/server/huaweicalc-us.php">online calculator</a> for Huawei chips seemed to work (giving a NCK unlocking code and another one for the flash operation), even if it is difficult to assess whether the use of any actual code really succeeded.</p>
+<p>We are not so keen on installing third-party, untrusted software on said Windows box (even installing the driver located on their ROM appearing as a mass storage is somewhat unpleasant), but flashing tools are required whenever having to unlock.</p>
+<p>For them, <a class="reference external" href="https://www.sandboxie.com/">Sandboxie</a> or similar may be used in order to isolate, at least to some extent, the various software that one may try in one's quest for a correctly-behaving 3G key. At least for us, quite frequently Windows was not even able to detect that the key was inserted.</p>
+<p>More generally, <a class="reference external" href="https://stackoverflow.com/questions/29365148/gammu-stops-receiving-sms-aftar-a-while">various problems</a> might explain why a 3G key is misbehaving (i.e. does not seem able to operate, at least <a class="reference external" href="https://wiki.archlinux.org/index.php/USB_3G_Modem#Connection_halts_after_few_minutes_running">not durably</a>), including failed unlocking, buggy firmware versions and alike, and other issues discussed at later steps.</p>
+<p>Good luck to you!</p>
+</div>
+<div class="section" id="usb-supply-connection">
+<h3><a class="toc-backref" href="#id16">USB Supply &amp; Connection</a></h3>
+<p>Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer port.</p>
+<p>A problem might be that the device could end up being insufficiently powered device. Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.</p>
+</div>
+<div class="section" id="operating-system-support-configuration">
+<h3><a class="toc-backref" href="#id17">Operating-System Support &amp; Configuration</a></h3>
+<p>That's the main part. We prefer using GNU/Linux, typically <a class="reference external" href="https://www.archlinux.org/">Arch Linux</a>, taken consistently as a reference here.</p>
+<div class="section" id="kernel-modules">
+<h4>Kernel Modules</h4>
+<p>As always, maybe new kernel modules will have to be dynamically loaded; so, should the kernel have been updated since last boot, reboot first, otherwise the (newer) modules will not match the currently running, older kernel.</p>
+<p>Before first inserting a 3G device, we advise to record the already loaded kernel modules, in order to detect the additional ones that are needed by said device.</p>
+<p>For example, as root:</p>
+<pre class="code bash literal-block">
+$ lsmod &gt; ~/lsmod-before.txt
+<span class="c1"># Connect 3G device and wait a bit (ex: LED blinking)
+</span>$ lsmod &gt; ~/lsmod-after.txt
+$ diff ~/lsmod-before.txt ~/lsmod-after.txt
+</pre>
+<p>In our case, the <tt class="docutils literal">option</tt> and <tt class="docutils literal">usb_wwan</tt> modules were loaded, so we ensured that, from now then, they were automatically loaded at boot (to avoid that a later kernel update block their loading), by creating a <tt class="docutils literal"><span class="pre">/etc/modules-load.d/for-3g-keys.conf</span></tt> file with following content:</p>
+<pre class="literal-block">
+option
+usb_wwan
+</pre>
+</div>
+<div class="section" id="usb-identifiers-mode-switches">
+<h4>USB Identifiers &amp; Mode Switches</h4>
+<p>The connected key will then appear as a USB device, with a USB ID in the form of <tt class="docutils literal">vendor_id:product_id</tt>, which can be for example be obtained thanks to <tt class="docutils literal">lsusb</tt>.</p>
+<p>For example, at connection, our <tt class="docutils literal"><span class="pre">K3G-1</span></tt> key will appear as:</p>
+<pre class="literal-block">
+Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
+</pre>
+<p>Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.</p>
+<p>Here such drivers are of no use, and what we want is to switch the keys to modems.</p>
+<p>For that, as root, following package shall be installed first:</p>
+<pre class="literal-block">
+$ pacman -Sy usb_modeswitch
+</pre>
+<p>It should install a udev rule file (<tt class="docutils literal"><span class="pre">/usr/lib/udev/rules.d/40-usb_modeswitch.rules</span></tt>) suitable for most 3G devices (otherwise you will have to enrich it).</p>
+<p>Then the key should be plugged again; the vendor identifier is not expected to change, but the product identifier should, so that the key is now considered as a modem. <tt class="docutils literal">journatctl <span class="pre">-xe</span></tt> should allow to check <a class="footnote-reference" href="#id7" id="id6">[3]</a>.</p>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td><p class="first">This mode switch can also be done manually, like in:</p>
+<pre class="literal-block">
+$ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
+</pre>
+<p><tt class="docutils literal">lsusb</tt> would then ultimately report, for <tt class="docutils literal"><span class="pre">K3G-2</span></tt>:</p>
+<pre class="last literal-block">
+Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem / E230/E270/E870 HSDPA/HSUPA Modem
+</pre>
+</td></tr>
+</tbody>
+</table>
+<p>For example, once connected, our <tt class="docutils literal"><span class="pre">K3G-1</span></tt> key is to spontaneously switch (almost immediately) from the previous:</p>
+<pre class="literal-block">
+Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
+</pre>
+<p>to a newer:</p>
+<pre class="literal-block">
+Bus 003 Device 060: ID 12d1:1446 Huawei Technologies Co., Ltd. HSPA modem
+</pre>
+<p>Bye bye mass storage, hello modem!</p>
+</div>
+<div class="section" id="managing-dev-ttyusb-entries">
+<h4>Managing /dev/ttyUSB* entries</h4>
+<p>Should the relevant kernel modules be available, at least one entry shall appear as <tt class="docutils literal">/dev/ttyUSB*</tt> when a USB 3G device is connected and correctly recognised by the system.</p>
+<p>For example, <tt class="docutils literal">/dev/ttyUSB0</tt>, <tt class="docutils literal">/dev/ttyUSB1</tt>, <tt class="docutils literal">/dev/ttyUSB2</tt> and <tt class="docutils literal">/dev/ttyUSB3</tt> may appear, sometimes only after a few seconds. Only a subset of them will be useable.</p>
+<p>A tests with Gammu will tell them apart.</p>
+<p>First, that tool shall be installed.</p>
+<p>One's distribution should provide it, as it is fairly standard:</p>
+<pre class="literal-block">
+$ pacman gammu
+</pre>
+<p>It should notably provide the Gammu library (ex: in <tt class="docutils literal">/usr/lib64/libGammu.so.8.1.40.0</tt>) and the various Gammu header (ex: the <tt class="docutils literal"><span class="pre">/usr/include/gammu/gammu/gammu*.h</span></tt>).</p>
+<p>With this package comes the <tt class="docutils literal">/usr/bin/gammu</tt> executable (of course relying on said library), which is useful to test one's configuration.</p>
+<p>The executable may read its test configuration from <tt class="docutils literal">/etc/gammurc</tt>, whose content may be, for example in order to test whether <tt class="docutils literal">/dev/ttyUSB1</tt> (the tty we use for <tt class="docutils literal"><span class="pre">K3G-2</span></tt>) is relevant:</p>
+<pre class="literal-block">
+[gammu]
+device = /dev/ttyUSB1
+connection = at
+logfile = /var/log/gammu-ceylan.log
+logformat = textalldate
+</pre>
+<p>To check whether one's 3G device is supported by the system, one may use:</p>
+<pre class="literal-block">
+$ gammu --identify
+</pre>
+<p>Note that each operation is bound to last for a few (around 3-4) seconds before returning.</p>
+<p>Hopefully one will not end up with following information returned:</p>
+<pre class="literal-block">
+Can not access SIM card.
+</pre>
+<p>or even worse:</p>
+<pre class="literal-block">
+No response in specified timeout. Probably phone not connected.
+</pre>
+<p>but, after maybe some trials and errors (start by testing various <tt class="docutils literal">/dev/ttyUSB*</tt> devices and <tt class="docutils literal">connection</tt> settings), with something like (IDs edited for obvious reasons):</p>
+<pre class="literal-block">
+Device               : /dev/ttyUSB1
+Manufacturer         : Huawei
+Model                : E17X (E17X)
+Firmware             : 11.304.20.01.00
+IMEI                 : XXXXXXXXXXXXXXX
+SIM IMSI             : XXXXXXXXXXXXXXX
+</pre>
+<p>Congratulations, the operating system supports, at least to some extent, your device!</p>
+<p>A problem will be afterwards that the numbers involved in the tty pseudofiles are bound to change - based on, notably, the use of the other USB ports.</p>
+<p>So a better approach will be to use <tt class="docutils literal">udev</tt> in order to give them a stable name, such as <tt class="docutils literal"><span class="pre">/dev/ttyUSB-my-3G-key</span></tt>, thanks to a rule typically written in <tt class="docutils literal"><span class="pre">/etc/udev/rules.d/98-usb-my-3G-key.rules</span></tt>, whose content would be:</p>
+<pre class="literal-block">
+SUBSYSTEM==&quot;tty&quot;, ATTRS{idVendor}==&quot;12d1&quot;, ATTRS{idProduct}==&quot;1446&quot;, \
+   SYMLINK+=&quot;ttyUSB-my-3G-key&quot;
+</pre>
+<p>Then one should run:</p>
+<pre class="literal-block">
+$ udevadm control --reload-rules &amp;&amp; udevadm trigger
+</pre>
+<p>One the key is inserted again, it should be available with its new, stable name.</p>
+<p>It can be checked more in-depth:</p>
+<pre class="literal-block">
+$ udevadm info --query=all --name=ttyUSB-my-3G-key
+ P: /devices/pci0000:00/0000:00:14.0/usb2/2-3/2-3:1.1/ttyUSB1/tty/ttyUSB1
+ N: ttyUSB1
+ L: 0
+ S: ttyUSB-my-3G-key
+ S: serial/by-path/pci-0000:00:14.0-usb-0:3:1.1-port0
+ S: serial/by-id/usb-HUAWEI_Technologies_HUAWEI_Mobile-if01-port0
+ [...]
+</pre>
+<p>One may ensure thanks to <tt class="docutils literal">fuser</tt> that no component (Network Manager or alike) took control of it:</p>
+<pre class="literal-block">
+$ fuser -va /dev/ttyUSB-my-3G-key
+                   USER        PID ACCESS COMMAND
+/dev/ttyUSB1:
+</pre>
+<p>(as intended, no controller process in the way here)</p>
+<p>To interact with such a <tt class="docutils literal">/dev/ttyUSB*</tt> file, the user (let's name him <tt class="docutils literal">sheldon</tt>) must be in the <tt class="docutils literal">uucp</tt> group; so, as root:</p>
+<pre class="literal-block">
+$ gpasswd -a sheldon uucp
+</pre>
+<p>And, as <tt class="docutils literal">sheldon</tt>:</p>
+<pre class="literal-block">
+$ newgrp uucp
+</pre>
+</div>
+<div class="section" id="wrapping-up-telecom-configuration">
+<h4>Wrapping-up Telecom Configuration</h4>
+<p>Now, with that user, is time for a bit of configuration before testing.</p>
+<p>One may use:</p>
+<pre class="literal-block">
+$ gammu getsecuritystatus
+</pre>
+<p>to ensure that no PIN code is required before using the 3G device (hence expecting as answer: <tt class="docutils literal">Nothing to enter.</tt>).</p>
+<p>Various calls can be made in order to convince oneself that the key operate properly:</p>
+<pre class="literal-block">
+$ gammu battery
+Battery level        : 0 percent
+Charge state         : battery connected and is being charged
+
+$ gammu getallsms
+0 SMS parts in 0 SMS sequences
+</pre>
+<p>The <a class="reference external" href="https://en.wikipedia.org/wiki/Short_Message_service_center">SMSC</a> number of the carrier having issued one's SIM card must be set before any actual SMS sending:</p>
+<pre class="literal-block">
+$ gammu setsmsc 1 &quot;+33695000XYZ&quot;
+</pre>
+<p>Should this operation fail, it may be a sign that the 3G device is still locked.</p>
+<p>This can be checked:</p>
+<pre class="literal-block">
+$ gammu getsmsc
+Location             : 1
+Number               : &quot;+33695000XYZ&quot;
+Default number       : &quot;&quot;
+Format               : Text
+Validity             : Maximum time
+</pre>
+<p>Then a SMS can be sent, assuming <tt class="docutils literal">TARGET_NUMBER</tt> has been set to some sensible number (like one's mobile):</p>
+<pre class="literal-block">
+$ gammu sendsms TEXT ${TARGET_NUMBER} -text &quot;Hello world!&quot;
+If you want break, press Ctrl+C...
+Sending SMS 1/1....waiting for network answer..OK, message reference=50
+</pre>
+<p>As the SMSC has just been set previously, one should not get <tt class="docutils literal">Failed to get SMSC number from phone</tt>.</p>
+<p>This can be monitored:</p>
+<pre class="literal-block">
+$ gammu monitor 1
+Press Ctrl+C to break...
+Entering monitor mode...
+
+Enabling info about incoming SMS    : No error.
+SMS message received
+[...]
+We already have one pending, ignoring this one!
+SMS message received
+Enabling info about incoming CB     : Security error. Maybe no PIN?
+Enabling info about calls           : No error.
+Enabling info about USSD            : No error.
+SIM phonebook        :   0 used, 250 free
+Dialled numbers      :  10 used,   0 free
+Received numbers     :   0 used,  10 free
+Missed numbers       :   0 used,  10 free
+Own numbers          :   1 used,   4 free
+Phone phonebook      :   0 used, 100 free
+Battery level        : 0 percent
+Charge state         : battery connected and is being charged
+Signal strength      : -51 dBm
+Network level        : 100 percent
+SIM SMS status       : 9 used, 0 unread, 50 locations
+Phone SMS status     : 0 used, 0 unread, 255 locations
+Network state        : home network
+Network              : 208 15 (XXX Mobile, France), LAC F8F, CID XYZ
+Packet network state : home network
+Packet network       : 208 15 (XXX Mobile, France), LAC F8F, CID UVW
+GPRS                 : attached
+Location 4, folder &quot;Inbox&quot;, SIM memory, Inbox folder
+SMS message
+SMSC number          : &quot;+33695000XYZ&quot;
+Sent                 : Sat Dec 22 21:22:14 2018 +0100
+Coding               : Default GSM alphabet (no compression)
+Remote number        : &quot;+XXXXXXX&quot;
+Status               : UnRead
+[...]
+Leaving monitor mode...
+</pre>
+<p>Once successful, one will be able to send SMS back and forth between the 3G device and &quot;normal&quot; phones:</p>
+<pre class="literal-block">
+$ gammu getallsms
+</pre>
+<p>With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
+</div>
+</div>
+<div class="section" id="software">
+<h3><a class="toc-backref" href="#id18">Software</a></h3>
+<p>Ceylan-Mobile relies on <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus</a>, which itself relies on <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad</a>.</p>
+<p>All three of them rely on <a class="reference external" href="http://erlang.org">Erlang</a> (for the user API) and on C (for the library driver), which must therefore be both available.</p>
+<div class="section" id="erlang-environment">
+<h4>Erlang Environment</h4>
+<p><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 21.0 or higher, is needed.</p>
+<p>One may obtain it from many ways, including one's distribution (ex: <tt class="docutils literal">pacman erlang</tt>), directly <a class="reference external" href="http://www.erlang.org/downloads">from its sources</a> or possibly thanks to our <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh">install-erlang.sh</a> script; a simple use of it is:</p>
+<pre class="literal-block">
+$ ./install-erlang.sh --doc-install --generate-plt
+</pre>
+<p>One may execute <tt class="docutils literal"><span class="pre">./install-erlang.sh</span> <span class="pre">--help</span></tt> for more details about how to configure it.</p>
+</div>
+<div class="section" id="c-environment">
+<h4>C Environment</h4>
+<p>One may use a recent enough version of GCC (ex: <tt class="docutils literal">pacman gcc</tt>).</p>
+</div>
+<div class="section" id="myriad-seaplus-and-mobile">
+<h4>Myriad, Seaplus and Mobile</h4>
+<p>Once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a> and then this <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">Ceylan-Mobile repository</a>, like in:</p>
+<pre class="code bash literal-block">
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad
+$ <span class="nb">cd</span> Ceylan-Myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus
+$ <span class="nb">cd</span> Ceylan-Seaplus <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile
+$ <span class="nb">cd</span> Ceylan-Mobile <span class="o">&amp;&amp;</span> make all
+</pre>
+<p>Then only one will be able to fight encodings (ex: for special characters) and SMS parts and sequences. MMS should provide a lot of fun too.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="section" id="issues-planned-enhancements">
+<h2><a class="toc-backref" href="#id19">Issues &amp; Planned Enhancements</a></h2>
+</div>
+<div class="section" id="support">
+<h2><a class="toc-backref" href="#id20">Support</a></h2>
+<p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
+</div>
+<div class="section" id="ceylan-mobile-inner-workings">
+<h2><a class="toc-backref" href="#id21">Ceylan-Mobile Inner Workings</a></h2>
+<p>Mobile relies on:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://wammu.eu/libgammu/">libGammu</a> (GPLv2), for the actual mobile phone support</li>
+<li><a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus</a> (LGPLv3), for the integration of the previous library to Erlang</li>
+</ul>
+<p>Ceylan-Mobile links directly to (lower-level) Gammu library services, instead of using the Gammu SMSD daemon, as it provides similar features, such as driving the mobile-side operations and polling it for incoming events.</p>
+<p>Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration file (no change needed, the same configuration can be used on the command-line and with Ceylan-Mobile).</p>
+<p>Internally, Gammu uses state machines.</p>
+<p>Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.</p>
+<p>Please feel free to enrich Ceylan-Mobile!</p>
+<p>A source of inspiration has been <a class="reference external" href="https://github.com/gammu/python-gammu/">python-gammu</a>.</p>
+</div>
+<div class="section" id="a-few-information-pointers">
+<h2><a class="toc-backref" href="#id22">A Few Information Pointers</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="https://wiki.archlinux.org/index.php/USB_3G_Modem">USB 3G Modem</a>, by Arch Linux</li>
+<li><a class="reference external" href="https://wiki.gentoo.org/wiki/USB_ModeSwitch">USB_ModeSwitch</a>, by Gentoo Linux</li>
+<li><a class="reference external" href="https://metodiew.com/huawei-e173s-and-ubuntu/">About Huawei E173D</a> (and Linux)</li>
+<li>in French: <a class="reference external" href="http://blogmotion.fr/diy/tutoriel-gammu-cle-3g-dongle-16409">with a Raspberry Pi</a></li>
+</ul>
+</div>
+<div class="section" id="troubleshooting-telecom-level-issues">
+<h2><a class="toc-backref" href="#id23">Troubleshooting Telecom-level Issues</a></h2>
+<p>Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards.</p>
+<p>On GNU/Linux, being root and monitoring the system and Gammu logs (and/or using the <tt class="docutils literal"><span class="pre">--debug-file</span></tt> Gammu command-line option) should certainly help.</p>
+</div>
+<div class="section" id="please-react">
+<h2><a class="toc-backref" href="#id24">Please React!</a></h2>
+<p>If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the <a class="reference internal" href="#support">Support</a> guidelines).</p>
+</div>
+<div class="section" id="ending-word">
+<h2><a class="toc-backref" href="#id25">Ending Word</a></h2>
+<p>Have fun with Mobile - but do not spam people!</p>
+<div class="figure align-center">
+<img alt="Mobile logo" src="mobile-title.png" style="width: 50%;" />
+</div>
+<p><span class="raw-html"><a name="mobile_bottom"></a></span></p>
+</div>
+</div>
+</div>
+</body>
+</html>
