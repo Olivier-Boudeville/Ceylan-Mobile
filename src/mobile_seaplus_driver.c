@@ -26,6 +26,14 @@
 #include <stdlib.h>
 
 
+// Forward declarations:
+
+void start_gammu( GSM_StateMachine * gammu_fsm ) ;
+void check_gammu_error( GSM_Error error ) ;
+void stop_gammu( GSM_StateMachine * gammu_fsm ) ;
+
+
+
 int main()
 {
 
@@ -33,6 +41,34 @@ int main()
   byte * buffer = start_seaplus_driver() ;
 
   LOG_TRACE( "Driver started." ) ;
+
+  // Gammu uses strings in the local encoding:
+  GSM_InitLocales( NULL ) ;
+
+  // Gammu is state-machine based:
+  GSM_StateMachine * gammu_fsm = GSM_AllocStateMachine() ;
+
+  // Buffer to store temporary strings:
+  char * string_buffer = malloc( 250 * sizeof(char) ) ;
+
+  // Secondary buffer to store temporary strings:
+  char * aux_string_buffer = malloc( 250 * sizeof(char) ) ;
+
+  /*
+   * Used for tuples, as the same variable name cannot be used in different case
+   * blocks:
+   *
+   */
+  ETERM * res_array[5] ;
+
+  // The term corresponding to the final result of a function call:
+  ETERM * res_term ;
+
+
+  GSM_Error gammu_error ;
+
+  start_gammu( gammu_fsm ) ;
+
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
@@ -74,26 +110,158 @@ int main()
 
 	case GET_BACKEND_INFORMATION_0_ID:
 
+		/* -spec get_backend_information() ->
+		 *    { backend_type(), backend_version() }.
+		 */
+
 		LOG_DEBUG( "Executing get_backend_information/0." ) ;
 		check_arity_is( 0, param_count, GET_BACKEND_INFORMATION_0_ID ) ;
 
 		// Returning for example: { gammu, "1.40.0" }:
 
-		ETERM * res_array[2] ;
-
 		res_array[0] = erl_mk_atom( "gammu" ) ;
 		res_array[1] = erl_mk_string( GetGammuVersion() ) ;
 
-		ETERM * res_pair = erl_mk_tuple( res_array, 2 ) ;
+		res_term = erl_mk_tuple( res_array, 2 ) ;
 
-		write_term( buffer, res_pair ) ;
+		write_term( buffer, res_term ) ;
 
-		
+		break ;
+
+
+	case GET_DEVICE_MANUFACTURER_0_ID:
+
+		// -spec get_device_manufacturer() -> manufacturer_name().
+
+		LOG_DEBUG( "Executing get_device_manufacturer/0." ) ;
+		check_arity_is( 0, param_count, GET_DEVICE_MANUFACTURER_0_ID ) ;
+
+		gammu_error = GSM_GetManufacturer( gammu_fsm, string_buffer ) ;
+		check_gammu_error( gammu_error ) ;
+
+		write_as_binary( buffer, string_buffer ) ;
+
+		break ;
+
+
+	case GET_DEVICE_MODEL_0_ID:
+
+		// -spec get_device_model() -> model_name().
+
+		LOG_DEBUG( "Executing get_device_model/0." ) ;
+		check_arity_is( 0, param_count, GET_DEVICE_MODEL_0_ID ) ;
+
+		gammu_error = GSM_GetModel( gammu_fsm, string_buffer ) ;
+		check_gammu_error( gammu_error ) ;
+
+		write_as_binary( buffer, string_buffer ) ;
+
+		break ;
+
+
+	case GET_FIRMWARE_INFORMATION_0_ID:
+
+		/* -spec get_firmware_information() ->
+		 *   { revision_text(), date_text(), revision_number() }.
+		 */
+
+		LOG_DEBUG( "Executing get_firmware_information/0." ) ;
+		check_arity_is( 0, param_count, GET_FIRMWARE_INFORMATION_0_ID ) ;
+
+		double rev_number ;
+
+		gammu_error = GSM_GetFirmware( gammu_fsm, string_buffer,
+		  aux_string_buffer, &rev_number ) ;
+
+		check_gammu_error( gammu_error ) ;
+
+		res_array[0] = make_bin_string( string_buffer ) ;
+		res_array[1] = make_bin_string( aux_string_buffer ) ;
+		res_array[2] = erl_mk_float( rev_number ) ;
+
+		res_term = erl_mk_tuple( res_array, 3 ) ;
+
+		write_term( buffer, res_term ) ;
+
+		break ;
+
+
+	case GET_IMEI_CODE_0_ID:
+
+		// -spec get_imei_code() -> imei().
+
+		LOG_DEBUG( "Executing get_imei_code/0." ) ;
+
+		check_arity_is( 0, param_count, GET_IMEI_CODE_0_ID ) ;
+
+		gammu_error = GSM_GetIMEI( gammu_fsm, string_buffer ) ;
+		check_gammu_error( gammu_error ) ;
+
+		write_as_binary( buffer, string_buffer ) ;
+
+		break ;
+
+
+	case GET_HARDWARE_INFORMATION_0_ID:
+
+		// -spec get_hardware_information() -> hardware_info().
+
+		LOG_DEBUG( "Executing get_hardware_information/0." ) ;
+
+		check_arity_is( 0, param_count, GET_HARDWARE_INFORMATION_0_ID ) ;
+
+		gammu_error = GSM_GetHardware( gammu_fsm, string_buffer ) ;
+		check_gammu_error( gammu_error ) ;
+
+		write_as_binary( buffer, string_buffer ) ;
+
+		break ;
+
+
+	case GET_IMSI_CODE_0_ID:
+
+		// -spec get_imsi_code() -> imsi_code().
+
+		LOG_DEBUG( "Executing get_imsi_code/0." ) ;
+
+		check_arity_is( 0, param_count, GET_IMSI_CODE_0_ID ) ;
+
+		gammu_error = GSM_GetSIMIMSI( gammu_fsm, string_buffer ) ;
+		check_gammu_error( gammu_error ) ;
+
+		write_as_binary( buffer, string_buffer ) ;
+
+		break ;
+
+
+	case GET_SIGNAL_QUALITY_0_ID:
+
+		/* -spec get_signal_quality() ->
+		 *    { signal_strength(), signal_strength_percent(), error_rate() }.
+		 */
+
+		LOG_DEBUG( "Executing get_signal_quality/0." ) ;
+		check_arity_is( 0, param_count, GET_SIGNAL_QUALITY_0_ID ) ;
+
+		GSM_SignalQuality sq ;
+		gammu_error = GSM_GetSignalQuality( gammu_fsm, &sq ) ;
+		check_gammu_error( gammu_error ) ;
+
+		res_array[0] = erl_mk_int( sq.SignalStrength ) ;
+		res_array[1] = erl_mk_int( sq.SignalPercent ) ;
+		res_array[2] = erl_mk_int( sq.BitErrorRate ) ;
+
+		res_term = erl_mk_tuple( res_array, 3 ) ;
+
+		write_term( buffer, res_term ) ;
 
 		break ;
 
 
 	default:
+
+	  // Hopefully no 'break' has been forgotten above!
+
 	  raise_error( "Unknown function identifier: %u", current_fun_id ) ;
 
 	}
@@ -102,6 +270,71 @@ int main()
 
   }
 
+
+  free( string_buffer ) ;
+
+  stop_gammu( gammu_fsm ) ;
+
   stop_seaplus_driver( buffer ) ;
+
+}
+
+
+void start_gammu( GSM_StateMachine * gammu_fsm )
+{
+
+  LOG_DEBUG( "Starting Gammu." ) ;
+
+  INI_Section * iniConfig ;
+
+  // Autodetect the configuration file (ex: ~/.gammurc):
+  GSM_Error error = GSM_FindGammuRC( &iniConfig, NULL ) ;
+  check_gammu_error( error ) ;
+
+  // Read it:
+  int read_section_count = 0 ;
+
+  // To be populated from INI content:
+  GSM_Config * config = GSM_GetConfig( gammu_fsm, read_section_count ) ;
+  check_gammu_error( error ) ;
+
+  error = GSM_ReadConfig( iniConfig, config, read_section_count ) ;
+  check_gammu_error( error ) ;
+
+  INI_Free( iniConfig ) ;
+
+  // We care only about the first configuration:
+  int section_id = 1 ;
+
+  GSM_SetConfigNum( gammu_fsm, section_id ) ;
+  check_gammu_error( error ) ;
+
+  // Number of replies to await:
+  int reply_count = 3 ;
+
+  error = GSM_InitConnection( gammu_fsm, reply_count ) ;
+  check_gammu_error( error ) ;
+
+}
+
+
+void check_gammu_error( GSM_Error error )
+{
+
+  if ( error != ERR_NONE )
+	  raise_error( "Gammu error: %s", GSM_ErrorString( error ) ) ;
+
+}
+
+
+void stop_gammu( GSM_StateMachine * gammu_fsm )
+{
+
+  LOG_DEBUG( "Stopping Gammu." ) ;
+
+  GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
+  check_gammu_error( error ) ;
+
+  GSM_FreeStateMachine( gammu_fsm ) ;
 
 }
