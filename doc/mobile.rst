@@ -76,13 +76,6 @@ The latest version of this documentation is to be found at the `official Mobile 
 Overview
 ========
 
-
-Important note::
-
-  Currently the implementation of Ceylan-Mobile is just started, and does nothing (except returning the Gammu version!).
-
-
-
 A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, UPS notifications, etc.).
 
 For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:
@@ -487,6 +480,52 @@ C Environment
 One may use a recent enough version of GCC (ex: ``pacman gcc``).
 
 
+Gammu Conventions
+.................
+
+The Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc``.
+
+For debugging purposes, using the ``dummy`` driver is quite convenient.
+
+So for example one could have following content for ``/etc/gammurc``::
+
+ [gammu]
+ model = dummy
+ connection = none
+ device = /tmp/gammu-dummy-device
+
+
+Create that directory (as the user to make use of Gammu) first::
+
+ $ mkdir /tmp/gammu-dummy-device
+
+Otherwise you get: ``you don't have the required permission.``.
+
+It will populate this directory with data faking a real phone::
+
+ /tmp/gammu-dummy-device
+ ├── alarm
+ ├── calendar
+ ├── fs
+ │   └── incoming
+ ├── note
+ ├── operations.log
+ ├── pbk
+ │   ├── DC
+ │   ├── MC
+ │   ├── ME
+ │   ├── RC
+ │   └── SM
+ ├── sms
+ │   ├── 1
+ │   ├── 2
+ │   ├── 3
+ │   ├── 4
+ │   └── 5
+ └── todo
+
+
+
 Myriad, Seaplus and Mobile
 ..........................
 
@@ -502,9 +541,50 @@ Once proper Erlang and C environments are available, the `Ceylan-Myriad reposito
  $ cd Ceylan-Mobile && make all
 
 
-
-
 Then only one will be able to fight encodings (ex: for special characters) and SMS parts and sequences. MMS should provide a lot of fun too.
+
+
+Testing Ceylan-Mobile
+.....................
+
+To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
+
+ $ cd src
+ $ make mobile-test
+		Running unitary test mobile_run (second form) from mobile_test mobile.beam
+  --> Testing module mobile_test.
+
+  Testing the Ceylan-Mobile service.
+  Back-end information: {gammu,{1,40,0}}.
+  Device manufacturer: Gammu.
+  Device model: Dummy.
+  Firmware information: revision is '1.40.0', date is '20150101' and revision number is 1.4.
+  IMEI code: '999999999999999'.
+  Hardware information: 'FOO DUMMY BAR'.
+  IMSI code: '994299429942994'.
+  Signal quality: signal strength is 42 dBm (42%), error rate is 0%.
+  [...]
+
+One may also have a look at the resulting Seaplus log  (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness)::
+
+  [debug] Starting Seaplus session...
+  [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
+  [trace] At start-up: currently allocated blocks: 0; length of freelist: 0.
+  [trace] Driver started.
+  [debug] Starting Gammu.
+  [debug] Executing get_backend_information/0.
+  [debug] Executing get_device_manufacturer/0.
+  [debug] Executing get_device_model/0.
+  [debug] Executing get_firmware_information/0.
+  [debug] Executing get_imei_code/0.
+  [debug] Executing get_hardware_information/0.
+  [debug] Executing get_imsi_code/0.
+  [debug] Executing get_signal_quality/0.
+  [...]
+  [debug] Stopping Gammu.
+  [debug] Stopping the Seaplus C driver.
+  [trace] At stop: currently allocated blocks: 0; length of freelist: 0.
+  [debug] Stopping Seaplus session.
 
 :raw-latex:`\pagebreak`
 
@@ -513,7 +593,7 @@ Then only one will be able to fight encodings (ex: for special characters) and S
 Issues & Planned Enhancements
 =============================
 
-
+The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).
 
 
 
@@ -550,10 +630,19 @@ A source of inspiration has been `python-gammu <https://github.com/gammu/python-
 A Few Information Pointers
 ==========================
 
+About the Telecom Domain
+------------------------
+
 - `USB 3G Modem <https://wiki.archlinux.org/index.php/USB_3G_Modem>`_, by Arch Linux
 - `USB_ModeSwitch <https://wiki.gentoo.org/wiki/USB_ModeSwitch>`_, by Gentoo Linux
 - `About Huawei E173D <https://metodiew.com/huawei-e173s-and-ubuntu/>`_ (and Linux)
 - in French: `with a Raspberry Pi <http://blogmotion.fr/diy/tutoriel-gammu-cle-3g-dongle-16409>`_
+
+About Gammu
+-----------
+
+- `libGammu C API <https://wammu.eu/docs/manual/c/api.html>`_
+- `dummy driver <https://wammu.eu/docs/manual/testing/dummy-driver.html>`_
 
 
 Troubleshooting Telecom-level Issues
