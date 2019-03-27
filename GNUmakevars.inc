@@ -49,9 +49,11 @@ MOBILE_INC = -I$(MOBILE_SRC)
 
 # Main header is typically /usr/include/gammu/gammu.h:
 
-GAMMU_INC_DIR := /usr/include/gammu
+#GAMMU_INC_DIR := /usr/include/gammu
 
-GAMMU_INC = -I$(GAMMU_INC_DIR)
+# Better than -I$(GAMMU_INC_DIR):
+GAMMU_INC := $(shell pkg-config --cflags gammu)
+
 
 
 # Library is typically a symbolic link pointing to, say,
@@ -62,7 +64,7 @@ GAMMU_BASE_NAME := Gammu
 GAMMU_LIB := lib$(GAMMU_BASE_NAME).so
 GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 
-
+GAMMU_LIBS := $(shell pkg-config --libs gammu)
 
 
 DOC_ROOT       = $(MOBILE_TOP)/doc
