@@ -42,14 +42,81 @@
 % Note that the functions below have a spec, yet are not even defined here.
 
 
+
+% API types:
+
+
 -type backend_type() :: 'gammu'.
 
 -type backend_version() :: text_utils:ustring().
+
+-type manufacturer_name() :: text_utils:bin_string().
+
+-type model_name() :: text_utils:bin_string().
+
+-type revision_text() :: text_utils:bin_string().
+-type date_text() :: text_utils:bin_string().
+-type revision_number() :: float().
+
+-type imei() :: text_utils:bin_string().
+
+-type hardware_info() :: text_utils:bin_string().
+
+% International Mobile Subscriber Identity code:
+-type imsi_code() :: text_utils:bin_string().
+
+
+% In dBm:
+-type signal_strength() :: math_utils:integer_percent().
+
+-type signal_strength_percent() :: math_utils:integer_percent().
+
+
+-type error_rate() :: math_utils:integer_percent().
+
+
+% API functions:
 
 
 % Returns the name and version of the backend used.
 -spec get_backend_information() -> { backend_type(), backend_version() }.
 
+
+% Returns the manufacturer of the mobile device.
+-spec get_device_manufacturer() -> manufacturer_name().
+
+
+% Returns the model of the mobile device.
+-spec get_device_model() -> model_name().
+
+
+% Returns the firmware information from the mobile device.
+-spec get_firmware_information() ->
+				   { revision_text(), date_text(), revision_number() }.
+
+
+% Returns the IMEI/serial number of the mobile device.
+-spec get_imei_code() -> imei().
+
+
+% Returns hardware information about the mobile device.
+-spec get_hardware_information() -> hardware_info().
+
+
+% Returns the IMSI (International Mobile Subscriber Identity) code, typically
+% stored in the SIM card.
+%
+-spec get_imsi_code() -> imsi_code().
+
+
+% Reads the current signal quality (strength and error rate).
+-spec get_signal_quality() -> { signal_strength(), signal_strength_percent(),
+								error_rate() }.
+
+
+
+
+% API function overriding section.
 
 
 % We override this function for convenience: the C-side just returns the Gammu
