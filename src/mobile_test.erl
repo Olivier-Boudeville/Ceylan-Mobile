@@ -51,6 +51,35 @@ run() ->
 
 	test_facilities:display( "Back-end information: ~p.", [ Info ] ),
 
+	test_facilities:display( "Device manufacturer: ~s.",
+							 [ mobile:get_device_manufacturer() ] ),
+
+	test_facilities:display( "Device model: ~s.",
+							 [ mobile:get_device_model() ] ),
+
+
+	{ RevisionText, DateText, RevisionNumber } =
+		mobile:get_firmware_information(),
+
+	test_facilities:display( "Firmware information: revision is '~s', "
+							 "date is '~s' and revision number is ~w.",
+							 [ RevisionText, DateText, RevisionNumber ] ),
+
+
+	test_facilities:display( "IMEI code: '~s'.", [ mobile:get_imei_code() ] ),
+
+	test_facilities:display( "Hardware information: '~s'.",
+							 [ mobile:get_hardware_information() ] ),
+
+	test_facilities:display( "IMSI code: '~s'.", [ mobile:get_imsi_code() ] ),
+
+	{ SignalStrength, SignalStrengthPercent, ErrorRate } =
+		mobile:get_signal_quality(),
+
+	test_facilities:display( "Signal quality: signal strength is ~B dBm (~B%), "
+			 "error rate is ~B%.",
+			 [ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
+
 	mobile:stop(),
 
 	test_facilities:stop().
