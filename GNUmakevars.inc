@@ -64,11 +64,6 @@ GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 
 
 
-MOBILE_LIB = libmobile-$(MOBILE_VERSION).so
-MOBILE_LIB_DIR = $(MOBILE_TOP)/src
-MOBILE_LIB_PATH = $(MOBILE_LIB_DIR)/$(MOBILE_LIB)
-MOBILE_LIB_OPT = -L$(MOBILE_LIB_DIR) -lmobile-$(MOBILE_VERSION)
-
 
 DOC_ROOT       = $(MOBILE_TOP)/doc
 MOBILE_DOC_DIR = $(DOC_ROOT)/web/main/documentation/mobile
@@ -175,6 +170,8 @@ endif
 
 # Compiler section.
 
+# (most settings inherited from Seaplus)
+
 MOBILE_BASE_NAME := mobile
 
 
@@ -182,49 +179,10 @@ MOBILE_BASE_NAME := mobile
 # C subsection.
 
 
-ERL_INTERFACE_INC = -I$(ERL_INTERFACE)/include
-ERL_INTERFACE_LIB = -L$(ERL_INTERFACE)/lib
-
-C_COMPILER := $(shell which gcc)
-
-
-C_INC = $(ERL_INTERFACE_INC) -I.
-C_LIB = $(ERL_INTERFACE_LIB)
-
-C_COMPILER_OPT = $(C_INC) $(MOBILE_DEBUG_OPT) -Wall -Werror -g
-
-C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT)
-
 
 
 
 # Erlang subsection.
-
-ERL_BASE := $(HOME)/Software/Erlang/Erlang-current-install
-
-ERL_INTERFACE = $(shell /bin/ls -d $(ERL_BASE)/lib/erlang/lib/erl_interface-*)
-
-# Modules needed for the bootstrapping for others (hence to be built first, and
-# not parse-transformed; typically *used* by parse-transforms, or being a
-# parse-transform themselves)
-#
-# (see the 'Bootstrap section' in GNUmakerules-explicit.inc for their
-# special-cased build)
-#
-ifndef BOOTSTRAP_MODULES
-
-	# We want to bootstrap all relevant Mobile modules (Myriad expected to be
-	# already fully built)
-
-
-	# We list here all the MOBILE-level prerequisites of the MOBILE
-	# parse-transform:
-	#
-	# - mobile_info: to manage class-level information
-
-	#BOOTSTRAP_MODULES = $(MOBILE_TOP)/src/mobile_info.beam
-
-endif
 
 
 ifndef COMPILER_OPT_FOR_MOBILE_CLASSES
@@ -265,49 +223,19 @@ endif
 
 # No PARSE_TRANSFORM_DIRS to be defined here.
 
-
-# So that the (compilation of the) Mobile parse transform can benefit from the
-# Myriad parse transform:
-#
-ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MYRIAD)
-
-
 # Variable defined to be re-usable by upper layers, so that compiling their own
 # parse transforms can take advantage of the Mobile one:
 #
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE =                \
 					$(OVERALL_PZ_OPT)                           \
 					-DMOBILE_ROOT=\"$(MOBILE_TOP)\"             \
-					-pz $(MOBILE_TOP)/src                       \
-					'+{parse_transform,mobile_parse_transform}'
+					-pz $(MOBILE_TOP)/src
 
-
-# We conditionally defined this option, as upper layers may want to trigger
-# their own parse transforms *instead* (probably that will call directly, by
-# themselves, at the Erlang level, this 'MOBILE' parse transform):
-#
-ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT
-
-	   ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
-
-endif
-
-
-# Variable defined to be re-usable by upper layers, so that compiling their own
-# parse transforms can take advantage of the Mobile one:
-#
-COMPILER_PARSE_TRANSFORM_FOR_MOBILE_CLASSES_OPT = \
-					'+{parse_transform,mobile_parse_transform}'
 
 
 # Linking section.
 
-C_LINKER := $(C_COMPILER)
 
-# -shared probably unwelcome with libtool:
-C_LINKER_OPT := -g
-
-C_LINKER_LIBS := $(ERL_INTERFACE_LIB) -lerl_interface -lei -lpthread
 
 
 
