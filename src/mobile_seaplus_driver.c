@@ -25,12 +25,41 @@
 // For exit:
 #include <stdlib.h>
 
+// For signal:
+#include <signal.h>
+
 
 // Forward declarations:
 
 void start_gammu( GSM_StateMachine * gammu_fsm ) ;
 void check_gammu_error( GSM_Error error ) ;
 void stop_gammu( GSM_StateMachine * gammu_fsm ) ;
+
+
+// Defined and used by Seaplus:
+extern FILE * log_file ;
+
+// If wanting to enable global debugging of Gammu in Seaplus logs:
+bool enable_gammu_logging = false ;
+
+// If wanting to enable FSM-level debugging of Gammu in Seaplus logs:
+bool enable_gammu_state_machine_logging = false ;
+
+volatile bool shutdown_requested = false ;
+
+
+
+// Mobile-specific interrupt signal handler.
+void mobile_interrupt( int sign )
+{
+
+  LOG_WARNING( "Signal #%i caught, shutting down Ceylan-Mobile.", sign ) ;
+
+  signal( sign, SIG_IGN ) ;
+
+  shutdown_requested = true ;
+
+}
 
 
 
@@ -47,6 +76,10 @@ int main()
 
   // Gammu is state-machine based:
   GSM_StateMachine * gammu_fsm = GSM_AllocStateMachine() ;
+
+  if ( gammu_fsm == NULL )
+	raise_error( "Unable to allocated Gammu state machine." ) ;
+
 
   // Buffer to store temporary strings:
   char * string_buffer = malloc( 250 * sizeof(char) ) ;
@@ -285,6 +318,42 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   LOG_DEBUG( "Starting Gammu." ) ;
 
+  // Registering our signal handler:
+  signal( SIGINT, mobile_interrupt ) ;
+  signal( SIGTERM, mobile_interrupt) ;
+
+  GSM_Debug_Info * debug_info ;
+
+  FILE * debug_file = stderr ;
+
+  if ( log_file != NULL )
+	debug_file = log_file ;
+
+  if ( enable_gammu_logging )
+  {
+
+	debug_info = GSM_GetGlobalDebug() ;
+
+	GSM_SetDebugFileDescriptor( debug_file, FALSE, debug_info ) ;
+
+	GSM_SetDebugLevel( "textall", debug_info ) ;
+
+  }
+
+
+  if( enable_gammu_state_machine_logging )
+  {
+
+	debug_info = GSM_GetDebug( gammu_fsm ) ;
+
+	GSM_SetDebugGlobal( FALSE, debug_info ) ;
+
+	GSM_SetDebugFileDescriptor( debug_file, FALSE, debug_info ) ;
+
+	GSM_SetDebugLevel( "textall", debug_info ) ;
+
+  }
+
   INI_Section * iniConfig ;
 
   // Autodetect the configuration file (ex: ~/.gammurc):
@@ -332,8 +401,13 @@ void stop_gammu( GSM_StateMachine * gammu_fsm )
 
   LOG_DEBUG( "Stopping Gammu." ) ;
 
-  GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
-  check_gammu_error( error ) ;
+  if ( GSM_IsConnected( gammu_fsm ) )
+  {
+
+	GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
+	check_gammu_error( error ) ;
+
+  }
 
   GSM_FreeStateMachine( gammu_fsm ) ;
 
