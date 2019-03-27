@@ -32,10 +32,6 @@
 -module(mobile).
 
 
-% As is specifically overridden:
-%-export([ get_backend_information/0 ]).
-
-
 % For the Seaplus support:
 -include("seaplus.hrl").
 
@@ -60,11 +56,18 @@
 % version as a string (ex: "1.40.0") and we use Myriad to easily convert it into
 % {1,40,0}:
 %
-%% get_backend_information() ->
+get_backend_information() ->
 
-%%	{ Backend, VersionString } = seaplus:call_port_for(
-%%					   seaplus:get_service_port_key_for( ?MODULE ), 1, [] ),
+	% These two pseudo-calls are replaced at compilation time by the Seaplus
+	% parse transform with the relevant immediate values:
 
-%%	VersionTuple = basic_utils:parse_version( VersionString ),
+	PortKey = seaplus:get_service_port_key(),
+	FunctionDriverId = seaplus:get_function_driver_id(),
 
-%%	{ Backend, VersionTuple }.
+	{ Backend, VersionString } =
+		seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ),
+
+	% Overridding allows to perform a bit of post-processing here:
+	VersionTuple = basic_utils:parse_version( VersionString ),
+
+	{ Backend, VersionTuple }.
