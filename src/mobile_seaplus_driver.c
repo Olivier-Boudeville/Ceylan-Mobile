@@ -28,6 +28,30 @@
 // For signal:
 #include <signal.h>
 
+// For memset:
+#include <string.h>
+
+
+/* Apparently, when the callback set in SetSendSMSStatusCallback/3 is triggered,
+   no information allows to relate a specific SMS that was sent to that callback
+   (message reference is set by the carrier in the PDU received back).
+
+   So, if sending a series of SMS in a row, we can only suppose that the
+   callbacks triggered will be in-order (first callback corresponding to first
+   SMS sent, etc.).
+
+   Anyway, even with the dummy device, if performing two sendings done in a row,
+   the callback for the first will be triggered before the second is sent.
+
+ */
+
+
+/* The reference onto a SMS is supposed to be an unsigned char, but the
+ * signature of the callback tells otherwise:
+ *
+ */
+typedef int sms_tpmr ;
+
 
 // Forward declarations:
 
@@ -48,6 +72,14 @@ bool enable_gammu_state_machine_logging = false ;
 volatile bool shutdown_requested = false ;
 
 
+// Tells whether the last SMS sending succeeded:
+volatile bool sms_sending_succeeded = false ;
+
+
+GSM_SMSMessage sms ;
+
+GSM_SMSC device_smsc ;
+
 
 // Mobile-specific interrupt signal handler.
 void mobile_interrupt( int sign )
@@ -58,6 +90,86 @@ void mobile_interrupt( int sign )
   signal( sign, SIG_IGN ) ;
 
   shutdown_requested = true ;
+
+}
+
+
+/*
+ * An interrupt-specific buffer, not to interfere with the main one that could
+ * be already in use. We believe that up to one interrupt can be active at any
+ * time (not multiple ones).
+ *
+ */
+byte * interrupt_buffer = NULL ;
+
+//ETERM * interrupt_array[ 2 ] ;
+ETERM ** interrupt_array = NULL ;
+
+ETERM * interrupt_term = NULL ;
+
+
+// Poor's man pseudo-mutex:
+bool interrupt_in_use = false ;
+
+
+/*
+ * Callback triggered by Gammu after a request to send an SMS was issued.
+ *
+ */
+void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
+  sms_tpmr ref, void * user_data )
+{
+
+  LOG_DEBUG( "Entering callback." ) ;
+
+  //if ( interrupt_in_use )
+  //	raise_error( "Unexpected nested interrupt" ) ;
+
+  interrupt_in_use = true ;
+  interrupt_array = (ETERM**) malloc( 2*sizeof(ETERM*) ) ;
+
+  if ( status == 0 )
+  {
+
+	LOG_DEBUG( "Received a success notification regarding the sending of "
+	  "the SMS whose reference is #%i on device %s.", ref,
+	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
+
+	interrupt_array[0] = erl_mk_atom( "success" ) ;
+
+	if ( interrupt_array[0] == NULL )
+	  raise_error( "BOOM1" ) ;
+
+	interrupt_array[1] = erl_mk_int( ref ) ;
+
+	if ( interrupt_array[1] == NULL )
+	  raise_error( "BOOM2" ) ;
+
+	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
+	if( interrupt_term == NULL )
+	  raise_error( "BOOM3" ) ;
+
+	write_term( interrupt_buffer, interrupt_term ) ;
+
+  }
+  else
+  {
+
+	LOG_WARNING( "Received a failure notification regarding the sending of "
+	  "the SMS whose reference is #%i on device %s.", ref,
+	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
+
+	interrupt_array[0] = erl_mk_atom( "failure" ) ;
+	interrupt_array[1] = erl_mk_int( ref ) ;
+	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
+
+	write_term( interrupt_buffer, interrupt_term ) ;
+
+  }
+
+  interrupt_in_use = false ;
+
+  LOG_DEBUG( "Leaving callback." ) ;
 
 }
 
@@ -78,8 +190,9 @@ int main()
   GSM_StateMachine * gammu_fsm = GSM_AllocStateMachine() ;
 
   if ( gammu_fsm == NULL )
-	raise_error( "Unable to allocated Gammu state machine." ) ;
+	raise_error( "Unable to allocate Gammu state machine." ) ;
 
+  // Pre-allocations:
 
   // Buffer to store temporary strings:
   char * string_buffer = malloc( 250 * sizeof(char) ) ;
@@ -87,7 +200,7 @@ int main()
   // Secondary buffer to store temporary strings:
   char * aux_string_buffer = malloc( 250 * sizeof(char) ) ;
 
-  /*
+   /*
    * Used for tuples, as the same variable name cannot be used in different case
    * blocks:
    *
@@ -158,6 +271,20 @@ int main()
 		res_term = erl_mk_tuple( res_array, 2 ) ;
 
 		write_term( buffer, res_term ) ;
+
+		break ;
+
+
+	case GET_DEVICE_NAME_0_ID:
+
+		// -spec get_device_name() -> device_name().
+
+		LOG_DEBUG( "Executing get_device_name/0." ) ;
+		check_arity_is( 0, param_count, GET_DEVICE_NAME_0_ID ) ;
+
+		const char * device_name = GSM_GetConfig( gammu_fsm, -1 )->Device ;
+
+		write_as_binary( buffer, device_name ) ;
 
 		break ;
 
@@ -291,6 +418,69 @@ int main()
 		break ;
 
 
+	case SEND_SMS_2_ID:
+
+		/* -spec send_sms( message(), mobile_number() ) -> sms_id().
+		 *
+		 */
+
+		LOG_DEBUG( "Executing send_sms/2." ) ;
+		check_arity_is( 2, param_count, SEND_SMS_2_ID ) ;
+
+		// Clean-up the struct:
+		memset( &sms, 0, sizeof( sms ) ) ;
+
+		char * message = get_parameter_as_binary( 1, parameters ) ;
+
+		if ( message == NULL )
+		  raise_error( "SMS message could not be obtained." ) ;
+
+		EncodeUnicode( sms.Text, message, strlen( message ) ) ;
+
+		// Message recipient:
+		char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
+
+		if ( mobile_number == NULL )
+		  raise_error( "SMS mobile number could not be obtained." ) ;
+
+		EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
+
+		LOG_DEBUG( "A1." ) ;
+		// We want to submit message ("SMS for sending or in Outbox"):
+		sms.PDU = SMS_Submit ;
+
+		// No User Data Header, just a plain message:
+		sms.UDH.Type = UDH_NoUDH ;
+
+		// We used default coding for text:
+		sms.Coding = SMS_Coding_Default_No_Compression ;
+
+		// Class 1 message (normal):
+		sms.Class = 1 ;
+
+		LOG_DEBUG( "A5." ) ;
+		// Sets the SMSC number in message:
+		CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
+		LOG_DEBUG( "A10." ) ;
+
+		// Resets it first, some phones might give instant response:
+		sms_sending_succeeded = false ;
+
+		// Finally:
+		gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
+		LOG_DEBUG( "A40." ) ;
+		check_gammu_error( gammu_error ) ;
+		LOG_DEBUG( "A50." ) ;
+
+		/* We do not have yet anything to return, but the callback will. */
+		//write_as_XXX( buffer, ... ) ;
+		//write_as_binary( buffer, "Hello!" ) ;
+		erl_free( message ) ;
+		erl_free( mobile_number ) ;
+		LOG_DEBUG( "A100." ) ;
+
+		break ;
+
 	default:
 
 	  // Hopefully no 'break' has been forgotten above!
@@ -383,6 +573,22 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
   check_gammu_error( error ) ;
+
+  // No user data:
+  GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback, NULL ) ;
+
+  // We need to know SMSC number:
+  device_smsc.Location = 1 ;
+  error = GSM_GetSMSC( gammu_fsm, &device_smsc ) ;
+  check_gammu_error( error ) ;
+
+  if ( interrupt_buffer != NULL )
+	raise_error( "Interrupt buffer already set." ) ;
+
+  interrupt_buffer = (byte *) malloc( buffer_size ) ;
+
+  if ( interrupt_buffer == NULL )
+	raise_error( "Interrupt buffer allocation failed." ) ;
 
 }
 
