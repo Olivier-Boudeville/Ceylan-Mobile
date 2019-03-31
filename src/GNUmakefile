@@ -1,7 +1,8 @@
 MOBILE_TOP = ..
 
 
-.PHONY: run-driver mobile-test info info-compile info-libs clean clean-local
+.PHONY: run-driver mobile-test mobile-test-debug \
+		info info-compile info-libs clean clean-local
 
 
 %.o: %.c
@@ -44,8 +45,15 @@ run-driver: $(TARGET_DRIVER_EXEC) $(GAMMU_LIB_PATH)
 
 
 
+# Displays the logs iff failed:
 mobile-test: all
 	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)"|| cat seaplus-driver.*.log
+
+
+# Displays the logs in all cases:
+mobile-test-debug: all
+	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)" ; cat seaplus-driver.*.log
+
 
 test: test-local
 
