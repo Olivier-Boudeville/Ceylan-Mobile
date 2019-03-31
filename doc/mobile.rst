@@ -630,19 +630,31 @@ A source of inspiration has been `python-gammu <https://github.com/gammu/python-
 A Few Information Pointers
 ==========================
 
-About the Telecom Domain
-------------------------
+About 3G Devices
+----------------
 
 - `USB 3G Modem <https://wiki.archlinux.org/index.php/USB_3G_Modem>`_, by Arch Linux
 - `USB_ModeSwitch <https://wiki.gentoo.org/wiki/USB_ModeSwitch>`_, by Gentoo Linux
 - `About Huawei E173D <https://metodiew.com/huawei-e173s-and-ubuntu/>`_ (and Linux)
 - in French: `with a Raspberry Pi <http://blogmotion.fr/diy/tutoriel-gammu-cle-3g-dongle-16409>`_
 
+
+
 About Gammu
 -----------
 
 - `libGammu C API <https://wammu.eu/docs/manual/c/api.html>`_
 - `dummy driver <https://wammu.eu/docs/manual/testing/dummy-driver.html>`_
+
+
+About SMS
+---------
+
+- `IMSI <https://en.wikipedia.org/wiki/International_mobile_subscriber_identity>`_: identifier of a SIM card, i.e. a 64-bit field designating a user (*International Mobile Subscriber Identity*)
+- `SMSC <https://en.wikipedia.org/wiki/Short_Message_service_center>`_: SMS operator gateway (*Short Message Service Center*)
+- `UDH <https://en.wikipedia.org/wiki/User_Data_Header>`_: optional binary SMS header (*User Data Header*)
+- `SMS class <https://en.wikipedia.org/wiki/Data_Coding_Scheme#Message_Classes>`_
+
 
 
 Troubleshooting Telecom-level Issues
