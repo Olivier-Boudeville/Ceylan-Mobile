@@ -64,7 +64,11 @@ GAMMU_BASE_NAME := Gammu
 GAMMU_LIB := lib$(GAMMU_BASE_NAME).so
 GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 
+# If wanting to use the system-wide library:
 GAMMU_LIBS := $(shell pkg-config --libs gammu)
+
+# If wanting to use aany custom (ex: debug) build:
+#GAMMU_LIBS := -L$(HOME)/Software/libgammu/lib -lGammu
 
 
 DOC_ROOT       = $(MOBILE_TOP)/doc
