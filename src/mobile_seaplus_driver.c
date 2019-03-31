@@ -34,14 +34,15 @@
 
 /* Apparently, when the callback set in SetSendSMSStatusCallback/3 is triggered,
    no information allows to relate a specific SMS that was sent to that callback
-   (message reference is set by the carrier in the PDU received back).
+   (message reference is set by the carrier in the PDU that is received back).
 
    So, if sending a series of SMS in a row, we can only suppose that the
    callbacks triggered will be in-order (first callback corresponding to first
    SMS sent, etc.).
 
-   Anyway, even with the dummy device, if performing two sendings done in a row,
-   the callback for the first will be triggered before the second is sent.
+   Anyway, even with the dummy device, if performing two sendings in a row, the
+   callback for the first will be triggered before the second is sent, so no
+   problematic interleaving shall happen.
 
  */
 
@@ -102,8 +103,7 @@ void mobile_interrupt( int sign )
  */
 byte * interrupt_buffer = NULL ;
 
-//ETERM * interrupt_array[ 2 ] ;
-ETERM ** interrupt_array = NULL ;
+ETERM * interrupt_array[ 2 ] ;
 
 ETERM * interrupt_term = NULL ;
 
@@ -120,13 +120,16 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
   sms_tpmr ref, void * user_data )
 {
 
-  LOG_DEBUG( "Entering callback." ) ;
+  //LOG_DEBUG( "Entering callback." ) ;
 
-  //if ( interrupt_in_use )
-  //	raise_error( "Unexpected nested interrupt" ) ;
+  /* Not expected to ever happen, as the (Erlang) caller is blocked, waiting
+   * for an answer not sent yet.
+   *
+   */
+  if ( interrupt_in_use )
+	raise_error( "Unexpected nested interrupt" ) ;
 
   interrupt_in_use = true ;
-  interrupt_array = (ETERM**) malloc( 2*sizeof(ETERM*) ) ;
 
   if ( status == 0 )
   {
@@ -138,16 +141,17 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
 	interrupt_array[0] = erl_mk_atom( "success" ) ;
 
 	if ( interrupt_array[0] == NULL )
-	  raise_error( "BOOM1" ) ;
+	  raise_error( "Failed to create success atom term" ) ;
 
 	interrupt_array[1] = erl_mk_int( ref ) ;
 
 	if ( interrupt_array[1] == NULL )
-	  raise_error( "BOOM2" ) ;
+	  raise_error( "Failed to create reference int term" ) ;
 
 	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
+
 	if( interrupt_term == NULL )
-	  raise_error( "BOOM3" ) ;
+	  raise_error( "Failed to create success pair" ) ;
 
 	write_term( interrupt_buffer, interrupt_term ) ;
 
@@ -160,8 +164,19 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
 	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
 
 	interrupt_array[0] = erl_mk_atom( "failure" ) ;
+
+	if ( interrupt_array[0] == NULL )
+	  raise_error( "Failed to create success failure term" ) ;
+
 	interrupt_array[1] = erl_mk_int( ref ) ;
+
+	if ( interrupt_array[1] == NULL )
+	  raise_error( "Failed to create reference int term" ) ;
+
 	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
+
+	if( interrupt_term == NULL )
+	  raise_error( "Failed to create failure pair" ) ;
 
 	write_term( interrupt_buffer, interrupt_term ) ;
 
@@ -169,7 +184,7 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
 
   interrupt_in_use = false ;
 
-  LOG_DEBUG( "Leaving callback." ) ;
+  //LOG_DEBUG( "Leaving callback." ) ;
 
 }
 
@@ -445,7 +460,6 @@ int main()
 
 		EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
 
-		LOG_DEBUG( "A1." ) ;
 		// We want to submit message ("SMS for sending or in Outbox"):
 		sms.PDU = SMS_Submit ;
 
@@ -458,33 +472,28 @@ int main()
 		// Class 1 message (normal):
 		sms.Class = 1 ;
 
-		LOG_DEBUG( "A5." ) ;
 		// Sets the SMSC number in message:
 		CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
-		LOG_DEBUG( "A10." ) ;
 
 		// Resets it first, some phones might give instant response:
 		sms_sending_succeeded = false ;
 
 		// Finally:
 		gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
-		LOG_DEBUG( "A40." ) ;
 		check_gammu_error( gammu_error ) ;
-		LOG_DEBUG( "A50." ) ;
 
 		/* We do not have yet anything to return, but the callback will. */
 		//write_as_XXX( buffer, ... ) ;
-		//write_as_binary( buffer, "Hello!" ) ;
+
 		erl_free( message ) ;
 		erl_free( mobile_number ) ;
-		LOG_DEBUG( "A100." ) ;
 
 		break ;
+
 
 	default:
 
 	  // Hopefully no 'break' has been forgotten above!
-
 	  raise_error( "Unknown function identifier: %u", current_fun_id ) ;
 
 	}
