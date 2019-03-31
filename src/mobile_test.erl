@@ -51,6 +51,9 @@ run() ->
 
 	test_facilities:display( "Back-end information: ~p.", [ Info ] ),
 
+	test_facilities:display( "Device name: ~s.",
+							 [ mobile:get_device_name() ] ),
+
 	test_facilities:display( "Device manufacturer: ~s.",
 							 [ mobile:get_device_manufacturer() ] ),
 
@@ -79,6 +82,16 @@ run() ->
 	test_facilities:display( "Signal quality: signal strength is ~B dBm (~B%), "
 			 "error rate is ~B%.",
 			 [ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
+
+	FirstSMSReport = mobile:send_sms( "Hello world!", "+0616833723" ),
+
+	test_facilities:display( "Sent first SMS whose report is: ~p.",
+							 [ FirstSMSReport ] ),
+
+	SecondSMSReport = mobile:send_sms( "Goodbye!", "+0616833723" ),
+
+	test_facilities:display( "Sent second SMS whose identifier is: ~p.",
+							 [ SecondSMSReport ] ),
 
 	mobile:stop(),
 
