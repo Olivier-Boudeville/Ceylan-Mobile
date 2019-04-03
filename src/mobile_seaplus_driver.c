@@ -96,9 +96,6 @@ volatile bool shutdown_requested = false ;
 volatile status sms_send_status = false ;
 
 
-// Gammu is state-machine based, global state difficult to avoid here:
-//GSM_StateMachine * gammu_fsm = NULL ;
-
 GSM_SMSMessage sms ;
 
 GSM_SMSC device_smsc ;
@@ -418,9 +415,31 @@ int main( int argc, char **argv )
 		check_arity_is( 0, param_count, GET_HARDWARE_INFORMATION_0_ID ) ;
 
 		gammu_error = GSM_GetHardware( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
 
-		write_as_binary( buffer, string_buffer ) ;
+		if ( gammu_error == ERR_NONE )
+		{
+
+		  write_as_binary( buffer, string_buffer ) ;
+
+		}
+		else
+		{
+
+		  /*
+		   * Returning a string instead (convention here is that an exception is
+		   * thrown by mobile.erl should a non-binary result be received):
+		   *
+		   */
+
+		  int res = sprintf( string_buffer, "Gammu error:: %s",
+			GSM_ErrorString( gammu_error ) ) ;
+
+		  if ( res < 0 )
+			raise_gammu_error( gammu_fsm, "Error reporting failed" ) ;
+
+		  write_as_string( buffer, string_buffer ) ;
+
+		}
 
 		break ;
 
@@ -633,6 +652,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
 	  LOG_DEBUG( "Gammu state machine logs directed to standard error." ) ;
 	  debug_file = stderr ;
+
 	}
 
 	debug_info = GSM_GetDebug( gammu_fsm ) ;
