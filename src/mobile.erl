@@ -127,6 +127,10 @@
 
 
 % Returns hardware information about the (supposedly connected) mobile device.
+%
+% Throws an exception on failure, typically if the operation is not supported by
+% the device.
+%
 -spec get_hardware_information() -> hardware_info().
 
 
@@ -151,6 +155,29 @@
 
 
 % API function overriding section.
+
+
+% We override this function to throw an exception on failure, rather than
+% sending tagged tuples for example.
+%
+get_hardware_information() ->
+
+	% These two pseudo-calls are replaced at compilation time by the Seaplus
+	% parse transform with the relevant immediate values:
+
+	PortKey = seaplus:get_service_port_key(),
+	FunctionDriverId = seaplus:get_function_driver_id(),
+
+	case seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ) of
+
+		Bin when is_binary( Bin ) ->
+			Bin;
+
+		Other ->
+			throw( Other )
+
+	end.
+
 
 
 % We override this function for convenience: the C-side just returns the Gammu
