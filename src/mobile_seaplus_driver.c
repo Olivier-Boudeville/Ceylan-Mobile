@@ -31,6 +31,10 @@
 // For memset:
 #include <string.h>
 
+// For va_start and friends:
+#include <stdarg.h>
+
+
 
 /* Apparently, when the callback set in SetSendSMSStatusCallback/3 is triggered,
    no information allows to relate a specific SMS that was sent to that callback
@@ -57,8 +61,14 @@ typedef int sms_tpmr ;
 // Forward declarations:
 
 void start_gammu( GSM_StateMachine * gammu_fsm ) ;
-void check_gammu_error( GSM_Error error ) ;
+
+void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm ) ;
+
+void raise_gammu_error( GSM_StateMachine * gammu_fsm,
+  const char * format, ... ) ;
+
 void stop_gammu( GSM_StateMachine * gammu_fsm ) ;
+
 
 
 // Defined and used by Seaplus:
@@ -70,29 +80,28 @@ bool enable_gammu_logging = false ;
 // If wanting to enable FSM-level debugging of Gammu in Seaplus logs:
 bool enable_gammu_state_machine_logging = false ;
 
+
+// Typically for a sending:
+typedef int status ;
+
+
+// UNIX signal:
+typedef int signal_reported ;
+
+
 volatile bool shutdown_requested = false ;
 
 
 // Tells whether the last SMS sending succeeded:
-volatile bool sms_sending_succeeded = false ;
+volatile status sms_send_status = false ;
 
+
+// Gammu is state-machine based, global state difficult to avoid here:
+//GSM_StateMachine * gammu_fsm = NULL ;
 
 GSM_SMSMessage sms ;
 
 GSM_SMSC device_smsc ;
-
-
-// Mobile-specific interrupt signal handler.
-void mobile_interrupt( int sign )
-{
-
-  LOG_WARNING( "Signal #%i caught, shutting down Ceylan-Mobile.", sign ) ;
-
-  signal( sign, SIG_IGN ) ;
-
-  shutdown_requested = true ;
-
-}
 
 
 /*
@@ -115,8 +124,10 @@ bool interrupt_in_use = false ;
 /*
  * Callback triggered by Gammu after a request to send an SMS was issued.
  *
+ * Returns a relevant term to the Erlang side.
+ *
  */
-void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
+void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
   sms_tpmr ref, void * user_data )
 {
 
@@ -127,31 +138,35 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
    *
    */
   if ( interrupt_in_use )
-	raise_error( "Unexpected nested interrupt" ) ;
+	raise_gammu_error( gammu_fsm, "Unexpected nested interrupt" ) ;
 
   interrupt_in_use = true ;
 
-  if ( status == 0 )
+  if ( send_status == 0 )
   {
+
+	// In case of success, returning { send_success, SMSRef }:
+
+	sms_send_status = ERR_NONE ;
 
 	LOG_DEBUG( "Received a success notification regarding the sending of "
 	  "the SMS whose reference is #%i on device %s.", ref,
 	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
 
-	interrupt_array[0] = erl_mk_atom( "success" ) ;
+	interrupt_array[0] = erl_mk_atom( "send_success" ) ;
 
 	if ( interrupt_array[0] == NULL )
-	  raise_error( "Failed to create success atom term" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create success atom term" ) ;
 
 	interrupt_array[1] = erl_mk_int( ref ) ;
 
 	if ( interrupt_array[1] == NULL )
-	  raise_error( "Failed to create reference int term" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create reference int term" ) ;
 
 	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
 
 	if( interrupt_term == NULL )
-	  raise_error( "Failed to create success pair" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create success pair" ) ;
 
 	write_term( interrupt_buffer, interrupt_term ) ;
 
@@ -159,24 +174,28 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
   else
   {
 
+	// In case of failure, returning { send_failure, SMSRef }:
+
+	sms_send_status = ERR_UNKNOWN ;
+
 	LOG_WARNING( "Received a failure notification regarding the sending of "
 	  "the SMS whose reference is #%i on device %s.", ref,
 	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
 
-	interrupt_array[0] = erl_mk_atom( "failure" ) ;
+	interrupt_array[0] = erl_mk_atom( "send_failure" ) ;
 
 	if ( interrupt_array[0] == NULL )
-	  raise_error( "Failed to create success failure term" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create success failure term" ) ;
 
 	interrupt_array[1] = erl_mk_int( ref ) ;
 
 	if ( interrupt_array[1] == NULL )
-	  raise_error( "Failed to create reference int term" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create reference int term" ) ;
 
 	interrupt_term = erl_mk_tuple( interrupt_array, 2 ) ;
 
 	if( interrupt_term == NULL )
-	  raise_error( "Failed to create failure pair" ) ;
+	  raise_gammu_error( gammu_fsm, "Failed to create failure pair" ) ;
 
 	write_term( interrupt_buffer, interrupt_term ) ;
 
@@ -189,8 +208,21 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, int status,
 }
 
 
+// Mobile-specific interrupt signal handler.
+void mobile_interrupt( signal_reported sign )
+{
 
-int main()
+  LOG_WARNING( "Signal #%i caught, shutting down Ceylan-Mobile.", sign ) ;
+
+  signal( sign, SIG_IGN ) ;
+
+  shutdown_requested = true ;
+
+}
+
+
+// No argumeter expected nor taken into account:
+int main( int argc, char **argv )
 {
 
   // Provided by the Seaplus library:
@@ -205,7 +237,7 @@ int main()
   GSM_StateMachine * gammu_fsm = GSM_AllocStateMachine() ;
 
   if ( gammu_fsm == NULL )
-	raise_error( "Unable to allocate Gammu state machine." ) ;
+	raise_gammu_error( gammu_fsm, "Unable to allocate Gammu state machine." ) ;
 
   // Pre-allocations:
 
@@ -312,7 +344,7 @@ int main()
 		check_arity_is( 0, param_count, GET_DEVICE_MANUFACTURER_0_ID ) ;
 
 		gammu_error = GSM_GetManufacturer( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		write_as_binary( buffer, string_buffer ) ;
 
@@ -327,7 +359,7 @@ int main()
 		check_arity_is( 0, param_count, GET_DEVICE_MODEL_0_ID ) ;
 
 		gammu_error = GSM_GetModel( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		write_as_binary( buffer, string_buffer ) ;
 
@@ -348,7 +380,7 @@ int main()
 		gammu_error = GSM_GetFirmware( gammu_fsm, string_buffer,
 		  aux_string_buffer, &rev_number ) ;
 
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		res_array[0] = make_bin_string( string_buffer ) ;
 		res_array[1] = make_bin_string( aux_string_buffer ) ;
@@ -370,7 +402,7 @@ int main()
 		check_arity_is( 0, param_count, GET_IMEI_CODE_0_ID ) ;
 
 		gammu_error = GSM_GetIMEI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		write_as_binary( buffer, string_buffer ) ;
 
@@ -386,7 +418,7 @@ int main()
 		check_arity_is( 0, param_count, GET_HARDWARE_INFORMATION_0_ID ) ;
 
 		gammu_error = GSM_GetHardware( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		write_as_binary( buffer, string_buffer ) ;
 
@@ -402,7 +434,7 @@ int main()
 		check_arity_is( 0, param_count, GET_IMSI_CODE_0_ID ) ;
 
 		gammu_error = GSM_GetSIMIMSI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		write_as_binary( buffer, string_buffer ) ;
 
@@ -420,7 +452,7 @@ int main()
 
 		GSM_SignalQuality sq ;
 		gammu_error = GSM_GetSignalQuality( gammu_fsm, &sq ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		res_array[0] = erl_mk_int( sq.SignalStrength ) ;
 		res_array[1] = erl_mk_int( sq.SignalPercent ) ;
@@ -448,7 +480,7 @@ int main()
 		char * message = get_parameter_as_binary( 1, parameters ) ;
 
 		if ( message == NULL )
-		  raise_error( "SMS message could not be obtained." ) ;
+		  raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
 
 		EncodeUnicode( sms.Text, message, strlen( message ) ) ;
 
@@ -456,7 +488,7 @@ int main()
 		char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
 
 		if ( mobile_number == NULL )
-		  raise_error( "SMS mobile number could not be obtained." ) ;
+		  raise_gammu_error( gammu_fsm, "SMS mobile number could not be obtained." ) ;
 
 		EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
 
@@ -476,14 +508,36 @@ int main()
 		CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
 
 		// Resets it first, some phones might give instant response:
-		sms_sending_succeeded = false ;
+		sms_send_status = ERR_TIMEOUT ;
 
 		// Finally:
 		gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
-		check_gammu_error( gammu_error ) ;
+		check_gammu_error( gammu_error, gammu_fsm ) ;
 
 		/* We do not have yet anything to return, but the callback will. */
 		//write_as_XXX( buffer, ... ) ;
+
+		/* However, using real devices (not the dummy one), we see that the
+		 * callback is never triggered unless we poll explicitly from a network
+		 * reply.
+		 *
+		 * Loops as long as the status is ERR_TIMEOUT:
+		 *
+		 */
+		while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+		{
+
+		  // Expected to trigger sms_sending_callback/4:
+		  GSM_ReadDevice( gammu_fsm, true ) ;
+
+		  /* Answer to be sent by the callback, just ensuring here we read the
+		   * device until an answer is known.
+		   *
+		   * Loops as long as the status is ERR_TIMEOUT:
+		   *
+		   */
+
+		}
 
 		erl_free( message ) ;
 		erl_free( mobile_number ) ;
@@ -494,7 +548,7 @@ int main()
 	default:
 
 	  // Hopefully no 'break' has been forgotten above!
-	  raise_error( "Unknown function identifier: %u", current_fun_id ) ;
+	  raise_gammu_error( gammu_fsm, "Unknown function identifier: %u", current_fun_id ) ;
 
 	}
 
@@ -557,17 +611,17 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   // Autodetect the configuration file (ex: ~/.gammurc):
   GSM_Error error = GSM_FindGammuRC( &iniConfig, NULL ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   // Read it:
   int read_section_count = 0 ;
 
   // To be populated from INI content:
   GSM_Config * config = GSM_GetConfig( gammu_fsm, read_section_count ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   error = GSM_ReadConfig( iniConfig, config, read_section_count ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   INI_Free( iniConfig ) ;
 
@@ -575,13 +629,13 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   int section_id = 1 ;
 
   GSM_SetConfigNum( gammu_fsm, section_id ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   // Number of replies to await:
   int reply_count = 3 ;
 
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   // No user data:
   GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback, NULL ) ;
@@ -589,24 +643,53 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   // We need to know SMSC number:
   device_smsc.Location = 1 ;
   error = GSM_GetSMSC( gammu_fsm, &device_smsc ) ;
-  check_gammu_error( error ) ;
+  check_gammu_error( error, gammu_fsm ) ;
 
   if ( interrupt_buffer != NULL )
-	raise_error( "Interrupt buffer already set." ) ;
+	raise_gammu_error( gammu_fsm, "Interrupt buffer already set." ) ;
 
   interrupt_buffer = (byte *) malloc( buffer_size ) ;
 
   if ( interrupt_buffer == NULL )
-	raise_error( "Interrupt buffer allocation failed." ) ;
+	raise_gammu_error( gammu_fsm, "Interrupt buffer allocation failed." ) ;
 
 }
 
 
-void check_gammu_error( GSM_Error error )
+void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm )
 {
 
   if ( error != ERR_NONE )
-	  raise_error( "Gammu error: %s", GSM_ErrorString( error ) ) ;
+	raise_gammu_error( gammu_fsm, "Gammu error: %s",
+	  GSM_ErrorString( error ) ) ;
+
+}
+
+
+/* Raises specified error: reports it in logs, shutdown relevant phone services,
+ * and halts.
+ *
+ */
+void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
+{
+
+  if ( gammu_fsm != NULL )
+  {
+
+	if ( GSM_IsConnected( gammu_fsm ) )
+	  GSM_TerminateConnection( gammu_fsm ) ;
+  }
+
+  // Uses Seaplus service, variadic-forwarding:
+
+  va_list extra_args ;
+
+  va_start( extra_args, format ) ;
+
+  raise_error( format, extra_args ) ;
+
+  // This clean-up will never happen:
+  va_end( extra_args ) ;
 
 }
 
@@ -620,7 +703,7 @@ void stop_gammu( GSM_StateMachine * gammu_fsm )
   {
 
 	GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
-	check_gammu_error( error ) ;
+	check_gammu_error( error, gammu_fsm ) ;
 
   }
 
