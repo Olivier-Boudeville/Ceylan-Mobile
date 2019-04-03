@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Sunday, March 24, 2019
+:Lastly updated: Wednesday, April 3, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -352,6 +352,12 @@ And, as ``sheldon``::
 
   $ newgrp uucp
 
+We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root::
+
+ $ touch /var/log/gammu-ceylan.log
+ $ chgrp uucp /var/log/gammu-ceylan.log
+
+This should be sufficient so that ``sheldon`` is able to send SMS, not involving ``root`` anymore.
 
 
 Wrapping-up Telecom Configuration
@@ -394,7 +400,7 @@ This can be checked::
 
 
 
-Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible number (like one's mobile)::
+Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible number (like one's mobile), and root is used at first to overcome any permission issue::
 
   $ gammu sendsms TEXT ${TARGET_NUMBER} -text "Hello world!"
   If you want break, press Ctrl+C...
@@ -443,6 +449,7 @@ This can be monitored::
   [...]
   Leaving monitor mode...
 
+Then the same could be attempted with this time a non-privileged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
 
 Once successful, one will be able to send SMS back and forth between the 3G device and "normal" phones::
 
