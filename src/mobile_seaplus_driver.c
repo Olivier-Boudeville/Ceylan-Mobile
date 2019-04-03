@@ -75,7 +75,7 @@ void stop_gammu( GSM_StateMachine * gammu_fsm ) ;
 extern FILE * log_file ;
 
 // If wanting to enable global debugging of Gammu in Seaplus logs:
-bool enable_gammu_logging = false ;
+bool enable_gammu_logging = true ;
 
 // If wanting to enable FSM-level debugging of Gammu in Seaplus logs:
 bool enable_gammu_state_machine_logging = false ;
@@ -527,7 +527,12 @@ int main( int argc, char **argv )
 		while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
 		{
 
-		  // Expected to trigger sms_sending_callback/4:
+		  LOG_DEBUG( "Reading device..." ) ;
+
+		  /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+		   * number of read bytes ignored):
+		   *
+		   */
 		  GSM_ReadDevice( gammu_fsm, true ) ;
 
 		  /* Answer to be sent by the callback, just ensuring here we read the
@@ -538,6 +543,8 @@ int main( int argc, char **argv )
 		   */
 
 		}
+
+		LOG_DEBUG( "Device read." ) ;
 
 		erl_free( message ) ;
 		erl_free( mobile_number ) ;
@@ -577,13 +584,24 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   GSM_Debug_Info * debug_info ;
 
-  FILE * debug_file = stderr ;
-
-  if ( log_file != NULL )
-	debug_file = log_file ;
+  FILE * debug_file = NULL ;
 
   if ( enable_gammu_logging )
   {
+
+	if ( log_file != NULL )
+	{
+
+	  LOG_DEBUG( "Directing Gammu logs to Seaplus ones." ) ;
+	  debug_file = log_file ;
+
+	}
+	else
+	{
+
+	  LOG_DEBUG( "Gammu logs directed to standard error." ) ;
+	  debug_file = stderr ;
+	}
 
 	debug_info = GSM_GetGlobalDebug() ;
 
@@ -592,10 +610,30 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 	GSM_SetDebugLevel( "textall", debug_info ) ;
 
   }
+  else
+  {
+
+	LOG_DEBUG( "No Gammu logs requested." ) ;
+
+  }
 
 
   if( enable_gammu_state_machine_logging )
   {
+
+	if ( log_file != NULL )
+	{
+
+	  LOG_DEBUG( "Directing Gammu state machine logs to Seaplus ones." ) ;
+	  debug_file = log_file ;
+
+	}
+	else
+	{
+
+	  LOG_DEBUG( "Gammu state machine logs directed to standard error." ) ;
+	  debug_file = stderr ;
+	}
 
 	debug_info = GSM_GetDebug( gammu_fsm ) ;
 
@@ -604,6 +642,12 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 	GSM_SetDebugFileDescriptor( debug_file, FALSE, debug_info ) ;
 
 	GSM_SetDebugLevel( "textall", debug_info ) ;
+
+  }
+  else
+  {
+
+	LOG_DEBUG( "No Gammu state machine logs requested." ) ;
 
   }
 
