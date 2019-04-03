@@ -431,7 +431,7 @@ int main( int argc, char **argv )
 		   *
 		   */
 
-		  int res = sprintf( string_buffer, "Gammu error:: %s",
+		  int res = sprintf( string_buffer, "Gammu error: %s",
 			GSM_ErrorString( gammu_error ) ) ;
 
 		  if ( res < 0 )
