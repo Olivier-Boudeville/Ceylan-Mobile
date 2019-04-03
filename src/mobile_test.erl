@@ -27,12 +27,10 @@
 
 
 % Allows to test the Ceylan-Mobile services.
-%
 -module(mobile_test).
 
 
 -export([ run/0 ]).
-
 
 
 run() ->
@@ -83,16 +81,45 @@ run() ->
 			 "error rate is ~B%.",
 			 [ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
 
-	FirstSMSReport = mobile:send_sms( "Hello world!", "+0616833723" ),
+	case preferences:get( mobile_number ) of
 
-	test_facilities:display( "Sent first SMS whose report is: ~p.",
-							 [ FirstSMSReport ] ),
+		undefined ->
+			test_facilities:display( "No registered preference regarding a "
+									 "target mobile number, no actual sending "
+									 "performed." );
 
-	SecondSMSReport = mobile:send_sms( "Goodbye!", "+0616833723" ),
+		MobileNumber ->
+			actual_sending_test( MobileNumber )
 
-	test_facilities:display( "Sent second SMS whose identifier is: ~p.",
-							 [ SecondSMSReport ] ),
+	end,
 
 	mobile:stop(),
 
 	test_facilities:stop().
+
+
+
+% An actual test done, should the sending of test SMS be enabled.
+actual_sending_test( MobileNumber ) ->
+
+	test_facilities:display( "Sending tests will target the following "
+							 "recipient mobile number: '~s'.",
+							 [ MobileNumber ] ),
+
+	FirstSMSReport = mobile:send_sms( "Hello world!", MobileNumber ),
+
+	test_facilities:display( "Sent first SMS whose report is: ~p.",
+							 [ FirstSMSReport ] ),
+
+	SecondSMSReport = mobile:send_sms(
+		"Goodbye! This is a longer SMS to test their support."
+		"For thee the wonder-working earth puts forth sweet flowers. "
+		"-- Titus Lucretius Carus"
+		"Ho! Tom Bombadil, Tom Bombadillo! "
+		"By water, wood and hill, by reed and willow, "
+		"By fire, sun and moon, harken now and hear us!"
+		"Come, Tom Bombadil, for our need is near us! "
+		"-- J. R. R. Tolkien", MobileNumber ),
+
+	test_facilities:display( "Sent second SMS whose identifier is: ~p.",
+							 [ SecondSMSReport ] ).
