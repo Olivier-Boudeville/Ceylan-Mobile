@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Wednesday, April 3, 2019
+:Lastly updated: Sunday, April 7, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -554,9 +554,9 @@ Then only one will be able to fight encodings (ex: for special characters) and S
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
+To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
 
- $ cd src
+ $ cd tests
  $ make mobile-test
 		Running unitary test mobile_run (second form) from mobile_test mobile.beam
   --> Testing module mobile_test.
@@ -572,7 +572,7 @@ To test the current functional coverage, one may run `mobile_test.erl <https://g
   Signal quality: signal strength is 42 dBm (42%), error rate is 0%.
   [...]
 
-One may also have a look at the resulting Seaplus log  (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness)::
+One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness)::
 
   [debug] Starting Seaplus session...
   [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.

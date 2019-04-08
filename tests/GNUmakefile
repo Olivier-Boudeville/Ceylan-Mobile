@@ -1,7 +1,9 @@
 MOBILE_TOP = ..
 
 
-.PHONY: mobile-test mobile-test-debug mobile-test-terse clean clean-local
+.PHONY: mobile-test mobile-test-debug mobile-test-terse clean clean-local \
+		info-vars
+
 
 # If using a dummy device, its directory must already exist before using it:
 # (note that it will be integrally wiped out by the clean-local target)
@@ -9,22 +11,26 @@ MOBILE_TOP = ..
 GAMMU_DUMMY_DIR := /tmp/gammu-dummy-device
 
 pre-test: all
-	@/bin/mkdir $(GAMMU_DUMMY_DIR)
+	@/bin/mkdir -p $(GAMMU_DUMMY_DIR)
+
+
+# Shell environment needed for the testing:
+TEST_ENV = PATH=$(MOBILE_TOP)/src:$(PATH) LD_LIBRARY_PATH=$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)
 
 
 # Displays the logs iff failed:
 mobile-test: pre-test
-	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)"|| cat seaplus-driver.*.log
+	@$(MAKE) -s mobile_run $(TEST_ENV) || cat seaplus-driver.*.log
 
 
 # Displays the logs in all cases:
 mobile-test-debug: pre-test
-	@$(MAKE) -s mobile_run PATH=$(MOBILE_TOP)/src:$(PATH) LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)" ; cat seaplus-driver.*.log
+	@$(MAKE) -s mobile_run $(TEST_ENV) ; cat seaplus-driver.*.log
 
 
 # Displays no log:
 mobile-test-terse: pre-test
-	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)"
+	@$(MAKE) -s mobile_run $(TEST_ENV)
 
 
 test: test-local
@@ -39,11 +45,14 @@ test-local:
 
 clean: clean-local
 
+
 clean-local:
 	-@/bin/rm -f *.o seaplus-driver.*.log
 	-@/bin/rm -rf $(GAMMU_DUMMY_DIR)
 
 
+info-vars:
+	@echo "TEST_ENV = $(TEST_ENV)"
 
 
 include $(MOBILE_TOP)/GNUmakesettings.inc

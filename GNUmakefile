@@ -1,8 +1,8 @@
 MOBILE_TOP = .
 
 
-.PHONY: help help-intro help-mobile                                     \
-		all register-version-in-header register-mobile list-beam-dirs   \
+.PHONY: help help-intro help-mobile                                      \
+		all register-version-in-header register-mobile list-beam-dirs    \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
 		prepare-release clean-release clean-archive                      \
