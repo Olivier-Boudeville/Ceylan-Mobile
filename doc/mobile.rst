@@ -511,25 +511,25 @@ Otherwise you get: ``you don't have the required permission.``.
 It will populate this directory with data faking a real phone::
 
  /tmp/gammu-dummy-device
- ├── alarm
- ├── calendar
- ├── fs
- │   └── incoming
- ├── note
- ├── operations.log
- ├── pbk
- │   ├── DC
- │   ├── MC
- │   ├── ME
- │   ├── RC
- │   └── SM
- ├── sms
- │   ├── 1
- │   ├── 2
- │   ├── 3
- │   ├── 4
- │   └── 5
- └── todo
+ --- alarm
+ --- calendar
+ --- fs
+ |__ |-- incoming
+ --- note
+ --- operations.log
+ --- pbk
+ |__ --- DC
+ |__ --- MC
+ |__ --- ME
+ |__ --- RC
+ |__ |__ SM
+ --- sms
+ |__ --- 1
+ |__ --- 2
+ |__ --- 3
+ |__ --- 4
+ |__ |__ 5
+ |__ todo
 
 
 
