@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, March 3, 2019</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Wednesday, April 3, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, April 7, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library, version 1.0.</td>
 </tr>
@@ -443,9 +443,9 @@ $ <span class="nb">cd</span> Ceylan-Mobile <span class="o">&amp;&amp;</span> mak
 </div>
 <div class="section" id="testing-ceylan-mobile">
 <h4>Testing Ceylan-Mobile</h4>
-<p>To test the current functional coverage, one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/src/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no 3G device):</p>
+<p>To test the current functional coverage, one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no 3G device):</p>
 <pre class="literal-block">
-$ cd src
+$ cd tests
 $ make mobile-test
        Running unitary test mobile_run (second form) from mobile_test mobile.beam
  --&gt; Testing module mobile_test.
@@ -461,7 +461,7 @@ $ make mobile-test
  Signal quality: signal strength is 42 dBm (42%), error rate is 0%.
  [...]
 </pre>
-<p>One may also have a look at the resulting Seaplus log  (ex: <tt class="docutils literal"><span class="pre">seaplus-driver.27168.log</span></tt>; timestamps removed for terseness):</p>
+<p>One may also have a look at the resulting Seaplus log (ex: <tt class="docutils literal"><span class="pre">seaplus-driver.27168.log</span></tt>; timestamps removed for terseness):</p>
 <pre class="literal-block">
 [debug] Starting Seaplus session...
 [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
