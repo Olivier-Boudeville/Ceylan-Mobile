@@ -1,8 +1,7 @@
 MOBILE_TOP = ..
 
 
-.PHONY: run-driver mobile-test mobile-test-debug mobile-test-terse \
-		info info-compile info-libs clean clean-local
+.PHONY: run-driver info info-compile info-libs info-exec clean clean-local
 
 
 %.o: %.c
@@ -20,7 +19,7 @@ TARGET_DRIVER_EXEC := $(TARGET_DRIVER)
 # libGammu, is expected to be already available, so only its Seaplus driver has
 # to be built:
 
-all: mobile.beam mobile_test.beam $(TARGET_DRIVER_EXEC)
+all-recurse: mobile.beam $(TARGET_DRIVER_EXEC)
 
 
 # Useful for more selective recompilations:
@@ -45,35 +44,10 @@ run-driver: $(TARGET_DRIVER_EXEC) $(GAMMU_LIB_PATH)
 
 
 
-# Displays the logs iff failed:
-mobile-test: all
-	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)"|| cat seaplus-driver.*.log
-
-
-# Displays the logs in all cases:
-mobile-test-debug: all
-	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)" ; cat seaplus-driver.*.log
-
-
-# Displays the logs in all cases:
-mobile-test-terse: all
-	@$(MAKE) -s mobile_run LD_LIBRARY_PATH="$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)"
-
-
-test: test-local
-
-
-# We cannot execute directly the 'test' target, as we need a proper environment:
-test-local:
-	@echo "Error, run: 'make mobile-test' instead." 1>&2
-	@exit 5
-
-
 clean: clean-local
 
 clean-local:
-	-@/bin/rm -f mobile_seaplus_api_mapping.h *.o $(TARGET_DRIVER_EXEC) \
-	seaplus-driver.*.log
+	-@/bin/rm -f mobile_seaplus_api_mapping.h *.o $(TARGET_DRIVER_EXEC)
 
 
 info: info-compile info-libs
@@ -88,6 +62,10 @@ info-compile:
 info-libs:
 	@echo "GAMMU_LIB_DIR = $(GAMMU_LIB_DIR)"
 	@echo "SEAPLUS_LIB_DIR = $(SEAPLUS_LIB_DIR)"
+
+
+info-exec:
+	@echo "TARGET_DRIVER = $(TARGET_DRIVER)"
 
 
 include $(MOBILE_TOP)/GNUmakesettings.inc
