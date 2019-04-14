@@ -30,6 +30,8 @@
 %
 % Some test sentences emanate from dear /usr/bin/fortune
 %
+% Note that with the 'dummy' Gammu model, TPMR references might be always 255.
+%
 -module(mobile_test).
 
 
@@ -61,7 +63,6 @@ run() ->
 	test_facilities:display( "Device model: ~s.",
 							 [ mobile:get_device_model() ] ),
 
-
 	{ RevisionText, DateText, RevisionNumber } =
 		mobile:get_firmware_information(),
 
@@ -72,8 +73,20 @@ run() ->
 
 	test_facilities:display( "IMEI code: '~s'.", [ mobile:get_imei_code() ] ),
 
-	test_facilities:display( "Hardware information: '~s'.",
-							 [ mobile:get_hardware_information() ] ),
+
+	% This operation may not be supported by the end device:
+	try
+
+		test_facilities:display( "Hardware information: '~s'.",
+								 [ mobile:get_hardware_information() ] )
+
+	catch
+
+		HardwareInfoException ->
+			test_facilities:display( "Failed to get hardware information: ~p",
+									 [ HardwareInfoException ] )
+
+	end,
 
 	test_facilities:display( "IMSI code: '~s'.", [ mobile:get_imsi_code() ] ),
 
