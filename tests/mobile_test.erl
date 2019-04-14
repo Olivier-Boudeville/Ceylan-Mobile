@@ -27,6 +27,9 @@
 
 
 % Allows to test the Ceylan-Mobile services.
+%
+% Some test sentences emanate from dear /usr/bin/fortune
+%
 -module(mobile_test).
 
 
@@ -106,20 +109,51 @@ actual_sending_test( MobileNumber ) ->
 							 "recipient mobile number: '~s'.",
 							 [ MobileNumber ] ),
 
-	FirstSMSReport = mobile:send_sms( "Hello world!", MobileNumber ),
+	FirstMessage = "Hello world!",
 
-	test_facilities:display( "Sent first SMS whose report is: ~p.",
-							 [ FirstSMSReport ] ),
+	FirstSMSReport = mobile:send_sms( FirstMessage, MobileNumber ),
 
-	SecondSMSReport = mobile:send_sms(
-		"Goodbye! This is a longer SMS to test their support."
+	test_facilities:display( "Sent first SMS (message: '~s'), whose report is: ~p.",
+							 [ FirstMessage, FirstSMSReport ] ),
+
+
+	SecondMessage = "Goodbye! This is a longer SMS to test their support."
 		"For thee the wonder-working earth puts forth sweet flowers. "
 		"-- Titus Lucretius Carus"
 		"Ho! Tom Bombadil, Tom Bombadillo! "
 		"By water, wood and hill, by reed and willow, "
 		"By fire, sun and moon, harken now and hear us!"
 		"Come, Tom Bombadil, for our need is near us! "
-		"-- J. R. R. Tolkien", MobileNumber ),
+		"-- J. R. R. Tolkien",
 
-	test_facilities:display( "Sent second SMS whose identifier is: ~p.",
-							 [ SecondSMSReport ] ).
+	SecondSMSReport = mobile:send_sms( SecondMessage, MobileNumber ),
+
+	test_facilities:display( "Sent second SMS whose report is: ~p.",
+							 [ SecondSMSReport ] ),
+
+
+	EncodingTestMsg = "This is a text sent in GSM uncompressed: aéàùâêîôû; "
+		"this is a longer message meant to be truncated should a single SMS "
+		"be used (instead of a multi-part one, involving multiple actual SMSs "
+		"that are to collected and reassembled by the end device. "
+		"If it happens once, it's a bug. If it happens twice, it's a feature. "
+		"If it happens more than twice, it's a design philosophy."
+		"Beauty, n.: The power by which a woman charms a lover and terrifies "
+		"a husband.	-- Ambrose Bierce",
+
+	test_facilities:display( "Message used for the test of encoding: '~s'.",
+							 [ EncodingTestMsg ] ),
+
+	GSMUncompSMSReport = mobile:send_sms( EncodingTestMsg, MobileNumber,
+										  gsm_uncompressed ),
+
+	test_facilities:display( "Sent SMS for the test of GSM uncompressed "
+							 "encoding, whose report is: ~p.",
+							 [ GSMUncompSMSReport ] ),
+
+	UnicodeUncompSMSReport = mobile:send_sms( EncodingTestMsg, MobileNumber,
+											  unicode_uncompressed ),
+
+	test_facilities:display( "Sent SMS for the test of Unicode uncompressed "
+							 "encoding, whose report is: ~p.",
+							 [ UnicodeUncompSMSReport ] ).

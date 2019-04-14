@@ -57,10 +57,20 @@
  */
 typedef int sms_tpmr ;
 
+enum encoding { unicode_uncompressed=1,
+				unicode_compressed,
+				gsm_uncompressed,
+				gsm_compressed,
+				eight_bit } ;
 
 // Forward declarations:
 
 void start_gammu( GSM_StateMachine * gammu_fsm ) ;
+
+void send_sms_with_encoding( ETERM ** parameters,
+  GSM_StateMachine * gammu_fsm ) ;
+
+GSM_Coding_Type get_encoding( enum encoding e ) ;
 
 void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm ) ;
 
@@ -298,6 +308,8 @@ int main( int argc, char **argv )
 	switch( current_fun_id )
 	{
 
+
+
 	case GET_BACKEND_INFORMATION_0_ID:
 
 		/* -spec get_backend_information() ->
@@ -319,6 +331,7 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case GET_DEVICE_NAME_0_ID:
 
 		// -spec get_device_name() -> device_name().
@@ -331,6 +344,7 @@ int main( int argc, char **argv )
 		write_as_binary( buffer, device_name ) ;
 
 		break ;
+
 
 
 	case GET_DEVICE_MANUFACTURER_0_ID:
@@ -348,6 +362,7 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case GET_DEVICE_MODEL_0_ID:
 
 		// -spec get_device_model() -> model_name().
@@ -361,6 +376,7 @@ int main( int argc, char **argv )
 		write_as_binary( buffer, string_buffer ) ;
 
 		break ;
+
 
 
 	case GET_FIRMWARE_INFORMATION_0_ID:
@@ -390,6 +406,7 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case GET_IMEI_CODE_0_ID:
 
 		// -spec get_imei_code() -> imei().
@@ -404,6 +421,7 @@ int main( int argc, char **argv )
 		write_as_binary( buffer, string_buffer ) ;
 
 		break ;
+
 
 
 	case GET_HARDWARE_INFORMATION_0_ID:
@@ -444,6 +462,7 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case GET_IMSI_CODE_0_ID:
 
 		// -spec get_imsi_code() -> imsi_code().
@@ -458,6 +477,7 @@ int main( int argc, char **argv )
 		write_as_binary( buffer, string_buffer ) ;
 
 		break ;
+
 
 
 	case GET_SIGNAL_QUALITY_0_ID:
@@ -484,6 +504,7 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case SEND_SMS_2_ID:
 
 		/* -spec send_sms( message(), mobile_number() ) -> sms_id().
@@ -507,7 +528,8 @@ int main( int argc, char **argv )
 		char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
 
 		if ( mobile_number == NULL )
-		  raise_gammu_error( gammu_fsm, "SMS mobile number could not be obtained." ) ;
+		  raise_gammu_error( gammu_fsm,
+			"SMS mobile number could not be obtained." ) ;
 
 		EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
 
@@ -571,10 +593,24 @@ int main( int argc, char **argv )
 		break ;
 
 
+	case SEND_SMS_3_ID:
+
+		/* -spec send_sms( message(), mobile_number(), encoding() ) -> sms_id().
+		 *
+		 */
+
+		LOG_DEBUG( "Executing send_sms/3." ) ;
+		check_arity_is( 3, param_count, SEND_SMS_3_ID ) ;
+
+		send_sms_with_encoding( parameters, gammu_fsm ) ;
+
+		break ;
+
 	default:
 
 	  // Hopefully no 'break' has been forgotten above!
-	  raise_gammu_error( gammu_fsm, "Unknown function identifier: %u", current_fun_id ) ;
+	  raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
+		current_fun_id ) ;
 
 	}
 
@@ -720,6 +756,131 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 }
 
 
+// Helpers defined to avoid variable name clashes in the function switch:
+
+
+void send_sms_with_encoding( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
+{
+
+  // Clean-up the struct:
+  memset( &sms, 0, sizeof( sms ) ) ;
+
+  char * message = get_parameter_as_binary( 1, parameters ) ;
+
+  if ( message == NULL )
+	raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
+
+  EncodeUnicode( sms.Text, message, strlen( message ) ) ;
+
+  // Message recipient:
+  char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
+
+  if ( mobile_number == NULL )
+	raise_gammu_error( gammu_fsm,
+	  "SMS mobile number could not be obtained." ) ;
+
+  EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
+
+  // We want to submit message ("SMS for sending or in Outbox"):
+  sms.PDU = SMS_Submit ;
+
+  // No User Data Header, just a plain message:
+  sms.UDH.Type = UDH_NoUDH ;
+
+  sms.Coding = get_encoding( get_parameter_as_int( 3, parameters ) ) ;
+
+  // Class 1 message (normal):
+  sms.Class = 1 ;
+
+  // Sets the SMSC number in message:
+  CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
+
+  // Resets it first, some phones might give instant response:
+  sms_send_status = ERR_TIMEOUT ;
+
+  // Finally:
+  GSM_Error gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
+  check_gammu_error( gammu_error, gammu_fsm ) ;
+
+  /* We do not have yet anything to return, but the callback will. */
+  //write_as_XXX( buffer, ... ) ;
+
+  /* However, using real devices (not the dummy one), we see that the callback
+   * is never triggered unless we poll explicitly from a network reply.
+   *
+   * Loops as long as the status is ERR_TIMEOUT:
+   *
+   */
+  while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+  {
+
+	LOG_DEBUG( "Reading device..." ) ;
+
+	/* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+	 * number of read bytes ignored):
+	 *
+	 */
+	GSM_ReadDevice( gammu_fsm, true ) ;
+
+	/* Answer to be sent by the callback, just ensuring here we read the device
+	 * until an answer is known.
+	 *
+	 * Loops as long as the status is ERR_TIMEOUT:
+	 *
+	 */
+
+  }
+
+  LOG_DEBUG( "Device read." ) ;
+
+  erl_free( message ) ;
+  erl_free( mobile_number ) ;
+
+}
+
+
+
+GSM_Coding_Type get_encoding( enum encoding e )
+{
+
+  // Actually the two enums matches, but we prefer checking:
+  switch( e )
+  {
+
+  case unicode_uncompressed:
+	return SMS_Coding_Unicode_No_Compression ;
+	break ;
+
+  case unicode_compressed:
+	return SMS_Coding_Unicode_Compression ;
+	break ;
+
+  case gsm_uncompressed:
+	return SMS_Coding_Default_No_Compression ;
+	break ;
+
+  case gsm_compressed:
+	return SMS_Coding_Default_Compression ;
+	break ;
+
+  case eight_bit:
+	return SMS_Coding_8bit ;
+	break ;
+
+  default:
+	raise_error( "Unexpected encoding: %i", e ) ;
+	break ;
+
+  }
+
+  // As the compiler is not smart:
+  //raise_error( "Unexpected encoding: %i", e ) ;
+  return 0 ;
+
+}
+
+
+
 void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm )
 {
 
@@ -728,6 +889,7 @@ void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm )
 	  GSM_ErrorString( error ) ) ;
 
 }
+
 
 
 /* Raises specified error: reports it in logs, shutdown relevant phone services,

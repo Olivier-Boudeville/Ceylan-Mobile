@@ -65,6 +65,7 @@
 
 -type hardware_info() :: text_utils:bin_string().
 
+
 % International Mobile Subscriber Identity code:
 -type imsi_code() :: text_utils:bin_string().
 
@@ -83,6 +84,20 @@
 
 % The mobile number associated to a device (ex: "+1234567890"):
 -type mobile_number() :: text_utils:string().
+
+
+% How the text of a SMS shall be encoded:
+-type encoding() :: % Default Unicode:
+					'unicode_uncompressed'
+
+				  | 'unicode_compressed'
+
+					% Default GSM alphabet:
+				  | 'gsm_uncompressed'
+
+				  | 'gsm_compressed'
+
+				  | 'eight_bit'.
 
 
 % Describes the status of a SMS sending:
@@ -142,7 +157,7 @@
 
 % Reads the current signal quality (strength and error rate).
 -spec get_signal_quality() ->
-		 { signal_strength(), signal_strength_percent(),error_rate() }.
+		 { signal_strength(), signal_strength_percent(), error_rate() }.
 
 
 % Sends specified SMS.
@@ -151,6 +166,14 @@
 %
 -spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
 
+
+
+% Sends specified SMS, using specified encoding.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_sms( sms_message(), mobile_number(), encoding() ) ->
+					  sms_sending_report().
 
 
 
@@ -211,3 +234,37 @@ send_sms( Message, MobileNumber ) ->
 	Args = text_utils:strings_to_binaries( [ Message, MobileNumber ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+
+
+
+% Exchanging binaries and identifiers is more efficient.
+send_sms( Message, MobileNumber, Encoding ) ->
+
+	PortKey = seaplus:get_service_port_key(),
+	FunctionDriverId = seaplus:get_function_driver_id(),
+
+	MessageBin = text_utils:string_to_binary( Message ),
+	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+	EncodingEnum = encoding_to_enum( Encoding ),
+
+	Args = [ MessageBin, MobileNumberBin, EncodingEnum ],
+
+	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+
+
+
+% (helper)
+encoding_to_enum( unicode_uncompressed ) ->
+	1;
+
+encoding_to_enum( unicode_compressed ) ->
+	2;
+
+encoding_to_enum( gsm_uncompressed ) ->
+	3;
+
+encoding_to_enum( gsm_compressed ) ->
+	4;
+
+encoding_to_enum( eight_bit ) ->
+	5.
