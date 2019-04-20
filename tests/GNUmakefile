@@ -1,7 +1,8 @@
 MOBILE_TOP = ..
 
 
-.PHONY: mobile-test mobile-test-debug mobile-test-terse clean clean-local \
+.PHONY: mobile-test mobile-test-debug mobile-test-terse                   \
+		clean clean-local clean-logs                                      \
 		info-vars
 
 
@@ -10,7 +11,7 @@ MOBILE_TOP = ..
 #
 GAMMU_DUMMY_DIR := /tmp/gammu-dummy-device
 
-pre-test: all
+pre-test: all clean-logs
 	@/bin/mkdir -p $(GAMMU_DUMMY_DIR)
 
 
@@ -46,9 +47,13 @@ test-local:
 clean: clean-local
 
 
-clean-local:
-	-@/bin/rm -f *.o seaplus-driver.*.log
+clean-local: clean-logs
+	-@/bin/rm -f *.o
 	-@/bin/rm -rf $(GAMMU_DUMMY_DIR)
+
+
+clean-logs:
+	-@/bin/rm -f *.o seaplus-driver.*.log
 
 
 info-vars:
