@@ -180,6 +180,24 @@
 % API function overriding section.
 
 
+% We define our own service-specific starting procedure, knowing that a call to
+% the corresponding Seaplus start will be automatically added afterwards.
+%
+start() ->
+
+	% This is needed whenever for example the overall (Erlang) application is
+	% launched with the -noinput option (in this case the VM encoding switches
+	% from unicode to latin1, and we cannot output proper UTF-8 characters
+	% anymore (they are displayed as question marks in terminals):
+	%
+	io:setopts( [ { encoding, unicode } ] ).
+
+
+start_link() ->
+	% Same needs:
+	start().
+
+
 % We override this function to throw an exception on failure, rather than
 % sending tagged tuples for example.
 %
@@ -243,7 +261,7 @@ send_sms( Message, MobileNumber, Encoding ) ->
 	PortKey = seaplus:get_service_port_key(),
 	FunctionDriverId = seaplus:get_function_driver_id(),
 
-	MessageBin = text_utils:string_to_binary( Message ),
+	MessageBin = unicode:characters_to_binary( Message ),
 	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
 	EncodingEnum = encoding_to_enum( Encoding ),
 
@@ -268,3 +286,6 @@ encoding_to_enum( gsm_compressed ) ->
 
 encoding_to_enum( eight_bit ) ->
 	5.
+
+
+% No need to define a specific stop/0 here.
