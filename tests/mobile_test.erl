@@ -38,6 +38,7 @@
 -export([ run/0 ]).
 
 
+
 run() ->
 
 	test_facilities:start( ?MODULE ),
@@ -122,6 +123,7 @@ actual_sending_test( MobileNumber ) ->
 							 "recipient mobile number: '~s'.",
 							 [ MobileNumber ] ),
 
+	% Of course short enough not to be truncated:
 	FirstMessage = "Hello world!",
 
 	FirstSMSReport = mobile:send_sms( FirstMessage, MobileNumber ),
@@ -130,7 +132,10 @@ actual_sending_test( MobileNumber ) ->
 							 [ FirstMessage, FirstSMSReport ] ),
 
 
-	SecondMessage = "Goodbye! This is a longer SMS to test their support."
+	% With (uncompressed) GSM encoding, a single received SMS should stop just
+	% after the second 'Tom B':
+	%
+	SecondMessage = "Goodbye! This is a longer SMS to test their support. "
 		"For thee the wonder-working earth puts forth sweet flowers. "
 		"-- Titus Lucretius Carus"
 		"Ho! Tom Bombadil, Tom Bombadillo! "
@@ -145,26 +150,34 @@ actual_sending_test( MobileNumber ) ->
 							 [ SecondSMSReport ] ),
 
 
-	EncodingTestMsg = "This is a text sent in GSM uncompressed: aéàùâêîôû; "
+	EncodingTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
 		"this is a longer message meant to be truncated should a single SMS "
 		"be used (instead of a multi-part one, involving multiple actual SMSs "
 		"that are to collected and reassembled by the end device. "
 		"If it happens once, it's a bug. If it happens twice, it's a feature. "
-		"If it happens more than twice, it's a design philosophy."
+		"If it happens more than twice, it's a design philosophy. "
 		"Beauty, n.: The power by which a woman charms a lover and terrifies "
-		"a husband.	-- Ambrose Bierce",
+		"a husband. -- Ambrose Bierce",
 
-	test_facilities:display( "Message used for the test of encoding: '~s'.",
-							 [ EncodingTestMsg ] ),
+	GSMUncompMsg = text_utils:format( EncodingTestFormatMsg,
+									  [ "GSM uncompressed" ] ),
 
-	GSMUncompSMSReport = mobile:send_sms( EncodingTestMsg, MobileNumber,
+	test_facilities:display( "Sending now: '~ts'.", [ GSMUncompMsg ] ),
+
+	GSMUncompSMSReport = mobile:send_sms( GSMUncompMsg, MobileNumber,
 										  gsm_uncompressed ),
 
 	test_facilities:display( "Sent SMS for the test of GSM uncompressed "
 							 "encoding, whose report is: ~p.",
 							 [ GSMUncompSMSReport ] ),
 
-	UnicodeUncompSMSReport = mobile:send_sms( EncodingTestMsg, MobileNumber,
+
+	UnicodeUncompMsg = text_utils:format( EncodingTestFormatMsg,
+										 [ "Unicode uncompressed" ] ),
+
+	test_facilities:display( "Sending now: '~ts'.", [ UnicodeUncompMsg ] ),
+
+	UnicodeUncompSMSReport = mobile:send_sms( UnicodeUncompMsg, MobileNumber,
 											  unicode_uncompressed ),
 
 	test_facilities:display( "Sent SMS for the test of Unicode uncompressed "
