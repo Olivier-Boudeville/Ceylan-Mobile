@@ -592,6 +592,7 @@ int main( int argc, char **argv )
 
 		break ;
 
+		
 
 	case SEND_SMS_3_ID:
 
@@ -606,6 +607,8 @@ int main( int argc, char **argv )
 
 		break ;
 
+
+		
 	default:
 
 	  // Hopefully no 'break' has been forgotten above!
