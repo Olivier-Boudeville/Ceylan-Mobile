@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Sunday, April 7, 2019
+:Lastly updated: Saturday, April 20, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -594,6 +594,21 @@ One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.2716
   [debug] Stopping Seaplus session.
 
 :raw-latex:`\pagebreak`
+
+
+Some SMS-related General Information
+====================================
+
+The text to be sent as a SMS must be somehow encoded in messages.
+
+Either the default, very limited `alphabet of 7bit encoding <https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38>`_ can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the ``|^€{}[]\`` will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode `UCS-2 <https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding>`_ encoding will have to be used, and then only 70 characters will fit in that SMS.
+
+Should the message be longer than what can a single SMS carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.
+
+
+See also:
+
+- a `Free Online SMS Length Calculator <https://messente.com/documentation/tools/sms-length-calculator>`_
 
 
 
