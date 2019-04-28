@@ -156,12 +156,18 @@
 
 
 % Reads the current signal quality (strength and error rate).
+%
+% Typical value for signal strength is -51 dBm (100%).
+%
+% Note that the returned error rate might be -1.
+%
 -spec get_signal_quality() ->
 		 { signal_strength(), signal_strength_percent(), error_rate() }.
 
 
 
-% Sends specified, regular (i.e. non-multipart) SMS, using default encoding.
+% Sends specified, regular (i.e. non-multipart) SMS, using an
+% automatically-detected encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
@@ -179,7 +185,7 @@
 
 
 
-% Sends specified multipart SMS, using default encoding.
+% Sends specified multipart SMS, using an automatically-detected encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
@@ -317,13 +323,36 @@ get_backend_information() ->
 % For the sending of SMS, we override a lot the default Seaplus behaviours.
 
 
-% Sending a regular (non-multipart) SMS, using default encoding:
+% Sending a regular (non-multipart) SMS, using an automatically-detected
+% encoding.
+%
 send_regular_sms( Message, MobileNumber ) ->
 
 	% We directly branch to the more complete version, the only one to be known
 	% of the driver:
 	%
-	send_regular_sms( Message, MobileNumber, _Encoding=gsm_uncompressed ).
+	{ ActualEncoding, ActualMessage } = case scan_characters( Message ) of
+
+		{ single_sms, Encoding, ReadyMessage } ->
+
+			trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+								   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+
+			{ Encoding, ReadyMessage } ;
+
+
+		{ multiple_sms, Encoding, ReadyMessage } ->
+
+			trace_utils:warning_fmt(
+			  "Sending '~s' as a single SMS (as requested), with "
+			  "encoding ~s, yet expecting it to be truncated.",
+			  [ ReadyMessage, Encoding ] ),
+
+			{ Encoding, ReadyMessage }
+
+	end,
+
+	send_regular_sms( ActualMessage, MobileNumber, ActualEncoding ).
 
 
 
@@ -347,14 +376,35 @@ send_regular_sms( Message, MobileNumber, Encoding ) ->
 
 
 
-% Sending a multipart SMS, using default encoding:
+% Sending a multipart SMS, using an automatically-detected encoding.
 send_multipart_sms( Message, MobileNumber ) ->
 
 	% We directly branch to the more complete version, the only one to be known
 	% of the driver:
 	%
-	send_multipart_sms( Message, MobileNumber,
-							   _Encoding=gsm_uncompressed ).
+	{ ActualEncoding, ActualMessage } = case scan_characters( Message ) of
+
+		{ single_sms, Encoding, ReadyMessage } ->
+
+			trace_utils:warning_fmt(
+			  "Sending '~s' as a multipart SMS (as requested), with "
+			  "encoding ~s, yet believing a single-part SMS would have "
+			  "sufficed.", [ ReadyMessage, Encoding ] ),
+
+			{ Encoding, ReadyMessage } ;
+
+
+		{ multiple_sms, Encoding, ReadyMessage } ->
+
+			trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+								   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+
+			{ Encoding, ReadyMessage }
+
+	end,
+
+	send_multipart_sms( ActualMessage, MobileNumber, ActualEncoding ).
+
 
 
 % Sending a multipart SMS, using specified encoding:
