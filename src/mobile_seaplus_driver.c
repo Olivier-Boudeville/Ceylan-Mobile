@@ -67,8 +67,15 @@ enum encoding { unicode_uncompressed=1,
 
 void start_gammu( GSM_StateMachine * gammu_fsm ) ;
 
-void send_sms_with_encoding( ETERM ** parameters,
+
+void send_regular_sms( ETERM ** parameters,
   GSM_StateMachine * gammu_fsm ) ;
+
+
+void send_multipart_sms( ETERM ** parameters,
+  GSM_StateMachine * gammu_fsm ) ;
+
+
 
 GSM_Coding_Type get_encoding( enum encoding e ) ;
 
@@ -272,7 +279,7 @@ int main( int argc, char **argv )
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
-   * (a single term is expected hence read)
+   * (a regular term is expected hence read)
    *
    */
   while ( read_command( buffer ) > 0 )
@@ -501,119 +508,72 @@ int main( int argc, char **argv )
 
 		write_term( buffer, res_term ) ;
 
+		LOG_DEBUG( "get_signal_quality/0 executed." ) ;
+
+		break ;
+
+
+
+	case SEND_REGULAR_SMS_3_ID:
+
+		/* -spec send_regular_sms( message(), mobile_number(), encoding() ) ->
+		 *                        sms_id().
+		 *
+		 */
+
+		LOG_DEBUG( "Executing send_regular_sms/3." ) ;
+		check_arity_is( 3, param_count, SEND_REGULAR_SMS_3_ID ) ;
+
+		send_regular_sms( parameters, gammu_fsm ) ;
+
+		break ;
+
+
+
+	case SEND_MULTIPART_SMS_2_ID:
+
+		/* No SEND_MULTIPART_SMS_2_ID case: the Erlang part is to trigger only
+		 * the SEND_MULTIPART_SMS_3_ID version.
+		 *
+		 */
+		raise_error( "Unexpected call to driver-level send_multipart_sms/2." ) ;
+
+		break ;
+
+
+	case SEND_MULTIPART_SMS_3_ID:
+
+
+	  /* -spec send_multipart_sms( message(), mobile_number(),
+		 *                           encoding() ) -> sms_id().
+		 *
+		 */
+
+		LOG_DEBUG( "Executing send_multipart_sms/3." ) ;
+		check_arity_is( 3, param_count, SEND_MULTIPART_SMS_3_ID ) ;
+
+		send_multipart_sms( parameters, gammu_fsm ) ;
+
 		break ;
 
 
 
 	case SEND_SMS_2_ID:
-
-		/* -spec send_sms( message(), mobile_number() ) -> sms_id().
+		/* No SEND_SMS_2_ID case: the Erlang part is to select the right version
+		 * among the SEND_*_SMS_3_ID.
 		 *
 		 */
-
-		LOG_DEBUG( "Executing send_sms/2." ) ;
-		check_arity_is( 2, param_count, SEND_SMS_2_ID ) ;
-
-		// Clean-up the struct:
-		memset( &sms, 0, sizeof( sms ) ) ;
-
-		char * message = get_parameter_as_binary( 1, parameters ) ;
-
-		if ( message == NULL )
-		  raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
-
-		EncodeUnicode( sms.Text, message, strlen( message ) ) ;
-
-		// Message recipient:
-		char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
-
-		if ( mobile_number == NULL )
-		  raise_gammu_error( gammu_fsm,
-			"SMS mobile number could not be obtained." ) ;
-
-		EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
-
-		// We want to submit message ("SMS for sending or in Outbox"):
-		sms.PDU = SMS_Submit ;
-
-		// No User Data Header, just a plain message:
-		sms.UDH.Type = UDH_NoUDH ;
-
-		// We used default coding for text:
-		sms.Coding = SMS_Coding_Default_No_Compression ;
-
-		// Class 1 message (normal):
-		sms.Class = 1 ;
-
-		// Sets the SMSC number in message:
-		CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
-
-		// Resets it first, some phones might give instant response:
-		sms_send_status = ERR_TIMEOUT ;
-
-		// Finally:
-		gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
-
-		/* We do not have yet anything to return, but the callback will. */
-		//write_as_XXX( buffer, ... ) ;
-
-		/* However, using real devices (not the dummy one), we see that the
-		 * callback is never triggered unless we poll explicitly from a network
-		 * reply.
-		 *
-		 * Loops as long as the status is ERR_TIMEOUT:
-		 *
-		 */
-		while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
-		{
-
-		  LOG_DEBUG( "Reading device..." ) ;
-
-		  /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
-		   * number of read bytes ignored):
-		   *
-		   */
-		  GSM_ReadDevice( gammu_fsm, true ) ;
-
-		  /* Answer to be sent by the callback, just ensuring here we read the
-		   * device until an answer is known.
-		   *
-		   * Loops as long as the status is ERR_TIMEOUT:
-		   *
-		   */
-
-		}
-
-		LOG_DEBUG( "Device read." ) ;
-
-		erl_free( message ) ;
-		erl_free( mobile_number ) ;
-
-		break ;
-
-		
-
-	case SEND_SMS_3_ID:
-
-		/* -spec send_sms( message(), mobile_number(), encoding() ) -> sms_id().
-		 *
-		 */
-
-		LOG_DEBUG( "Executing send_sms/3." ) ;
-		check_arity_is( 3, param_count, SEND_SMS_3_ID ) ;
-
-		send_sms_with_encoding( parameters, gammu_fsm ) ;
+		raise_error( "Unexpected call to driver-level send_sms/2." ) ;
 
 		break ;
 
 
-		
+
 	default:
 
-	  // Hopefully no 'break' has been forgotten above!
-	  raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
-		current_fun_id ) ;
+		// Hopefully no 'break' has been forgotten above!
+		raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
+		  current_fun_id ) ;
 
 	}
 
@@ -759,10 +719,13 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 }
 
 
-// Helpers defined to avoid variable name clashes in the function switch:
+// Helpers defined to avoid variable name clashes in the function switch, and to factor code:
 
 
-void send_sms_with_encoding( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
+/* Sends a regular (single-part) SMS with specified encoding.
+ *
+ */
+void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 {
 
   // Clean-up the struct:
@@ -841,6 +804,92 @@ void send_sms_with_encoding( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 }
 
+
+
+/* Sends a multipart SMS with specified encoding.
+ *
+ */
+void send_multipart_sms( ETERM ** parameters,
+  GSM_StateMachine * gammu_fsm )
+{
+
+  LOG_DEBUG( "prout" ) ;
+
+  // Clean-up the struct:
+  memset( &sms, 0, sizeof( sms ) ) ;
+
+  char * message = get_parameter_as_binary( 1, parameters ) ;
+
+  if ( message == NULL )
+	raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
+
+  EncodeUnicode( sms.Text, message, strlen( message ) ) ;
+
+  // Message recipient:
+  char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
+
+  if ( mobile_number == NULL )
+	raise_gammu_error( gammu_fsm,
+	  "SMS mobile number could not be obtained." ) ;
+
+  EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
+
+  // We want to submit message ("SMS for sending or in Outbox"):
+  sms.PDU = SMS_Submit ;
+
+  // No User Data Header, just a plain message:
+  sms.UDH.Type = UDH_NoUDH ;
+
+  sms.Coding = get_encoding( get_parameter_as_int( 3, parameters ) ) ;
+
+  // Class 1 message (normal):
+  sms.Class = 1 ;
+
+  // Sets the SMSC number in message:
+  CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
+
+  // Resets it first, some phones might give instant response:
+  sms_send_status = ERR_TIMEOUT ;
+
+  // Finally:
+  GSM_Error gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
+  check_gammu_error( gammu_error, gammu_fsm ) ;
+
+  /* We do not have yet anything to return, but the callback will. */
+  //write_as_XXX( buffer, ... ) ;
+
+  /* However, using real devices (not the dummy one), we see that the callback
+   * is never triggered unless we poll explicitly from a network reply.
+   *
+   * Loops as long as the status is ERR_TIMEOUT:
+   *
+   */
+  while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+  {
+
+	LOG_DEBUG( "Reading device..." ) ;
+
+	/* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+	 * number of read bytes ignored):
+	 *
+	 */
+	GSM_ReadDevice( gammu_fsm, true ) ;
+
+	/* Answer to be sent by the callback, just ensuring here we read the device
+	 * until an answer is known.
+	 *
+	 * Loops as long as the status is ERR_TIMEOUT:
+	 *
+	 */
+
+  }
+
+  LOG_DEBUG( "Device read." ) ;
+
+  erl_free( message ) ;
+  erl_free( mobile_number ) ;
+
+}
 
 
 GSM_Coding_Type get_encoding( enum encoding e )
