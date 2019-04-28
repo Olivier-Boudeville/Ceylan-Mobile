@@ -119,41 +119,48 @@ run() ->
 % An actual test done, should the sending of test SMS be enabled.
 actual_sending_test( MobileNumber ) ->
 
-	test_facilities:display( "Sending tests will target the following "
-							 "recipient mobile number: '~s'.",
-							 [ MobileNumber ] ),
+	test_facilities:display( "~n~nThe next sending tests will target the "
+							 "following recipient mobile number: '~s', first "
+							 "with a few single-part SMS, of various lengths, "
+							 "needing various encodings.", [ MobileNumber ] ),
+
+
+	% Single (non-multipart) SMS testing:
 
 	% Of course short enough not to be truncated:
 	FirstMessage = "Hello world!",
 
-	FirstSMSReport = mobile:send_sms( FirstMessage, MobileNumber ),
+	FirstSMSReport = mobile:send_regular_sms( FirstMessage, MobileNumber ),
 
-	test_facilities:display( "Sent first SMS (message: '~s'), whose report is: ~p.",
+	test_facilities:display( "~nSent first (single-part) SMS (message: '~s') "
+							 "with default settings, whose report is: ~w.",
 							 [ FirstMessage, FirstSMSReport ] ),
 
 
 	% With (uncompressed) GSM encoding, a single received SMS should stop just
 	% after the second 'Tom B':
 	%
-	SecondMessage = "Goodbye! This is a longer SMS to test their support. "
+	SecondMessage = text_utils:format( 
+		"Goodbye! This is a longer SMS to test their support. "
 		"For thee the wonder-working earth puts forth sweet flowers. "
-		"-- Titus Lucretius Carus"
+		"-- Titus Lucretius Carus~n"
 		"Ho! Tom Bombadil, Tom Bombadillo! "
 		"By water, wood and hill, by reed and willow, "
 		"By fire, sun and moon, harken now and hear us!"
 		"Come, Tom Bombadil, for our need is near us! "
-		"-- J. R. R. Tolkien",
+		"-- J. R. R. Tolkien", [] ),
 
-	SecondSMSReport = mobile:send_sms( SecondMessage, MobileNumber ),
+	SecondSMSReport = mobile:send_regular_sms( SecondMessage, MobileNumber ),
 
-	test_facilities:display( "Sent second SMS whose report is: ~p.",
-							 [ SecondSMSReport ] ),
+	test_facilities:display( "~nSent second (single-part) SMS (message: '~s') "
+							 "with default settings, whose report is: ~w.",
+							 [ SecondMessage, SecondSMSReport ] ),
 
 
 	EncodingTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
 		"this is a longer message meant to be truncated should a single SMS "
-		"be used (instead of a multi-part one, involving multiple actual SMSs "
-		"that are to collected and reassembled by the end device. "
+		"be used (instead of a multi-part one, involving multiple actual SMS "
+		"that are to be collected and reassembled by the end device.~n"
 		"If it happens once, it's a bug. If it happens twice, it's a feature. "
 		"If it happens more than twice, it's a design philosophy. "
 		"Beauty, n.: The power by which a woman charms a lover and terrifies "
@@ -162,24 +169,134 @@ actual_sending_test( MobileNumber ) ->
 	GSMUncompMsg = text_utils:format( EncodingTestFormatMsg,
 									  [ "GSM uncompressed" ] ),
 
-	test_facilities:display( "Sending now: '~ts'.", [ GSMUncompMsg ] ),
+	%test_facilities:display( "Will be sending now following message: '~ts'.",
+	%						 [ GSMUncompMsg ] ),
 
-	GSMUncompSMSReport = mobile:send_sms( GSMUncompMsg, MobileNumber,
-										  gsm_uncompressed ),
+	GSMUncompSMSReport = mobile:send_regular_sms( GSMUncompMsg, MobileNumber,
+												  gsm_uncompressed ),
 
-	test_facilities:display( "Sent SMS for the test of GSM uncompressed "
-							 "encoding, whose report is: ~p.",
-							 [ GSMUncompSMSReport ] ),
+	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
+							 "test of GSM uncompressed encoding, "
+							 "whose report is: ~w.",
+							 [ GSMUncompMsg, GSMUncompSMSReport ] ),
+
 
 
 	UnicodeUncompMsg = text_utils:format( EncodingTestFormatMsg,
 										 [ "Unicode uncompressed" ] ),
 
-	test_facilities:display( "Sending now: '~ts'.", [ UnicodeUncompMsg ] ),
+	%test_facilities:display( "Sending now: '~ts'.", [ UnicodeUncompMsg ] ),
 
-	UnicodeUncompSMSReport = mobile:send_sms( UnicodeUncompMsg, MobileNumber,
-											  unicode_uncompressed ),
+	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
+								   MobileNumber, unicode_uncompressed ),
 
-	test_facilities:display( "Sent SMS for the test of Unicode uncompressed "
-							 "encoding, whose report is: ~p.",
-							 [ UnicodeUncompSMSReport ] ).
+	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
+							 "test of Unicode uncompressed encoding, "
+							 "whose report is: ~w.",
+							 [ UnicodeUncompMsg, UnicodeUncompSMSReport ] ),
+
+
+	AutoMsg = text_utils:format( EncodingTestFormatMsg,
+								 [ "automatic encoding selection mode" ] ),
+
+	%test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
+
+	AutoSMSReport = mobile:send_regular_sms( AutoMsg, MobileNumber ),
+
+	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
+							 "test of (automatic) encoding, "
+							 "whose report is: ~w.",
+							 [ AutoMsg, AutoSMSReport ] ),
+
+
+
+	% Now, multipart testing:
+
+	test_facilities:display( "~n~nNow sending the same kind of messages, "
+							 "this time using multipart SMS." ),
+
+
+	FirstMultiSMSReport = mobile:send_multipart_sms( FirstMessage, MobileNumber ),
+
+	test_facilities:display( "~nSent first multipart SMS (message: '~s') "
+							 "with default settings, whose report is: ~w.",
+							 [ FirstMessage, FirstMultiSMSReport ] ),
+
+	SecondMultiSMSReport = mobile:send_multipart_sms( SecondMessage,
+													  MobileNumber ),
+
+	test_facilities:display( "~nSent second multipart SMS (message: '~s') "
+							 "with default settings, whose report is: ~w.",
+							 [ SecondMessage, SecondMultiSMSReport ] ),
+
+	EncodingMultiTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
+		"this is a longer message meant *not* to be truncated, thanks to the "
+		"multipart SMS feature.~n"
+		"On a clear disk you can seek forever. "
+		"$3,000,000. CHUBBY CHECKER just had a CHICKEN SANDWICH in downtown "
+		"DULUTH! "
+		"... the MYSTERIANS are in here with my CORDUROY SOAP DISH!! "
+		"No one ever built a statue to a critic. "
+		"Contains no artificial colors or ingredients. "
+		"355/113 -- Not the famous irrational number PI, but an incredible "
+		"simulation! "
+		"I do desire we may be better strangers. "
+		"  -- William Shakespeare, As You Like It "
+		"Put a rogue in the limelight and he will act like an honest man. "
+		" -- Napoleon Bonaparte, Maxims "
+		"It's not whether you win or lose but how you played the game. "
+		"  -- Grantland Rice. STOP.",
+
+	GSMMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
+										   [ "GSM uncompressed" ] ),
+
+	%test_facilities:display( "Will be sending now following message: '~ts'.",
+	%						 [ GSMMultiUncompMsg ] ),
+
+	GSMMultiUncompSMSReport = mobile:send_multipart_sms( GSMMultiUncompMsg,
+									   MobileNumber, gsm_uncompressed ),
+
+	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+							 "for the test of GSM uncompressed encoding, "
+							 "whose report is: ~w.",
+							 [ GSMMultiUncompMsg, GSMMultiUncompSMSReport ] ),
+
+
+
+	UnicodeMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
+											   [ "Unicode uncompressed" ] ),
+
+	%test_facilities:display( "Sending now: '~ts'.", [ UnicodeMultiUncompMsg ] ),
+
+	UnicodeMultiUncompSMSReport =
+		mobile:send_multipart_sms( UnicodeMultiUncompMsg, MobileNumber,
+								   unicode_uncompressed ),
+
+	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+							 "for the test of Unicode uncompressed encoding, "
+							 "whose report is: ~w.", [ UnicodeMultiUncompMsg,
+											 UnicodeMultiUncompSMSReport ] ),
+
+
+
+	AutoMultiMsg = text_utils:format( EncodingMultiTestFormatMsg,
+									  [ "automatic mode" ] ),
+
+	%test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
+
+	AutoMultiSMSReport = mobile:send_multipart_sms( AutoMultiMsg, MobileNumber ),
+
+	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+							 "for the test of (automatic) encoding, "
+							 "whose report is: ~w.",
+							 [ AutoMultiMsg, AutoMultiSMSReport ] ),
+
+
+	%test_facilities:display( "Sending now the same message in full automatic "
+	%						 "mode (regarding encoding and parts)..." ),
+
+	FullSMSReport = mobile:send_sms( AutoMultiMsg, MobileNumber ),
+
+	test_facilities:display( "~nSent message: '~s' in full automatic mode, "
+							 "report is: ~w.",
+							 [ AutoMultiMsg, FullSMSReport ] ).
