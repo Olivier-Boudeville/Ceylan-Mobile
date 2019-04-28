@@ -160,11 +160,31 @@
 		 { signal_strength(), signal_strength_percent(), error_rate() }.
 
 
-% Sends specified SMS.
+
+% Sends specified, regular (i.e. non-multipart) SMS, using default encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
--spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
+-spec send_regular_sms( sms_message(), mobile_number() ) -> sms_sending_report().
+
+
+
+% Sends specified SMS, regular (i.e. non-multipart) using specified encoding.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_regular_sms( sms_message(), mobile_number(), encoding() ) ->
+							 sms_sending_report().
+
+
+
+
+% Sends specified multipart SMS, using default encoding.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_multipart_sms( sms_message(), mobile_number() ) ->
+								sms_sending_report().
 
 
 
@@ -172,30 +192,81 @@
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
--spec send_sms( sms_message(), mobile_number(), encoding() ) ->
+-spec send_multipart_sms( sms_message(), mobile_number(), encoding() ) ->
+								sms_sending_report().
+
+
+
+% Sends specified SMS, determining automatically the best encoding to use, and
+% whether a regular SMS or a multipart one is needed.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_sms( sms_message(), mobile_number() ) ->
 					  sms_sending_report().
+
+
 
 
 
 % API function overriding section.
 
 
+% Key in the process dictionary allowing to keep the GSM charset in the context
+% once for all:
+%
+-define( mobile_gsm_charset_key, "_mobile_gsm_charset" ).
+
+
+
 % We define our own service-specific starting procedure, knowing that a call to
 % the corresponding Seaplus start will be automatically added afterwards.
 %
 start() ->
+	start_common().
+
+
+start_link() ->
+	start_common().
+
+
+
+% (helper)
+start_common() ->
 
 	% This is needed whenever for example the overall (Erlang) application is
 	% launched with the -noinput option (in this case the VM encoding switches
 	% from unicode to latin1, and we cannot output proper UTF-8 characters
 	% anymore (they are displayed as question marks in terminals):
 	%
-	io:setopts( [ { encoding, unicode } ] ).
+	io:setopts( [ { encoding, unicode } ] ),
+
+	process_dictionary:putAsNew( ?mobile_gsm_charset_key,
+								 create_gsm_charset() ).
 
 
-start_link() ->
-	% Same needs:
-	start().
+
+% Returns a set containing all characters of the GSM, 7bit alphabet that shall
+% not be escaped, for faster look-ups.
+%
+create_gsm_charset() ->
+
+	% Based on
+	% https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38:
+
+	set_utils:new(
+		 [ C || C <- lists:seq( $a, $z ) ]
+	  ++ [ C || C <- lists:seq( $A, $Z ) ]
+	  ++ [ C || C <- lists:seq( $0, $9 ) ]
+	  ++ [ $:, $;, $<, $=, $>, $?, $¡, $Ä, $Ö, $Ñ, $Ü, $§, $¿,
+		   $ä, $ö, $ñ, $ü, $à, $@, $£, $$, $¥, $è, $é, $ù, $ì, $ò,
+		   $Ç, $\n, $Ø, $ø, $\r, $Å, $å,
+		   $Δ, $_, $Φ, $Γ, $Λ, $Ω, $Π, $Ψ, $Σ, $Θ, $Ξ,
+		   % Removed as already expected to be escaped: $\\,
+		   $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
+		   $*, $+, $,, $-, $., $/ ] ).
+
+
 
 
 % We override this function to throw an exception on failure, rather than
@@ -243,23 +314,27 @@ get_backend_information() ->
 
 
 
-% Exchanging binaries is more efficient.
-send_sms( Message, MobileNumber ) ->
+% For the sending of SMS, we override a lot the default Seaplus behaviours.
 
+
+% Sending a regular (non-multipart) SMS, using default encoding:
+send_regular_sms( Message, MobileNumber ) ->
+
+	% We directly branch to the more complete version, the only one to be known
+	% of the driver:
+	%
+	send_regular_sms( Message, MobileNumber, _Encoding=gsm_uncompressed ).
+
+
+
+% Sending a regular (non-multipart) SMS, using specified encoding:
+send_regular_sms( Message, MobileNumber, Encoding ) ->
+
+	% Only available directly in this (overridden) function:
 	PortKey = seaplus:get_service_port_key(),
 	FunctionDriverId = seaplus:get_function_driver_id(),
 
-	Args = text_utils:strings_to_binaries( [ Message, MobileNumber ] ),
-
-	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
-
-
-
-% Exchanging binaries and identifiers is more efficient.
-send_sms( Message, MobileNumber, Encoding ) ->
-
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+	% Exchanging binaries and directly numerical identifiers is more efficient:
 
 	MessageBin = unicode:characters_to_binary( Message ),
 	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
@@ -268,6 +343,209 @@ send_sms( Message, MobileNumber, Encoding ) ->
 	Args = [ MessageBin, MobileNumberBin, EncodingEnum ],
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+
+
+
+
+% Sending a multipart SMS, using default encoding:
+send_multipart_sms( Message, MobileNumber ) ->
+
+	% We directly branch to the more complete version, the only one to be known
+	% of the driver:
+	%
+	send_multipart_sms( Message, MobileNumber,
+							   _Encoding=gsm_uncompressed ).
+
+
+% Sending a multipart SMS, using specified encoding:
+send_multipart_sms( Message, MobileNumber, Encoding ) ->
+
+	% Only available directly in this (overridden) function:
+	PortKey = seaplus:get_service_port_key(),
+	FunctionDriverId = seaplus:get_function_driver_id(),
+
+	% Exchanging binaries and identifiers is more efficient:
+
+	MessageBin = unicode:characters_to_binary( Message ),
+	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+	EncodingEnum = encoding_to_enum( Encoding ),
+
+	Args = [ MessageBin, MobileNumberBin, EncodingEnum ],
+
+	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+
+
+
+% The most advanced SMS-sending primitive, switching automatically to the right
+% lower-level one.
+%
+send_sms( Message, MobileNumber ) ->
+
+	% Select the right sending primitive to call:
+	case scan_characters( Message ) of
+
+		{ single_sms, Encoding, ReadyMessage } ->
+			trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			send_regular_sms( ReadyMessage, MobileNumber, Encoding );
+
+		{ multiple_sms, Encoding, ReadyMessage } ->
+			trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			send_multipart_sms( ReadyMessage, MobileNumber, Encoding )
+
+	end.
+
+
+
+% (helper)
+scan_characters( Message ) ->
+
+	GSMCharSet = process_dictionary:getExisting( ?mobile_gsm_charset_key ),
+
+	scan_characters( Message, _GSMUCharCount=0, _UCS2UCharCount=0,
+					 _CurrentEncoding=gsm_uncompressed,
+					 _GSMUMessage=[], _UCS2UMessage=Message, GSMCharSet ).
+
+
+% (sub-helper)
+scan_characters( _Message=[], GSMUCharCount, _UCS2UCharCount,
+				 CurrentEncoding=gsm_uncompressed, GSMUMessage,
+				 _UCS2UMessage, _GSMCharSet ) ->
+
+	% Can only be decide once all characters have been examined (as even the
+	% last one may be a Unicode one):
+	%
+	SMSMultiplicity = case GSMUCharCount > 160  of
+
+		true ->
+			multiple_sms;
+
+		false ->
+			single_sms
+
+	 end,
+
+	{ SMSMultiplicity, CurrentEncoding, lists:reverse( GSMUMessage ) };
+
+
+scan_characters( _Message=[], _GSMUCharCount, _UCS2UCharCount,
+				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+				 UCS2UMessage, _GSMCharSet ) ->
+	%  If not having exit beforehand, it means:
+	{ single_sms, CurrentEncoding, UCS2UMessage };
+
+
+scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
+				 CurrentEncoding=gsm_uncompressed, GSMUMessage,
+				 UCS2UMessage, GSMCharSet ) ->
+
+	% With the default GSM alphabet, some characters have to be escaped:
+	case lists:member( C, [ $|, $^, $€, ${, $}, $[, $], $\\ ] ) of
+
+		true ->
+			% Still the default GSM alphabet, yet must be escaped then:
+			scan_characters( H, GSMUCharCount+2, UCS2UCharCount+1,
+							 CurrentEncoding, [ C, $\ | GSMUMessage ],
+							 UCS2UMessage, GSMCharSet );
+
+		false ->
+			% Either belonging to the unescaped default GSM alphabet, or to the
+			% UCS-2 one (the actual encoding will be done by Gammu, here we just
+			% determine the right encoding and single/multipart settings to
+			% select):
+			%
+			case is_gsm_char( C, GSMCharSet ) of
+
+				true ->
+					scan_characters( H, GSMUCharCount+1, UCS2UCharCount+1,
+									 CurrentEncoding, [ C | GSMUMessage ],
+									 UCS2UMessage, GSMCharSet );
+
+				false ->
+					% Alphabet switch required, no need to take care of GSM
+					% anymore, we just have to determine next whether a single
+					% or multipart SMS is needed then:
+					%
+					scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
+									 unicode_uncompressed, _GSMUMessage=[],
+									 UCS2UMessage, GSMCharSet )
+
+			end
+
+	end;
+
+
+% Shortcut (regardless of the next characters, we will stick to multipart
+% UCS-2):
+%
+%scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
+scan_characters( _Message, _GSMUCharCount, UCS2UCharCount,
+				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+				 UCS2UMessage, _GSMCharSet ) when UCS2UCharCount > 70 ->
+
+	% No need to go further:
+	{ multiple_sms, CurrentEncoding, UCS2UMessage };
+
+scan_characters( _Message=[ _C | H ], _GSMUCharCount, UCS2UCharCount,
+				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+				 UCS2UMessage, GSMCharSet ) ->
+
+	% No need to take care of GSM anymore:
+	scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
+					 CurrentEncoding, _GSMUMessage=[], UCS2UMessage,
+					 GSMCharSet ).
+
+
+
+% Tells whether specified character may be encoded in the default GSM
+% non-espaced alphabet:
+%
+% We were initially considering to rely on a well-crafted list, however a set is
+% by far more appropriate here.
+%
+% We used to try to favour ranges over cherry-picked codes, and roughly from the
+% most frequent characters to the least:
+%
+%is_gsm_char( C ) when C >= $a andalso C =< $z->
+%	true;
+%
+%is_gsm_char( C ) when C >= $0 andalso C =< $9->
+%	true;
+%
+%is_gsm_char( C ) when C >= $A andalso C =< $Z->
+%	true;
+%
+%is_gsm_char( C ) ->
+
+	% Remaining subsets:
+	%
+	%    $: $; $< $= $> $? $¡
+	%    $Ä $Ö $Ñ $Ü $§ $¿
+	%    $ä $ö $ñ $ü $à
+	%    $@ $£ $$ $¥ $è $é $ù $ì $ò $Ç $\n $Ø $ø $\r $Å $å
+	%    $Δ $_ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $\\ $Æ $æ $ß $É
+	%    $  $! $" $# $¤ $% $& $' $( $) $* $+ $, $- $. $/
+	%
+	% We remove $\\ as it is already escaped, and reorder characters from
+	% (approximately) most frequent to least:
+	%
+	%    $  $: $; $( $) $* $! $? $+ $, $- $. $\n $\r $% $& $' $/ $_
+	%    $" $# $@ $£ $$ $¥ $è $é $ù $< $= $>
+	%    $à $É $Ä $Ö $Ñ $Ü $§ $¿ $¡
+	%    $ä $ö $ñ $ü
+	%    $ì $ò $Ç $Ø $ø $Å $å
+	%    $Δ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $Æ $æ $ß $¤
+	%
+	%
+	% See also:
+	% - http://erlang.org/doc/reference_manual/data_types.html#escape-sequences
+
+
+is_gsm_char( C, GSMCharset ) ->
+	set_utils:member( C, GSMCharset ).
+
+
 
 
 
@@ -288,4 +566,6 @@ encoding_to_enum( eight_bit ) ->
 	5.
 
 
-% No need to define a specific stop/0 here.
+% Service-specific stop procedure.
+stop() ->
+	process_dictionary:removeExisting( ?mobile_gsm_charset_key ).
