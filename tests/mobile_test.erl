@@ -144,10 +144,10 @@ actual_sending_test( MobileNumber ) ->
 		"Goodbye! This is a longer SMS to test their support. "
 		"For thee the wonder-working earth puts forth sweet flowers. "
 		"-- Titus Lucretius Carus~n"
-		"Ho! Tom Bombadil, Tom Bombadillo! "
-		"By water, wood and hill, by reed and willow, "
-		"By fire, sun and moon, harken now and hear us!"
-		"Come, Tom Bombadil, for our need is near us! "
+		"Ho! Tom Bombadil, Tom Bombadillo!~n"
+		"By water, wood and hill, by reed and willow,~n"
+		"By fire, sun and moon, harken now and hear us!~n"
+		"Come, Tom Bombadil, for our need is near us!~n"
 		"-- J. R. R. Tolkien", [] ),
 
 	SecondSMSReport = mobile:send_regular_sms( SecondMessage, MobileNumber ),
@@ -162,7 +162,7 @@ actual_sending_test( MobileNumber ) ->
 		"be used (instead of a multi-part one, involving multiple actual SMS "
 		"that are to be collected and reassembled by the end device.~n"
 		"If it happens once, it's a bug. If it happens twice, it's a feature. "
-		"If it happens more than twice, it's a design philosophy. "
+		"If it happens more than twice, it's a design philosophy.~n"
 		"Beauty, n.: The power by which a woman charms a lover and terrifies "
 		"a husband. -- Ambrose Bierce",
 
@@ -238,18 +238,18 @@ actual_sending_test( MobileNumber ) ->
 	EncodingMultiTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
 		"this is a longer message meant *not* to be truncated, thanks to the "
 		"multipart SMS feature.~n"
-		"On a clear disk you can seek forever. "
+		"On a clear disk you can seek forever.~n"
 		"$3,000,000. CHUBBY CHECKER just had a CHICKEN SANDWICH in downtown "
-		"DULUTH! "
+		"DULUTH!~n"
 		"... the MYSTERIANS are in here with my CORDUROY SOAP DISH!! "
-		"No one ever built a statue to a critic. "
+		"No one ever built a statue to a critic.~n"
 		"Contains no artificial colors or ingredients. "
 		"355/113 -- Not the famous irrational number PI, but an incredible "
-		"simulation! "
+		"simulation!~n"
 		"I do desire we may be better strangers. "
-		"  -- William Shakespeare, As You Like It "
+		"  -- William Shakespeare, As You Like It.~n"
 		"Put a rogue in the limelight and he will act like an honest man. "
-		" -- Napoleon Bonaparte, Maxims "
+		" -- Napoleon Bonaparte, Maxims.~n"
 		"It's not whether you win or lose but how you played the game. "
 		"  -- Grantland Rice. STOP.",
 
