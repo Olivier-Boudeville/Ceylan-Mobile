@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, March 3, 2019</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, April 7, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, April 29, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library, version 1.0.</td>
 </tr>
@@ -57,18 +57,19 @@ A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.<
 <li><a class="reference internal" href="#software" id="id17">Software</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#issues-planned-enhancements" id="id18">Issues &amp; Planned Enhancements</a></li>
-<li><a class="reference internal" href="#support" id="id19">Support</a></li>
-<li><a class="reference internal" href="#ceylan-mobile-inner-workings" id="id20">Ceylan-Mobile Inner Workings</a></li>
-<li><a class="reference internal" href="#a-few-information-pointers" id="id21">A Few Information Pointers</a><ul>
-<li><a class="reference internal" href="#about-3g-devices" id="id22">About 3G Devices</a></li>
-<li><a class="reference internal" href="#about-gammu" id="id23">About Gammu</a></li>
-<li><a class="reference internal" href="#about-sms" id="id24">About SMS</a></li>
+<li><a class="reference internal" href="#some-sms-related-general-information" id="id18">Some SMS-related General Information</a></li>
+<li><a class="reference internal" href="#issues-planned-enhancements" id="id19">Issues &amp; Planned Enhancements</a></li>
+<li><a class="reference internal" href="#support" id="id20">Support</a></li>
+<li><a class="reference internal" href="#ceylan-mobile-inner-workings" id="id21">Ceylan-Mobile Inner Workings</a></li>
+<li><a class="reference internal" href="#a-few-information-pointers" id="id22">A Few Information Pointers</a><ul>
+<li><a class="reference internal" href="#about-3g-devices" id="id23">About 3G Devices</a></li>
+<li><a class="reference internal" href="#about-gammu" id="id24">About Gammu</a></li>
+<li><a class="reference internal" href="#about-sms" id="id25">About SMS</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#troubleshooting-telecom-level-issues" id="id25">Troubleshooting Telecom-level Issues</a></li>
-<li><a class="reference internal" href="#please-react" id="id26">Please React!</a></li>
-<li><a class="reference internal" href="#ending-word" id="id27">Ending Word</a></li>
+<li><a class="reference internal" href="#troubleshooting-telecom-level-issues" id="id26">Troubleshooting Telecom-level Issues</a></li>
+<li><a class="reference internal" href="#please-react" id="id27">Please React!</a></li>
+<li><a class="reference internal" href="#ending-word" id="id28">Ending Word</a></li>
 </ul>
 </li>
 </ul>
@@ -369,6 +370,7 @@ Leaving monitor mode...
 $ gammu getallsms
 </pre>
 <p>With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
+<p>Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile.</p>
 </div>
 </div>
 <div class="section" id="software">
@@ -486,16 +488,26 @@ $ make mobile-test
 </div>
 </div>
 </div>
+<div class="section" id="some-sms-related-general-information">
+<h2><a class="toc-backref" href="#id18">Some SMS-related General Information</a></h2>
+<p>The text to be sent as a SMS must be somehow encoded in messages.</p>
+<p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used, and then only 70 characters will fit in that SMS.</p>
+<p>Should the message be longer than what can a single SMS carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.</p>
+<p>See also:</p>
+<ul class="simple">
+<li>a <a class="reference external" href="https://messente.com/documentation/tools/sms-length-calculator">Free Online SMS Length Calculator</a></li>
+</ul>
+</div>
 <div class="section" id="issues-planned-enhancements">
-<h2><a class="toc-backref" href="#id18">Issues &amp; Planned Enhancements</a></h2>
+<h2><a class="toc-backref" href="#id19">Issues &amp; Planned Enhancements</a></h2>
 <p>The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).</p>
 </div>
 <div class="section" id="support">
-<h2><a class="toc-backref" href="#id19">Support</a></h2>
+<h2><a class="toc-backref" href="#id20">Support</a></h2>
 <p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
 </div>
 <div class="section" id="ceylan-mobile-inner-workings">
-<h2><a class="toc-backref" href="#id20">Ceylan-Mobile Inner Workings</a></h2>
+<h2><a class="toc-backref" href="#id21">Ceylan-Mobile Inner Workings</a></h2>
 <p>Mobile relies on:</p>
 <ul class="simple">
 <li><a class="reference external" href="https://wammu.eu/libgammu/">libGammu</a> (GPLv2), for the actual mobile phone support</li>
@@ -509,9 +521,9 @@ $ make mobile-test
 <p>A source of inspiration has been <a class="reference external" href="https://github.com/gammu/python-gammu/">python-gammu</a>.</p>
 </div>
 <div class="section" id="a-few-information-pointers">
-<h2><a class="toc-backref" href="#id21">A Few Information Pointers</a></h2>
+<h2><a class="toc-backref" href="#id22">A Few Information Pointers</a></h2>
 <div class="section" id="about-3g-devices">
-<h3><a class="toc-backref" href="#id22">About 3G Devices</a></h3>
+<h3><a class="toc-backref" href="#id23">About 3G Devices</a></h3>
 <ul class="simple">
 <li><a class="reference external" href="https://wiki.archlinux.org/index.php/USB_3G_Modem">USB 3G Modem</a>, by Arch Linux</li>
 <li><a class="reference external" href="https://wiki.gentoo.org/wiki/USB_ModeSwitch">USB_ModeSwitch</a>, by Gentoo Linux</li>
@@ -520,14 +532,14 @@ $ make mobile-test
 </ul>
 </div>
 <div class="section" id="about-gammu">
-<h3><a class="toc-backref" href="#id23">About Gammu</a></h3>
+<h3><a class="toc-backref" href="#id24">About Gammu</a></h3>
 <ul class="simple">
 <li><a class="reference external" href="https://wammu.eu/docs/manual/c/api.html">libGammu C API</a></li>
 <li><a class="reference external" href="https://wammu.eu/docs/manual/testing/dummy-driver.html">dummy driver</a></li>
 </ul>
 </div>
 <div class="section" id="about-sms">
-<h3><a class="toc-backref" href="#id24">About SMS</a></h3>
+<h3><a class="toc-backref" href="#id25">About SMS</a></h3>
 <ul class="simple">
 <li><a class="reference external" href="https://en.wikipedia.org/wiki/International_mobile_subscriber_identity">IMSI</a>: identifier of a SIM card, i.e. a 64-bit field designating a user (<em>International Mobile Subscriber Identity</em>)</li>
 <li><a class="reference external" href="https://en.wikipedia.org/wiki/Short_Message_service_center">SMSC</a>: SMS operator gateway (<em>Short Message Service Center</em>)</li>
@@ -537,16 +549,16 @@ $ make mobile-test
 </div>
 </div>
 <div class="section" id="troubleshooting-telecom-level-issues">
-<h2><a class="toc-backref" href="#id25">Troubleshooting Telecom-level Issues</a></h2>
+<h2><a class="toc-backref" href="#id26">Troubleshooting Telecom-level Issues</a></h2>
 <p>Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards.</p>
 <p>On GNU/Linux, being root and monitoring the system and Gammu logs (and/or using the <tt class="docutils literal"><span class="pre">--debug-file</span></tt> Gammu command-line option) should certainly help.</p>
 </div>
 <div class="section" id="please-react">
-<h2><a class="toc-backref" href="#id26">Please React!</a></h2>
+<h2><a class="toc-backref" href="#id27">Please React!</a></h2>
 <p>If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the <a class="reference internal" href="#support">Support</a> guidelines).</p>
 </div>
 <div class="section" id="ending-word">
-<h2><a class="toc-backref" href="#id27">Ending Word</a></h2>
+<h2><a class="toc-backref" href="#id28">Ending Word</a></h2>
 <p>Have fun with Mobile - but do not spam people!</p>
 <div class="figure align-center">
 <img alt="Mobile logo" src="mobile-title.png" style="width: 50%;" />
