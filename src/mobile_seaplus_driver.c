@@ -842,8 +842,28 @@ void send_multipart_sms( ETERM ** parameters,
   // A message will consist of one part:
   SMSInfo.EntriesNum = 1 ;
 
-  // No Unicode:
-  SMSInfo.UnicodeCoding = false ;
+  // Encoding is Unicode or not:
+  enum encoding e = get_parameter_as_int( 3, parameters ) ;
+
+  switch( e )
+  {
+
+  case unicode_uncompressed:
+  case unicode_compressed:
+	SMSInfo.UnicodeCoding = true ;
+	break ;
+
+  case gsm_uncompressed:
+  case gsm_compressed:
+  case eight_bit:
+	SMSInfo.UnicodeCoding = false ;
+	break ;
+
+  default:
+	raise_error( "Unexpected encoding: %i", e ) ;
+	break ;
+
+  }
 
   // This part has for type 'long text':
   SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong ;
