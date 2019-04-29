@@ -305,4 +305,9 @@ actual_sending_test( MobileNumber ) ->
 
 	test_facilities:display( "~nSent message: '~s' in full automatic mode, "
 							 "report is: ~w.",
-							 [ AutoMultiMsg, FullSMSReport ] ).
+							 [ AutoMultiMsg, FullSMSReport ] ),
+
+	% Automatic, single part, test for either encoding:
+	mobile:send_sms( "Unicode expected: âêîôû.", MobileNumber ),
+
+	mobile:send_sms( "GSM-encoding expected (end of test).", MobileNumber ).
