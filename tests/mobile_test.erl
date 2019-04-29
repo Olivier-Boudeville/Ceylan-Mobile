@@ -137,10 +137,10 @@ actual_sending_test( MobileNumber ) ->
 							 [ FirstMessage, FirstSMSReport ] ),
 
 
-	% With (uncompressed) GSM encoding, a single received SMS should stop just
-	% after the second 'Tom B':
+	% With (uncompressed) GSM encoding, the single received SMS should stop just
+	% after the second 'Tom':
 	%
-	SecondMessage = text_utils:format( 
+	SecondMessage = text_utils:format(
 		"Goodbye! This is a longer SMS to test their support. "
 		"For thee the wonder-working earth puts forth sweet flowers. "
 		"-- Titus Lucretius Carus~n"
@@ -172,6 +172,9 @@ actual_sending_test( MobileNumber ) ->
 	%test_facilities:display( "Will be sending now following message: '~ts'.",
 	%						 [ GSMUncompMsg ] ),
 
+	% With this encoding, "âêîôû" is expected to be sent as "aeiou", and the
+	% received SMS is expected to stop after 'one, inv':
+	%
 	GSMUncompSMSReport = mobile:send_regular_sms( GSMUncompMsg, MobileNumber,
 												  gsm_uncompressed ),
 
@@ -187,6 +190,9 @@ actual_sending_test( MobileNumber ) ->
 
 	%test_facilities:display( "Sending now: '~ts'.", [ UnicodeUncompMsg ] ),
 
+	% With Unicode, "âêîôû" is expected to be received just fine, but the length
+	% of this single SMS shall be quite small: stopping after "this is a long":
+	%
 	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
 								   MobileNumber, unicode_uncompressed ),
 
