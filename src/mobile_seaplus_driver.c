@@ -112,6 +112,7 @@ volatile bool shutdown_requested = false ;
 // Tells whether the last SMS sending succeeded:
 volatile status sms_send_status = false ;
 
+GSM_Debug_Info * debug_info ;
 
 GSM_SMSMessage sms ;
 
@@ -516,7 +517,7 @@ int main( int argc, char **argv )
 
 	case SEND_REGULAR_SMS_3_ID:
 
-		/* -spec send_regular_sms( message(), mobile_number(), encoding() ) ->
+		/* -spec send_regular_sms( message(), recipient_number(), encoding() ) ->
 		 *                        sms_id().
 		 *
 		 */
@@ -544,7 +545,7 @@ int main( int argc, char **argv )
 	case SEND_MULTIPART_SMS_3_ID:
 
 
-	  /* -spec send_multipart_sms( message(), mobile_number(),
+	  /* -spec send_multipart_sms( message(), recipient_number(),
 		 *                           encoding() ) -> sms_id().
 		 *
 		 */
@@ -600,8 +601,6 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   signal( SIGINT, mobile_interrupt ) ;
   signal( SIGTERM, mobile_interrupt) ;
 
-  GSM_Debug_Info * debug_info ;
-
   FILE * debug_file = NULL ;
 
   if ( enable_gammu_logging )
@@ -623,7 +622,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
 	debug_info = GSM_GetGlobalDebug() ;
 
-	GSM_SetDebugFileDescriptor( debug_file, FALSE, debug_info ) ;
+	GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
 
 	GSM_SetDebugLevel( "textall", debug_info ) ;
 
@@ -656,9 +655,9 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
 	debug_info = GSM_GetDebug( gammu_fsm ) ;
 
-	GSM_SetDebugGlobal( FALSE, debug_info ) ;
+	GSM_SetDebugGlobal( false, debug_info ) ;
 
-	GSM_SetDebugFileDescriptor( debug_file, FALSE, debug_info ) ;
+	GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
 
 	GSM_SetDebugLevel( "textall", debug_info ) ;
 
@@ -703,7 +702,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   // No user data:
   GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback, NULL ) ;
 
-  // We need to know SMSC number:
+  // We need to know the SMSC number:
   device_smsc.Location = 1 ;
   error = GSM_GetSMSC( gammu_fsm, &device_smsc ) ;
   check_gammu_error( error, gammu_fsm ) ;
@@ -728,24 +727,25 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 {
 
-  // Clean-up the struct:
-  memset( &sms, 0, sizeof( sms ) ) ;
-
   char * message = get_parameter_as_binary( 1, parameters ) ;
 
   if ( message == NULL )
-	raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
+	raise_gammu_error( gammu_fsm,
+	  "SMS message could not be obtained (regular)." ) ;
+
+  // Clean-up the struct:
+  memset( &sms, 0, sizeof( sms ) ) ;
 
   EncodeUnicode( sms.Text, message, strlen( message ) ) ;
 
   // Message recipient:
-  char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
+  char * recipient_number = get_parameter_as_binary( 2, parameters ) ;
 
-  if ( mobile_number == NULL )
+  if ( recipient_number == NULL )
 	raise_gammu_error( gammu_fsm,
-	  "SMS mobile number could not be obtained." ) ;
+	  "SMS recipient mobile number could not be obtained." ) ;
 
-  EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
+  EncodeUnicode( sms.Number, recipient_number, strlen( recipient_number ) ) ;
 
   // We want to submit message ("SMS for sending or in Outbox"):
   sms.PDU = SMS_Submit ;
@@ -800,7 +800,7 @@ void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
   LOG_DEBUG( "Device read." ) ;
 
   erl_free( message ) ;
-  erl_free( mobile_number ) ;
+  erl_free( recipient_number ) ;
 
 }
 
@@ -813,81 +813,118 @@ void send_multipart_sms( ETERM ** parameters,
   GSM_StateMachine * gammu_fsm )
 {
 
-  LOG_DEBUG( "prout" ) ;
-
-  // Clean-up the struct:
-  memset( &sms, 0, sizeof( sms ) ) ;
-
   char * message = get_parameter_as_binary( 1, parameters ) ;
 
   if ( message == NULL )
-	raise_gammu_error( gammu_fsm, "SMS message could not be obtained." ) ;
+	raise_gammu_error( gammu_fsm, "SMS message could not be obtained (multipart)." ) ;
 
-  EncodeUnicode( sms.Text, message, strlen( message ) ) ;
+   // Message recipient:
+  char * recipient_number = get_parameter_as_binary( 2, parameters ) ;
 
-  // Message recipient:
-  char * mobile_number = get_parameter_as_binary( 2, parameters ) ;
-
-  if ( mobile_number == NULL )
+  if ( recipient_number == NULL )
 	raise_gammu_error( gammu_fsm,
-	  "SMS mobile number could not be obtained." ) ;
+	  "SMS recipient mobile number could not be obtained." ) ;
 
-  EncodeUnicode( sms.Number, mobile_number, strlen( mobile_number ) ) ;
+  unsigned int buf_size = ( strlen( message ) + 1 ) * 2 ;
 
-  // We want to submit message ("SMS for sending or in Outbox"):
-  sms.PDU = SMS_Submit ;
+  // To store message as Unicode:
+  byte * msg_buffer = (byte *) malloc( buf_size ) ;
 
-  // No User Data Header, just a plain message:
-  sms.UDH.Type = UDH_NoUDH ;
+  if ( msg_buffer == NULL )
+	raise_error( "Multipart message buffer could not be allocated." ) ;
 
-  sms.Coding = get_encoding( get_parameter_as_int( 3, parameters ) ) ;
+  GSM_MultiPartSMSInfo SMSInfo ;
+  GSM_ClearMultiPartSMSInfo( &SMSInfo ) ;
 
   // Class 1 message (normal):
-  sms.Class = 1 ;
+  SMSInfo.Class = 1 ;
 
-  // Sets the SMSC number in message:
-  CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
+  // A message will consist of one part:
+  SMSInfo.EntriesNum = 1 ;
 
-  // Resets it first, some phones might give instant response:
-  sms_send_status = ERR_TIMEOUT ;
+  // No Unicode:
+  SMSInfo.UnicodeCoding = false ;
 
-  // Finally:
-  GSM_Error gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
+  // This part has for type 'long text':
+  SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong ;
+
+  // Encode message text:
+  EncodeUnicode( msg_buffer, message, strlen( message ) ) ;
+
+  SMSInfo.Entries[0].Buffer = msg_buffer ;
+
+  LOG_DEBUG( "Message once encoded in UCS-2: '%s'.",
+	DecodeUnicodeConsole( SMSInfo.Entries[0].Buffer ) ) ;
+
+  GSM_MultiSMSMessage MultiSMS ;
+
+  // Encode message into PDU parts:
+  GSM_Error gammu_error = GSM_EncodeMultiPartSMS( debug_info, &SMSInfo,
+	&MultiSMS ) ;
+
   check_gammu_error( gammu_error, gammu_fsm ) ;
 
-  /* We do not have yet anything to return, but the callback will. */
-  //write_as_XXX( buffer, ... ) ;
+  size_t recipient_number_len = strlen( recipient_number ) ;
 
-  /* However, using real devices (not the dummy one), we see that the callback
-   * is never triggered unless we poll explicitly from a network reply.
-   *
-   * Loops as long as the status is ERR_TIMEOUT:
-   *
-   */
-  while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+
+  // Now sending the message parts:
+  for ( unsigned int i = 0; i < MultiSMS.Number; i++)
   {
 
-	LOG_DEBUG( "Reading device..." ) ;
+	LOG_DEBUG( "Sending SMS part %i/%i", i+1, MultiSMS.Number ) ;
 
-	/* Expected to trigger sms_sending_callback/4 (true: wait for reply;
-	 * number of read bytes ignored):
-	 *
+	// Sets the SMSC number in the current SMS:
+	CopyUnicodeString( MultiSMS.SMS[i].SMSC.Number, device_smsc.Number ) ;
+
+	// Encodes the recipient number:
+	EncodeUnicode( MultiSMS.SMS[i].Number, recipient_number,
+	  recipient_number_len ) ;
+
+	// We want to submit message:
+	MultiSMS.SMS[i].PDU = SMS_Submit ;
+
+	/*
+	 * Sets flag before callind SendSMS, as some phones might give instant
+	 * response:
 	 */
-	GSM_ReadDevice( gammu_fsm, true ) ;
+	sms_send_status = ERR_TIMEOUT ;
 
-	/* Answer to be sent by the callback, just ensuring here we read the device
-	 * until an answer is known.
+	// Send this message:
+	gammu_error = GSM_SendSMS( gammu_fsm, &MultiSMS.SMS[i] ) ;
+	check_gammu_error( gammu_error, gammu_fsm ) ;
+
+	/* We do not have yet anything to return, but the callback will. */
+	//write_as_XXX( buffer, ... ) ;
+
+	/* However, using real devices (not the dummy one), we see that the callback
+	 * is never triggered unless we poll explicitly from a network reply.
 	 *
 	 * Loops as long as the status is ERR_TIMEOUT:
 	 *
 	 */
+	while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+	{
+
+	  LOG_DEBUG( "Reading device..." ) ;
+
+	  /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+	   * number of read bytes ignored):
+	   *
+	   */
+	  GSM_ReadDevice( gammu_fsm, true ) ;
+
+	  /* Answer to be sent by the callback, just ensuring here we read the
+	   * device until an answer is known.
+	   *
+	   */
+
+	}
+
+	LOG_DEBUG( "Device read." ) ;
 
   }
 
-  LOG_DEBUG( "Device read." ) ;
-
-  erl_free( message ) ;
-  erl_free( mobile_number ) ;
+  free( msg_buffer ) ;
 
 }
 
