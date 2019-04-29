@@ -68,7 +68,7 @@ run() ->
 actual_sending_test( MobileNumber ) ->
 
 	% The tested SMS classes:
-	Classes = [ 1, 2, 3, 4 ],
+	Classes = [ 0, 1, 2, 3, 4 ],
 
 	MessageFormat = "Hello class #~B, âêîôû!",
 
