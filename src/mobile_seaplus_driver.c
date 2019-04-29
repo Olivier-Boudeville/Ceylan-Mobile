@@ -317,7 +317,6 @@ int main( int argc, char **argv )
 	{
 
 
-
 	case GET_BACKEND_INFORMATION_0_ID:
 
 		/* -spec get_backend_information() ->
@@ -515,15 +514,39 @@ int main( int argc, char **argv )
 
 
 
+	case SEND_REGULAR_SMS_2_ID:
+
+		/* No SEND_REGULAR_SMS_2_ID case: the Erlang part is to trigger only the
+		 * SEND_REGULAR_SMS_4_ID version.
+		 *
+		 */
+		raise_error( "Unexpected call to driver-level send_regular_sms/2." ) ;
+
+		break ;
+
+
+
 	case SEND_REGULAR_SMS_3_ID:
 
-		/* -spec send_regular_sms( message(), recipient_number(), encoding() ) ->
-		 *                        sms_id().
+		/* No SEND_REGULAR_SMS_3_ID case: the Erlang part is to trigger only the
+		 * SEND_REGULAR_SMS_4_ID version.
+		 *
+		 */
+		raise_error( "Unexpected call to driver-level send_regular_sms/3." ) ;
+
+		break ;
+
+
+
+	case SEND_REGULAR_SMS_4_ID:
+
+		/* -spec send_regular_sms( message(), recipient_number(), class(),
+		 *                         encoding() ) -> sms_id().
 		 *
 		 */
 
-		LOG_DEBUG( "Executing send_regular_sms/3." ) ;
-		check_arity_is( 3, param_count, SEND_REGULAR_SMS_3_ID ) ;
+		LOG_DEBUG( "Executing send_regular_sms/4." ) ;
+		check_arity_is( 4, param_count, SEND_REGULAR_SMS_4_ID ) ;
 
 		send_regular_sms( parameters, gammu_fsm ) ;
 
@@ -534,7 +557,7 @@ int main( int argc, char **argv )
 	case SEND_MULTIPART_SMS_2_ID:
 
 		/* No SEND_MULTIPART_SMS_2_ID case: the Erlang part is to trigger only
-		 * the SEND_MULTIPART_SMS_3_ID version.
+		 * the SEND_MULTIPART_SMS_4_ID version.
 		 *
 		 */
 		raise_error( "Unexpected call to driver-level send_multipart_sms/2." ) ;
@@ -542,16 +565,28 @@ int main( int argc, char **argv )
 		break ;
 
 
+
 	case SEND_MULTIPART_SMS_3_ID:
 
+		/* No SEND_MULTIPART_SMS_3_ID case: the Erlang part is to trigger only
+		 * the SEND_MULTIPART_SMS_4_ID version.
+		 *
+		 */
+		raise_error( "Unexpected call to driver-level send_multipart_sms/3." ) ;
 
-	  /* -spec send_multipart_sms( message(), recipient_number(),
-		 *                           encoding() ) -> sms_id().
+		break ;
+
+
+
+	case SEND_MULTIPART_SMS_4_ID:
+
+		/* -spec send_multipart_sms( message(), recipient_number(),
+		 *                           class(), encoding() ) -> sms_id().
 		 *
 		 */
 
-		LOG_DEBUG( "Executing send_multipart_sms/3." ) ;
-		check_arity_is( 3, param_count, SEND_MULTIPART_SMS_3_ID ) ;
+		LOG_DEBUG( "Executing send_multipart_sms/4." ) ;
+		check_arity_is( 4, param_count, SEND_MULTIPART_SMS_4_ID ) ;
 
 		send_multipart_sms( parameters, gammu_fsm ) ;
 
@@ -560,11 +595,24 @@ int main( int argc, char **argv )
 
 
 	case SEND_SMS_2_ID:
+
 		/* No SEND_SMS_2_ID case: the Erlang part is to select the right version
-		 * among the SEND_*_SMS_3_ID.
+		 * among the SEND_*_SMS_4_ID.
 		 *
 		 */
 		raise_error( "Unexpected call to driver-level send_sms/2." ) ;
+
+		break ;
+
+
+
+	case SEND_SMS_3_ID:
+
+		/* No SEND_SMS_3_ID case: the Erlang part is to select the right version
+		 * among the SEND_*_SMS_4_ID.
+		 *
+		 */
+		raise_error( "Unexpected call to driver-level send_sms/3." ) ;
 
 		break ;
 
@@ -590,6 +638,7 @@ int main( int argc, char **argv )
   stop_seaplus_driver( buffer ) ;
 
 }
+
 
 
 void start_gammu( GSM_StateMachine * gammu_fsm )
@@ -635,7 +684,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   }
 
 
-  if( enable_gammu_state_machine_logging )
+  if ( enable_gammu_state_machine_logging )
   {
 
 	if ( log_file != NULL )
@@ -718,10 +767,15 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 }
 
 
-// Helpers defined to avoid variable name clashes in the function switch, and to factor code:
+
+/* Helpers defined to avoid variable name clashes in the function switch, and to
+ * factor code:
+ *
+ */
 
 
-/* Sends a regular (single-part) SMS with specified encoding.
+
+/* Sends a regular (single-part) SMS with specified class and encoding.
  *
  */
 void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
@@ -753,10 +807,10 @@ void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
   // No User Data Header, just a plain message:
   sms.UDH.Type = UDH_NoUDH ;
 
-  sms.Coding = get_encoding( get_parameter_as_int( 3, parameters ) ) ;
+  sms.Class = get_parameter_as_int( 3, parameters ) ;
 
-  // Class 1 message (normal):
-  sms.Class = 1 ;
+  sms.Coding = get_encoding( get_parameter_as_int( 4, parameters ) ) ;
+
 
   // Sets the SMSC number in message:
   CopyUnicodeString( sms.SMSC.Number, device_smsc.Number ) ;
@@ -806,7 +860,7 @@ void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 
 
-/* Sends a multipart SMS with specified encoding.
+/* Sends a multipart SMS with specified class and encoding.
  *
  */
 void send_multipart_sms( ETERM ** parameters,
@@ -836,14 +890,13 @@ void send_multipart_sms( ETERM ** parameters,
   GSM_MultiPartSMSInfo SMSInfo ;
   GSM_ClearMultiPartSMSInfo( &SMSInfo ) ;
 
-  // Class 1 message (normal):
-  SMSInfo.Class = 1 ;
+  SMSInfo.Class = get_parameter_as_int( 3, parameters ) ;
 
   // A message will consist of one part:
   SMSInfo.EntriesNum = 1 ;
 
-  // Encoding is Unicode or not:
-  enum encoding e = get_parameter_as_int( 3, parameters ) ;
+  // Encoding has ultimately only to be Unicode or not:
+  enum encoding e = get_parameter_as_int( 4, parameters ) ;
 
   switch( e )
   {

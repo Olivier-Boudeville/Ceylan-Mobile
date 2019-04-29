@@ -6,6 +6,13 @@ MOBILE_TOP = ..
 		info-vars
 
 
+
+all:
+
+
+mobile-all-tests: mobile-test mobile-class-test
+
+
 # If using a dummy device, its directory must already exist before using it:
 # (note that it will be integrally wiped out by the clean-local target)
 #
@@ -34,12 +41,30 @@ mobile-test-terse: pre-test
 	@$(MAKE) -s mobile_run $(TEST_ENV)
 
 
+
+# Displays the logs iff failed:
+mobile-class-test: pre-test
+	@$(MAKE) -s mobile_class_run $(TEST_ENV) || cat seaplus-driver.*.log
+
+
+# Displays the logs in all cases:
+mobile-class-test-debug: pre-test
+	@$(MAKE) -s mobile_class_run $(TEST_ENV) ; cat seaplus-driver.*.log
+
+
+# Displays no log:
+mobile-class-test-terse: pre-test
+	@$(MAKE) -s mobile_class_run $(TEST_ENV)
+
+
+
+
 test: test-local
 
 
 # We cannot execute directly the 'test' target, as we need a proper environment:
 test-local:
-	@echo "Error, run: 'make mobile-test' instead." 1>&2
+	@echo "Error, run: 'make mobile-all-tests' instead." 1>&2
 	@exit 5
 
 

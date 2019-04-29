@@ -1,6 +1,6 @@
-% Copyright (C) 2018-2019 Olivier Boudeville
+% Copyright (C) 2019-2019 Olivier Boudeville
 %
-% This file is part of the Ceylan-Seaplus library.
+% This file is part of the Ceylan-Mobile library.
 %
 % This library is free software: you can redistribute it and/or modify
 % it under the terms of the GNU Lesser General Public License or
@@ -23,7 +23,7 @@
 % <http://www.mozilla.org/MPL/>.
 %
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
-% Creation date: Sunday, March 24, 2019
+% Creation date: Sunday, March 24, 2019.
 
 
 % Allows to test the Ceylan-Mobile services.
@@ -116,13 +116,17 @@ run() ->
 
 
 
-% An actual test done, should the sending of test SMS be enabled.
+% Performs actual test sendings.
 actual_sending_test( MobileNumber ) ->
+
+	% Testing the most common SMS class:
+	Class = 1,
 
 	test_facilities:display( "~n~nThe next sending tests will target the "
 							 "following recipient mobile number: '~s', first "
 							 "with a few single-part SMS, of various lengths, "
-							 "needing various encodings.", [ MobileNumber ] ),
+							 "of class ~B, and needing various encodings.", 
+							 [ MobileNumber, Class ] ),
 
 
 	% Single (non-multipart) SMS testing:
@@ -176,7 +180,7 @@ actual_sending_test( MobileNumber ) ->
 	% received SMS is expected to stop after 'one, inv':
 	%
 	GSMUncompSMSReport = mobile:send_regular_sms( GSMUncompMsg, MobileNumber,
-												  gsm_uncompressed ),
+												  Class, gsm_uncompressed ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
 							 "test of GSM uncompressed encoding, "
@@ -194,7 +198,7 @@ actual_sending_test( MobileNumber ) ->
 	% of this single SMS shall be quite small: stopping after "this is a long":
 	%
 	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
-								   MobileNumber, unicode_uncompressed ),
+								   MobileNumber, Class, unicode_uncompressed ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
 							 "test of Unicode uncompressed encoding, "
@@ -260,7 +264,7 @@ actual_sending_test( MobileNumber ) ->
 	%						 [ GSMMultiUncompMsg ] ),
 
 	GSMMultiUncompSMSReport = mobile:send_multipart_sms( GSMMultiUncompMsg,
-									   MobileNumber, gsm_uncompressed ),
+									   MobileNumber, Class, gsm_uncompressed ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~s') "
 							 "for the test of GSM uncompressed encoding, "
@@ -276,12 +280,11 @@ actual_sending_test( MobileNumber ) ->
 
 	UnicodeMultiUncompSMSReport =
 		mobile:send_multipart_sms( UnicodeMultiUncompMsg, MobileNumber,
-								   unicode_uncompressed ),
+								   Class, unicode_uncompressed ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~s') "
-							 "for the test of Unicode uncompressed encoding, "
-							 "whose report is: ~w.", [ UnicodeMultiUncompMsg,
-											 UnicodeMultiUncompSMSReport ] ),
+		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
+		[ UnicodeMultiUncompMsg, UnicodeMultiUncompSMSReport ] ),
 
 
 

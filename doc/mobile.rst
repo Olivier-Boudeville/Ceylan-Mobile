@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Saturday, April 20, 2019
+:Lastly updated: Monday, April 29, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -457,6 +457,9 @@ Once successful, one will be able to send SMS back and forth between the 3G devi
 
 
 With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
+
+Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile.
+
 
 
 Software

@@ -23,6 +23,8 @@
 % <http://www.mozilla.org/MPL/>.
 %
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
+% Creation date: Sunday, March 24, 2019.
+
 
 
 % Module offering the Ceylan-Mobile services.
@@ -81,6 +83,14 @@
 
 % User-specified SMS message:
 -type sms_message() :: text_utils:string().
+
+
+% Most SMS are of class 1 (the default, should no class by specified).
+%
+% See also: http://www.ozekisms.com/index.php?owpn=544
+%
+-type sms_class() :: non_neg_integer().
+
 
 % The mobile number associated to a device (ex: "+1234567890"):
 -type mobile_number() :: text_utils:string().
@@ -166,7 +176,7 @@
 
 
 
-% Sends specified, regular (i.e. non-multipart) SMS, using an
+% Sends specified, regular (i.e. non-multipart) SMS (of class 1), using an
 % automatically-detected encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
@@ -175,7 +185,8 @@
 
 
 
-% Sends specified SMS, regular (i.e. non-multipart) using specified encoding.
+% Sends specified, regular (i.e. non-multipart) SMS (of class 1) using specified
+% encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
@@ -184,8 +195,19 @@
 
 
 
+% Sends specified, regular (i.e. non-multipart) SMS using specified class and
+% encoding.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
+						encoding() ) -> sms_sending_report().
 
-% Sends specified multipart SMS, using an automatically-detected encoding.
+
+
+
+% Sends specified multipart SMS (of class 1), using an automatically-detected
+% encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
@@ -194,7 +216,7 @@
 
 
 
-% Sends specified SMS, using specified encoding.
+% Sends specified SMS (of class 1), using specified encoding.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
@@ -203,14 +225,32 @@
 
 
 
-% Sends specified SMS, determining automatically the best encoding to use, and
-% whether a regular SMS or a multipart one is needed.
+% Sends specified SMS, using specified class and encoding.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
+						  encoding() ) -> sms_sending_report().
+
+
+
+% Sends specified SMS (of class 1), determining automatically the best encoding
+% to use, and whether a regular SMS or a multipart one is needed.
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
 -spec send_sms( sms_message(), mobile_number() ) ->
 					  sms_sending_report().
 
+
+
+% Sends specified SMS, of specified class, determining automatically the best
+% encoding to use, and whether a regular SMS or a multipart one is needed.
+%
+% Returns whether it succeeded, and the message TPRM reference.
+%
+-spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
+					  sms_sending_report().
 
 
 
@@ -323,10 +363,18 @@ get_backend_information() ->
 % For the sending of SMS, we override a lot the default Seaplus behaviours.
 
 
-% Sending a regular (non-multipart) SMS, using an automatically-detected
-% encoding.
+% Sending a regular (non-multipart) SMS, using default class 1 and an
+% automatically-detected encoding.
 %
 send_regular_sms( Message, MobileNumber ) ->
+	send_regular_sms( Message, MobileNumber, _Class=1 ).
+
+
+
+% Sending a regular (non-multipart) SMS, using specified class and an
+% automatically-detected encoding.
+%
+send_regular_sms( Message, MobileNumber, Class ) ->
 
 	% We directly branch to the more complete version, the only one to be known
 	% of the driver:
@@ -335,29 +383,31 @@ send_regular_sms( Message, MobileNumber ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
-								   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			%trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage } ;
 
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			trace_utils:warning_fmt(
-			  "Sending '~s' as a single SMS (as requested), with "
-			  "encoding ~s, yet expecting it to be truncated.",
-			  [ ReadyMessage, Encoding ] ),
+			%trace_utils:warning_fmt(
+			%  "Sending '~s' as a single SMS (as requested), with "
+			%  "encoding ~s, yet expecting it to be truncated.",
+			%  [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage }
 
 	end,
 
-	send_regular_sms( ActualMessage, MobileNumber, ActualEncoding ).
+	send_regular_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
 
 
 
-% Sending a regular (non-multipart) SMS, using specified encoding:
-send_regular_sms( Message, MobileNumber, Encoding ) ->
+% Sending a regular (non-multipart) SMS, using specified class and encoding.
+send_regular_sms( Message, MobileNumber, Class, Encoding )
+  when is_list( Message ) andalso is_list( MobileNumber )
+	   andalso is_integer( Class ) andalso is_atom( Encoding ) ->
 
 	% Only available directly in this (overridden) function:
 	PortKey = seaplus:get_service_port_key(),
@@ -369,15 +419,28 @@ send_regular_sms( Message, MobileNumber, Encoding ) ->
 	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
 	EncodingEnum = encoding_to_enum( Encoding ),
 
-	Args = [ MessageBin, MobileNumberBin, EncodingEnum ],
+	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
+
+	%trace_utils:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
+	%						[ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
 
 
 
-% Sending a multipart SMS, using an automatically-detected encoding.
+% Sending a multipart SMS, using default class 1 and an automatically-detected
+% encoding.
+%
 send_multipart_sms( Message, MobileNumber ) ->
+	send_multipart_sms( Message, MobileNumber, _Class=1 ).
+
+
+
+% Sending a multipart SMS, using specified class and an automatically-detected
+% encoding.
+%
+send_multipart_sms( Message, MobileNumber, Class ) ->
 
 	% We directly branch to the more complete version, the only one to be known
 	% of the driver:
@@ -386,29 +449,31 @@ send_multipart_sms( Message, MobileNumber ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			trace_utils:warning_fmt(
-			  "Sending '~s' as a multipart SMS (as requested), with "
-			  "encoding ~s, yet believing a single-part SMS would have "
-			  "sufficed.", [ ReadyMessage, Encoding ] ),
+			%trace_utils:warning_fmt(
+			%  "Sending '~s' as a multipart SMS (as requested), with "
+			%  "encoding ~s, yet believing a single-part SMS would have "
+			%  "sufficed.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage } ;
 
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
-								   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			%trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage }
 
 	end,
 
-	send_multipart_sms( ActualMessage, MobileNumber, ActualEncoding ).
+	send_multipart_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
 
 
 
-% Sending a multipart SMS, using specified encoding:
-send_multipart_sms( Message, MobileNumber, Encoding ) ->
+% Sending a multipart SMS, using specified class and encoding.
+send_multipart_sms( Message, MobileNumber, Class, Encoding )
+  when is_list( Message ) andalso is_list( MobileNumber )
+	   andalso is_integer( Class ) andalso is_atom( Encoding ) ->
 
 	% Only available directly in this (overridden) function:
 	PortKey = seaplus:get_service_port_key(),
@@ -420,29 +485,48 @@ send_multipart_sms( Message, MobileNumber, Encoding ) ->
 	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
 	EncodingEnum = encoding_to_enum( Encoding ),
 
-	Args = [ MessageBin, MobileNumberBin, EncodingEnum ],
+	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
+
+	%trace_utils:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
+	%						[ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
 
 
 % The most advanced SMS-sending primitive, switching automatically to the right
-% lower-level one.
+% lower-level one, for the default class 1.
 %
 send_sms( Message, MobileNumber ) ->
+	send_sms( Message, MobileNumber, _Class=1 ).
+
+
+
+% The most advanced SMS-sending primitive, switching automatically to the right
+% lower-level one, based on specified class.
+%
+send_sms( Message, MobileNumber, Class ) ->
 
 	% Select the right sending primitive to call:
 	case scan_characters( Message ) of
 
+
 		{ single_sms, Encoding, ReadyMessage } ->
-			trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
-					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
-			send_regular_sms( ReadyMessage, MobileNumber, Encoding );
+
+			%trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+			%					   "class ~B and encoding ~s.",
+			%					   [ ReadyMessage, Class, Encoding ] ),
+
+			send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
+
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
-			trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
-					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
-			send_multipart_sms( ReadyMessage, MobileNumber, Encoding )
+
+			%trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+			%					   "class ~B and encoding ~s.",
+			%					   [ ReadyMessage, Class, Encoding ] ),
+
+			send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
 
 	end.
 
