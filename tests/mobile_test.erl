@@ -125,7 +125,7 @@ actual_sending_test( MobileNumber ) ->
 	test_facilities:display( "~n~nThe next sending tests will target the "
 							 "following recipient mobile number: '~s', first "
 							 "with a few single-part SMS, of various lengths, "
-							 "of class ~B, and needing various encodings.", 
+							 "of class ~B, and needing various encodings.",
 							 [ MobileNumber, Class ] ),
 
 
@@ -146,6 +146,7 @@ actual_sending_test( MobileNumber ) ->
 	%
 	SecondMessage = text_utils:format(
 		"Goodbye! This is a longer SMS to test their support. "
+		"See http://mobile.esperide.org for further details.~n"
 		"For thee the wonder-working earth puts forth sweet flowers. "
 		"-- Titus Lucretius Carus~n"
 		"Ho! Tom Bombadil, Tom Bombadillo!~n"
