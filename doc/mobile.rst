@@ -618,7 +618,7 @@ See also:
 Issues & Planned Enhancements
 =============================
 
-The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).
+The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming). For example, delivery reports could be requested and checked.
 
 
 
