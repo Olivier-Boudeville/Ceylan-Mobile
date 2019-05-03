@@ -618,7 +618,14 @@ See also:
 Issues & Planned Enhancements
 =============================
 
-The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming). For example, delivery reports could be requested and checked.
+The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).
+
+Notably:
+
+- a check whether phone needs to enter some PIN could be added
+- a support to accept/deny the receiving of SMS could be done based on the SMSC and/or mobile number of the sender
+- auto-hang up should a call be made to the 3G device (rather than letting the caller leave a message in the voice mail, if any)
+- SMS delivery reports could be requested and checked.
 
 
 
@@ -644,7 +651,7 @@ Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration 
 
 Internally, Gammu uses state machines.
 
-Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.
+Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.; inspiration could be found in ``gammu/smsd/core.c`` (ex: ``SMSD_ReadDeleteSMS/1``).
 
 Please feel free to enrich Ceylan-Mobile!
 

@@ -266,7 +266,8 @@
 
 
 % We define our own service-specific starting procedure, knowing that a call to
-% the corresponding Seaplus start will be automatically added afterwards.
+% the corresponding Seaplus start will be automatically added, at first
+% position, by the Seaplus parse transform.
 %
 start() ->
 	start_common().
@@ -281,7 +282,7 @@ start_link() ->
 start_common() ->
 
 	% This is needed whenever for example the overall (Erlang) application is
-	% launched with the -noinput option (in this case the VM encoding switches
+	% launched with the '-noinput' option (in this case the VM encoding switches
 	% from unicode to latin1, and we cannot output proper UTF-8 characters
 	% anymore (they are displayed as question marks in terminals):
 	%
@@ -314,9 +315,8 @@ create_gsm_charset() ->
 
 
 
-
-% We override this function to throw an exception on failure, rather than
-% sending tagged tuples for example.
+% We override this function to throw an exception on failure, rather than for
+% example sending tagged error tuples.
 %
 get_hardware_information() ->
 
@@ -683,7 +683,7 @@ is_gsm_char( C, GSMCharset ) ->
 
 
 
-% (helper)
+% (helper; see the enum encoding in the corresponding driver)
 encoding_to_enum( unicode_uncompressed ) ->
 	1;
 

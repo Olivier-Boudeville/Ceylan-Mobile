@@ -55,13 +55,16 @@
  * signature of the callback tells otherwise:
  *
  */
-typedef int sms_tpmr ;
+ typedef int sms_tpmr ;
 
+
+// Matches mobile:encoding_to_enum/1:
 enum encoding { unicode_uncompressed=1,
 				unicode_compressed,
 				gsm_uncompressed,
 				gsm_compressed,
 				eight_bit } ;
+
 
 // Forward declarations:
 
@@ -280,7 +283,7 @@ int main( int argc, char **argv )
 
   /* Reads a full command from (receive) buffer, based on its initial length:
    *
-   * (a regular term is expected hence read)
+   * (a single term is expected hence read)
    *
    */
   while ( read_command( buffer ) > 0 )
@@ -315,6 +318,7 @@ int main( int argc, char **argv )
 	// Now, taking care of the corresponding function call:
 	switch( current_fun_id )
 	{
+
 
 
 	case GET_BACKEND_INFORMATION_0_ID:
@@ -760,6 +764,11 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 	raise_gammu_error( gammu_fsm, "Interrupt buffer already set." ) ;
 
   interrupt_buffer = (byte *) malloc( buffer_size ) ;
+
+  /* Note: a check whether phone needs to enter some PIN could be added, as done
+   * in gammu/smsd/core.c (SMSD_CheckSecurity/1)
+   *
+   */
 
   if ( interrupt_buffer == NULL )
 	raise_gammu_error( gammu_fsm, "Interrupt buffer allocation failed." ) ;
