@@ -289,11 +289,12 @@
 
 
 
-% Reads all SMS already received (if any).
+% Reads all SMS already received (if any), and, if true is specified, deletes
+% them as soon as they are read.
 %
 % Does not block.
 %
--spec read_all_sms() -> [ received_sms() ].
+-spec read_all_sms( boolean() ) -> [ received_sms() ].
 
 
 
@@ -742,13 +743,13 @@ is_gsm_char( C, GSMCharset ) ->
 % (helper; see the enum encoding in the corresponding driver)
 encoding_to_enum( Encoding ) ->
 	Table = process_dictionary:get( ?mobile_encoding_key ),
-	bijective_table:get_second_from( Encoding, Table ).
+	bijective_table:get_second_for( Encoding, Table ).
 
 
 % Reverse conversion:
 enum_to_encoding( Value ) ->
 	Table = process_dictionary:get( ?mobile_encoding_key ),
-	bijective_table:get_first_from( Value, Table ).
+	bijective_table:get_first_for( Value, Table ).
 
 
 
@@ -758,7 +759,7 @@ enum_to_encoding( Value ) ->
 %
 % Specialised here to transform conveniently its outputs.
 %
-read_all_sms() ->
+read_all_sms( DeleteOnReading ) ->
 
 	% These two pseudo-calls are replaced at compilation time by the Seaplus
 	% parse transform with the relevant immediate values:
@@ -766,8 +767,18 @@ read_all_sms() ->
 	PortKey = seaplus:get_service_port_key(),
 	FunctionDriverId = seaplus:get_function_driver_id(),
 
+	DeleteToggle = case DeleteOnReading of
+
+		true ->
+			1;
+
+		false ->
+			0
+
+	end,
+
 	SMSList = case seaplus:call_port_for( PortKey, FunctionDriverId,
-										  _Args=[] ) of
+										  _Args=[ DeleteToggle ] ) of
 
 		L when is_list( L ) ->
 			L;
@@ -800,8 +811,9 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   text=Text,
 									   message_reference=MsgRef,
 									   timestamp=Timestamp } ) ->
-	text_utils:format( "received SMS sent from number '~p' (with encoding ~s), "
-					   "whose text is: '~s' (reference: ~p, timestamp: ~s)",
+	text_utils:format( "received SMS sent from number '~s' (with encoding ~s) "
+					   "whose text is: '~ts' "
+					   "(reference: ~p, sending timestamp: ~s)",
 					   [ Number, Encoding, Text, MsgRef,
 						 time_utils:timestamp_to_string( Timestamp ) ] ).
 
