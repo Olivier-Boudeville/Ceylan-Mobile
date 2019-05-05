@@ -79,7 +79,7 @@ void send_multipart_sms( ETERM ** parameters,
   GSM_StateMachine * gammu_fsm ) ;
 
 
-void real_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm ) ;
+void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm ) ;
 
 
 GSM_Coding_Type get_gammu_encoding( enum encoding e ) ;
@@ -646,18 +646,18 @@ int main( int argc, char **argv )
 
 
 
-	case READ_ALL_SMS_0_ID:
+	case READ_ALL_SMS_1_ID:
 
-		/* -spec -spec read_all_sms() -> [ received_sms() ].
+		/* -spec -spec read_all_sms( boolean() ) -> [ received_sms() ].
 		 *
 		 */
 
-		LOG_DEBUG( "Executing read_all_sms/0." ) ;
-		check_arity_is( 0, param_count, READ_ALL_SMS_0_ID ) ;
+		LOG_DEBUG( "Executing read_all_sms/1." ) ;
+		check_arity_is( 1, param_count, READ_ALL_SMS_1_ID ) ;
 
 		read_all_sms( parameters, gammu_fsm ) ;
 
-		LOG_DEBUG( "read_all_sms/0 executed." ) ;
+		LOG_DEBUG( "read_all_sms/1 executed." ) ;
 
 		break ;
 
@@ -1161,6 +1161,30 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
    *
    */
 
+  bool delete_on_reading ;
+
+  int delete_int = get_parameter_as_int( 1, parameters ) ;
+
+  switch( delete_int )
+  {
+
+  case 0:
+	LOG_DEBUG( "Read SMS will be kept." ) ;
+	delete_on_reading = false ;
+	break;
+
+  case 1:
+	LOG_DEBUG( "Read SMS will be deleted." ) ;
+	delete_on_reading = true ;
+	break;
+
+  default:
+	raise_error( "Unexpected deletion parameter: %i", delete_int ) ;
+	break ;
+
+  }
+
+
   GSM_MultiSMSMessage receivedSMS ;
 
   GSM_Error read_error = ERR_NONE ;
@@ -1171,8 +1195,8 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
   // Pointer to a static string:
   char * decoded_string ;
 
-  /* We cannot anticipate the number of the SMS read (or even a flat maximum
-   * thereof:
+  /* We cannot anticipate the number of the SMS read (or even a fixed maximum
+   * thereof):
    *
    */
   ETERM * sms_array[ max_sms_read ] ;
@@ -1192,6 +1216,7 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 	  LOG_DEBUG( "Empty read, no more SMS to read." ) ;
 	  break;
+
 	}
 
 
@@ -1207,8 +1232,7 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 	 *
 	 * Not reading: class
 	 *
-	 * Fields of interest currently not taken into account here:
-	 *     SMS, PDU, Coding, DateTime, Class.
+	 * Fields of interest currently not returned here: SMS, PDU, Class.
 	 *
 	 * BinText is better aggregated (from the various SMS parts) directly here,
 	 * in the C part.
@@ -1225,6 +1249,11 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 	/* Interpreting now the overall message for this SMS, per SMS part:
 	 * (concatenating split texts):
+	 *
+	 * Note, that, apparently, even when sending longer SMS, each of them is not
+	 * interpreted as a single, multipart SMS but as multiple SMS, each with one
+	 * part (i.e. receivedSMS.Number == 1 and the parts are actually considered
+	 * as separate SMS)
 	 *
 	 */
 	for ( sms_count i = 0; i < receivedSMS.Number; i++ )
@@ -1402,10 +1431,22 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 	  }
 
+
 	  /* In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
 	   * gammu/smsd/core.c.
 	   *
 	   */
+
+	  if ( delete_on_reading )
+	  {
+
+		LOG_DEBUG( "Deleting SMS." ) ;
+
+		GSM_Error gammu_error = GSM_DeleteSMS( gammu_fsm, &receivedSMS.SMS[ i ] ) ;
+
+		check_gammu_error( gammu_error, gammu_fsm ) ;
+
+	  }
 
 	}
 
@@ -1416,7 +1457,7 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 	 */
 
 	// Null-terminated:
-	string_buffer[ copy_index + 1 ] = 0 ;
+	string_buffer[ copy_index ] = 0 ;
 
 	sms_tuple[2] = erl_mk_binary( string_buffer, strlen( string_buffer ) ) ;
 
@@ -1435,6 +1476,7 @@ void read_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
 	if ( current_sms == max_sms_read )
 	  raise_error( "Too many SMS to read." ) ;
+
 
   }
 
