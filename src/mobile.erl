@@ -34,10 +34,6 @@
 -module(mobile).
 
 
-% For the Seaplus support:
--include("seaplus.hrl").
-
-
 
 % API declaration.
 %
@@ -82,7 +78,9 @@
 
 
 % User-specified SMS message:
--type sms_message() :: text_utils:string().
+-type sms_message() :: text_utils:ustring().
+
+-type bin_sms_message() :: text_utils:bin_string().
 
 
 % Most SMS are of class 1 (the default, should no class by specified).
@@ -93,7 +91,9 @@
 
 
 % The mobile number associated to a device (ex: "+1234567890"):
--type mobile_number() :: text_utils:string().
+-type mobile_number() :: text_utils:ustring().
+
+-type bin_mobile_number() :: text_utils:bin_string().
 
 
 % How the text of a SMS shall be encoded:
@@ -118,6 +118,41 @@
 
 % Returned by a sending:
 -type sms_sending_report() :: { sms_sending_status(), sms_tpmr() }.
+
+
+%-type sms_timestamp() :: time_utils:timestamp().
+-type sms_timestamp() :: text_utils:bin_string().
+
+
+% For the record:
+-include("mobile.hrl").
+
+
+% Describes a SMS:
+-type received_sms() :: #received_sms{}.
+
+
+-export_type([ backend_type/0, backend_version/0,
+			   device_name/0, manufacturer_name/0,
+			   model_name/0, revision_text/0,
+			   date_text/0, revision_number/0, imei/0,
+			   hardware_info/0, imsi_code/0,
+			   signal_strength/0, signal_strength_percent/0,
+			   error_rate/0,
+			   sms_message/0, sms_class/0,
+			   mobile_number/0, encoding/0,
+			   sms_sending_status/0, sms_tpmr/0,
+			   sms_sending_report/0, received_sms/0 ]).
+
+
+% Exported helpers:
+-export([ received_sms_to_string/1 ]).
+
+
+
+% For the Seaplus support (to be included after local exports):
+-include("seaplus.hrl").
+
 
 
 
@@ -254,6 +289,13 @@
 
 
 
+% Reads all SMS already received (if any).
+%
+% Does not block.
+%
+-spec read_all_sms() -> [ received_sms() ].
+
+
 
 % API function overriding section.
 
@@ -263,6 +305,11 @@
 %
 -define( mobile_gsm_charset_key, "_mobile_gsm_charset" ).
 
+
+% Key in the process dictionary allowing to keep the encoding conversion table in the context
+% once for all:
+%
+-define( mobile_encoding_key, "_mobile_encoding_table" ).
 
 
 % We define our own service-specific starting procedure, knowing that a call to
@@ -288,8 +335,9 @@ start_common() ->
 	%
 	io:setopts( [ { encoding, unicode } ] ),
 
-	process_dictionary:putAsNew( ?mobile_gsm_charset_key,
-								 create_gsm_charset() ).
+	[ process_dictionary:putAsNew( K, V ) || { K, V } <- [
+			{ ?mobile_gsm_charset_key, create_gsm_charset() },
+			{ ?mobile_encoding_key, create_encoding_table() } ] ].
 
 
 
@@ -312,6 +360,15 @@ create_gsm_charset() ->
 		   % Removed as already expected to be escaped: $\\,
 		   $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
 		   $*, $+, $,, $-, $., $/ ] ).
+
+
+% Returns a suitable bijective table:
+create_encoding_table() ->
+	bijective_table:new( [ { unicode_uncompressed, 1 },
+						   { unicode_compressed, 2 },
+						   { gsm_uncompressed, 3 },
+						   { gsm_compressed, 4 },
+						   { eight_bit, 5 } ] ).
 
 
 
@@ -682,24 +739,75 @@ is_gsm_char( C, GSMCharset ) ->
 
 
 
-
 % (helper; see the enum encoding in the corresponding driver)
-encoding_to_enum( unicode_uncompressed ) ->
-	1;
+encoding_to_enum( Encoding ) ->
+	Table = process_dictionary:get( ?mobile_encoding_key ),
+	bijective_table:get_second_from( Encoding, Table ).
 
-encoding_to_enum( unicode_compressed ) ->
-	2;
 
-encoding_to_enum( gsm_uncompressed ) ->
-	3;
+% Reverse conversion:
+enum_to_encoding( Value ) ->
+	Table = process_dictionary:get( ?mobile_encoding_key ),
+	bijective_table:get_first_from( Value, Table ).
 
-encoding_to_enum( gsm_compressed ) ->
-	4;
 
-encoding_to_enum( eight_bit ) ->
-	5.
+
+% Reads all SMS already received (if any).
+%
+% Does not block.
+%
+% Specialised here to transform conveniently its outputs.
+%
+read_all_sms() ->
+
+	% These two pseudo-calls are replaced at compilation time by the Seaplus
+	% parse transform with the relevant immediate values:
+
+	PortKey = seaplus:get_service_port_key(),
+	FunctionDriverId = seaplus:get_function_driver_id(),
+
+	SMSList = case seaplus:call_port_for( PortKey, FunctionDriverId,
+										  _Args=[] ) of
+
+		L when is_list( L ) ->
+			L;
+
+		Other ->
+			throw( { faulty_read_return, Other } )
+
+	end,
+
+	[ to_sms( E ) || E <- SMSList ].
+
+
+
+% Converts a transmitted subset of GSM_SMSMessage into a received_sms record.
+%
+% (helper)
+%
+to_sms( { BinSenderNumber, EncodingValue, BinText, MessageReference,
+		  Timestamp } ) ->
+	#received_sms{ sender_number=BinSenderNumber,
+				   encoding=enum_to_encoding( EncodingValue ),
+				   text=BinText,
+				   message_reference=MessageReference,
+				   timestamp=Timestamp }.
+
+
+% Returns a textual description of the specified received SMS.
+received_sms_to_string( #received_sms{ sender_number=Number,
+									   encoding=Encoding,
+									   text=Text,
+									   message_reference=MsgRef,
+									   timestamp=Timestamp } ) ->
+	text_utils:format( "received SMS sent from number '~p' (with encoding ~s), "
+					   "whose text is: '~s' (reference: ~p, timestamp: ~s)",
+					   [ Number, Encoding, Text, MsgRef,
+						 time_utils:timestamp_to_string( Timestamp ) ] ).
+
 
 
 % Service-specific stop procedure.
 stop() ->
-	process_dictionary:removeExisting( ?mobile_gsm_charset_key ).
+	[ process_dictionary:removeExisting( K ) ||
+		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
