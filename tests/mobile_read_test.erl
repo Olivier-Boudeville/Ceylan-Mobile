@@ -51,13 +51,17 @@ run() ->
 	%
 	mobile:start(),
 
-	case mobile:read_all_sms() of
+	% By default, do not delete read SMS:
+	DeleteOnReading = false,
+	%DeleteOnReading = true,
+
+	case mobile:read_all_sms( DeleteOnReading ) of
 
 		[] ->
 			test_facilities:display( "No SMS to read found." );
 
 		SMSList ->
-			test_facilities:display( "~B SMS read: ~s", [ length( SMSList ),
+			test_facilities:display( "~B SMS read: ~ts", [ length( SMSList ),
 				text_utils:strings_to_string( [ mobile:received_sms_to_string( S )
 												|| S <- SMSList ] ) ] )
 
