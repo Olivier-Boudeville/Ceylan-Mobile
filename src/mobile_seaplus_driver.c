@@ -55,7 +55,7 @@
  * signature of the callback tells otherwise:
  *
  */
- typedef int sms_tpmr ;
+typedef int sms_tpmr ;
 
 
 // Matches mobile:encoding_to_enum/1:
@@ -79,8 +79,13 @@ void send_multipart_sms( ETERM ** parameters,
   GSM_StateMachine * gammu_fsm ) ;
 
 
+void real_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm ) ;
 
-GSM_Coding_Type get_encoding( enum encoding e ) ;
+
+GSM_Coding_Type get_gammu_encoding( enum encoding e ) ;
+
+enum encoding get_mobile_encoding( GSM_Coding_Type e ) ;
+
 
 void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm ) ;
 
@@ -109,6 +114,9 @@ typedef int status ;
 typedef int signal_reported ;
 
 
+typedef unsigned int sms_count ;
+
+
 volatile bool shutdown_requested = false ;
 
 
@@ -135,8 +143,19 @@ ETERM * interrupt_array[ 2 ] ;
 ETERM * interrupt_term = NULL ;
 
 
+// The Seaplus-provided buffer where to write returned terms:
+byte * buffer ;
+
+
+// Buffer to store temporary strings (including the text of very long SMS):
+char * string_buffer ;
+
 // Poor's man pseudo-mutex:
 bool interrupt_in_use = false ;
+
+const size_t main_buffer_size = 10000 ;
+
+const sms_count max_sms_read = 500 ;
 
 
 /*
@@ -239,12 +258,12 @@ void mobile_interrupt( signal_reported sign )
 }
 
 
-// No argumeter expected nor taken into account:
+// No parameter expected nor taken into account:
 int main( int argc, char **argv )
 {
 
   // Provided by the Seaplus library:
-  byte * buffer = start_seaplus_driver() ;
+  buffer = start_seaplus_driver() ;
 
   LOG_TRACE( "Driver started." ) ;
 
@@ -259,13 +278,18 @@ int main( int argc, char **argv )
 
   // Pre-allocations:
 
-  // Buffer to store temporary strings:
-  char * string_buffer = malloc( 250 * sizeof(char) ) ;
+  string_buffer = malloc( main_buffer_size * sizeof(char) ) ;
+
+  if ( string_buffer == 0 )
+	raise_error( "Allocation of main string buffer failed." ) ;
 
   // Secondary buffer to store temporary strings:
   char * aux_string_buffer = malloc( 250 * sizeof(char) ) ;
 
-   /*
+  if ( aux_string_buffer == 0 )
+	raise_error( "Allocation of auxiliary string buffer failed." ) ;
+
+  /*
    * Used for tuples, as the same variable name cannot be used in different case
    * blocks:
    *
@@ -622,6 +646,21 @@ int main( int argc, char **argv )
 
 
 
+	case READ_ALL_SMS_0_ID:
+
+		/* -spec -spec read_all_sms() -> [ received_sms() ].
+		 *
+		 */
+
+		LOG_DEBUG( "Executing read_all_sms/0." ) ;
+		check_arity_is( 0, param_count, READ_ALL_SMS_0_ID ) ;
+
+		real_all_sms( parameters, gammu_fsm ) ;
+
+		break ;
+
+
+
 	default:
 
 		// Hopefully no 'break' has been forgotten above!
@@ -818,7 +857,7 @@ void send_regular_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
 
   sms.Class = get_parameter_as_int( 3, parameters ) ;
 
-  sms.Coding = get_encoding( get_parameter_as_int( 4, parameters ) ) ;
+  sms.Coding = get_gammu_encoding( get_parameter_as_int( 4, parameters ) ) ;
 
 
   // Sets the SMSC number in message:
@@ -950,7 +989,7 @@ void send_multipart_sms( ETERM ** parameters,
 
 
   // Now sending the message parts:
-  for ( unsigned int i = 0; i < MultiSMS.Number; i++)
+  for ( sms_count i = 0; i < MultiSMS.Number; i++)
   {
 
 	LOG_DEBUG( "Sending SMS part %i/%i", i+1, MultiSMS.Number ) ;
@@ -1011,10 +1050,10 @@ void send_multipart_sms( ETERM ** parameters,
 }
 
 
-GSM_Coding_Type get_encoding( enum encoding e )
+GSM_Coding_Type get_gammu_encoding( enum encoding e )
 {
 
-  // Actually the two enums matches, but we prefer checking:
+  // Actually the two enums match, but we prefer checking:
   switch( e )
   {
 
@@ -1039,14 +1078,371 @@ GSM_Coding_Type get_encoding( enum encoding e )
 	break ;
 
   default:
-	raise_error( "Unexpected encoding: %i", e ) ;
+	raise_error( "Unexpected Mobile encoding: %i", e ) ;
 	break ;
 
   }
 
   // As the compiler is not smart:
-  //raise_error( "Unexpected encoding: %i", e ) ;
+  //raise_error( "Unexpected Mobile encoding: %i", e ) ;
   return 0 ;
+
+}
+
+
+enum encoding get_mobile_encoding( GSM_Coding_Type e )
+
+{
+
+  // Actually the two enums match, but we prefer checking:
+  switch( e )
+  {
+
+  case SMS_Coding_Unicode_No_Compression :
+	return unicode_uncompressed ;
+	break ;
+
+  case SMS_Coding_Unicode_Compression:
+	return unicode_compressed ;
+	break ;
+
+  case SMS_Coding_Default_No_Compression:
+	return gsm_uncompressed;
+	break ;
+
+  case SMS_Coding_Default_Compression:
+	return gsm_compressed ;
+	break ;
+
+  case SMS_Coding_8bit:
+	return eight_bit ;
+	break ;
+
+  default:
+	raise_error( "Unexpected Gammu encoding: %i", e ) ;
+	break ;
+
+  }
+
+  // As the compiler is not smart:
+  //raise_error( "Unexpected Gammu encoding: %i", e ) ;
+  return 0 ;
+
+}
+
+
+
+/* Reads all SMS already received (if any).
+ *
+ * Does not block.
+ *
+ */
+void real_all_sms( ETERM ** parameters, GSM_StateMachine * gammu_fsm )
+{
+
+  /* A few documentation pointers:
+   *
+   * - in gammu/include/gammu-message.h: GSM_MultiSMSMessage, mostly comprising
+   *   GSM_SMSMessage
+   *
+   * - GSM_SMSMessage: GSM_Coding_Type is the usual enum
+   *
+   *
+   * Once relying on GSM_GetNextSMS (declared in gammu/include/gammu-message.h,
+   * defined in gammu/libgammu/api.c; rather than GSM_GetSMS), two inspirations
+   * could be used in order to decode messages:
+   *
+   * - gammu/docs/examples/sms-read.c, using, here, DecodeUnicodeString
+   *
+   * - gammu/smsd/core.c, using GSM_DecodeMultiPartSMS - which is higher-level,
+   *    hence preferred here
+   *
+   */
+
+  GSM_MultiSMSMessage receivedSMS ;
+
+  GSM_Error read_error ;
+
+  // Needed by GSM_GetNextSMS/3:
+  bool isFirst = true ;
+
+  // Pointer to a static string:
+  char * decoded_string ;
+
+  /* We cannot anticipate the number of the SMS read (or even a flat maximum
+   * thereof:
+   *
+   */
+  ETERM * sms_array[ max_sms_read ] ;
+
+  sms_count current_sms = 0 ;
+
+
+  while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
+  {
+
+	LOG_DEBUG( "Reading SMS from device..." ) ;
+
+	read_error = GSM_GetNextSMS( gammu_fsm, &receivedSMS, isFirst ) ;
+
+	if ( read_error == ERR_EMPTY )
+	{
+
+	  LOG_DEBUG( "Empty read, no more SMS to read." ) ;
+	  break;
+	}
+
+
+	check_gammu_error( read_error, gammu_fsm ) ;
+
+	isFirst = false ;
+
+
+	/* For each SMS, the Erlang counterpart expects:
+	 *
+	 * { BinSenderNumber, EncodingValue, BinText, MessageReference,
+	 *   Timestamp }
+	 *
+	 * Not reading: class
+	 *
+	 * Fields of interest currently not taken into account here:
+	 *     SMS, PDU, Coding, DateTime, Class.
+	 *
+	 * BinText is better aggregated (from the various SMS parts) directly here,
+	 * in the C part.
+	 *
+	 */
+	size_t copy_index = 0 ;
+
+	ETERM * sms_tuple[5] ;
+
+	ETERM * date_triplet[3] ;
+	ETERM * time_triplet[3] ;
+
+	ETERM * timestamp_pair[2] ;
+
+	/* Interpreting now the overall message for this SMS, per SMS part:
+	 * (concatenating split texts):
+	 *
+	 */
+	for ( sms_count i = 0; i < receivedSMS.Number; i++ )
+	{
+
+	  LOG_DEBUG( "Reading SMS part %i/%i...", i+1, receivedSMS.Number ) ;
+
+	  // See, in gammu/include/gammu-message.h, GSM_SMSMessage:
+
+	  /* DecodeUnicodeString defined in gammu/libgammu/misc/coding/coding.c
+	   * (search for 'char *DecodeUnicodeString'); its static buffer is quite
+	   * small (500 bytes), so we use our considerably larger string_buffer,
+	   * notably for texts.
+	   *
+	   */
+
+
+	  // First, BinSenderNumber:
+
+	  decoded_string = DecodeUnicodeString( receivedSMS.SMS[i].Number ) ;
+
+	  size_t decoded_len = strlen( decoded_string ) ;
+
+	  LOG_DEBUG( "  - sender number (%i bytes): '%s'", decoded_len,
+		decoded_string ) ;
+
+	  /* Except the payload (text/data), we expect the metadata of the various
+	   * SMS parts to be equal (ex: for SMS classes) or roughly the same (ex:
+	   * for sending timestamp), so we record them only once, for the first SMS
+	   * part (the only one known to exist in all cases):
+	   *
+	   */
+	  if ( i == 0 )
+	  {
+
+		sms_tuple[0] = erl_mk_binary( decoded_string, decoded_len ) ;
+
+		if ( sms_tuple[0] == NULL )
+		  raise_error( "Sender number term creation failed." ) ;
+
+	  }
+
+
+	  // Then EncodingValue:
+
+	  GSM_Coding_Type encoding = receivedSMS.SMS[i].Coding ;
+
+	  LOG_DEBUG( "  - encoding: %i", encoding ) ;
+
+	  if ( i == 0 )
+	  {
+
+		sms_tuple[1] = erl_mk_int( get_mobile_encoding( encoding ) ) ;
+
+		if ( sms_tuple[1] == NULL )
+		  raise_error( "Encoding term creation failed." ) ;
+
+	  }
+
+
+	  // Not sent back:
+	  LOG_DEBUG( "  - class: %i", receivedSMS.SMS[i].Class + 1 ) ;
+
+	  LOG_DEBUG( "  - PDU type: %i", receivedSMS.SMS[i].PDU ) ;
+
+
+	  // Preparing for BinText (a.k.a. sms_tuple[2]):
+	  if ( encoding != SMS_Coding_8bit
+		&& receivedSMS.SMS[i].UDH.Type != UDH_UserUDH )
+	  {
+
+		decoded_string = DecodeUnicodeString( receivedSMS.SMS[i].Text ) ;
+
+		size_t decoded_len = strlen( decoded_string ) ;
+
+		LOG_DEBUG( "  - text (%i bytes): '%s'", decoded_len,
+		  decoded_string ) ;
+
+		size_t new_copy_index = copy_index + decoded_len ;
+
+		if ( new_copy_index > main_buffer_size )
+		  raise_error( "Length of main buffer exceeded." ) ;
+
+		strncpy( string_buffer + copy_index, decoded_string, decoded_len ) ;
+
+		copy_index = new_copy_index ;
+
+	  }
+	  else
+	  {
+
+		// Both could be true:
+
+		if ( encoding == SMS_Coding_8bit )
+		  LOG_DEBUG( "  - no text read (8-bit encoded)" ) ;
+
+		if ( receivedSMS.SMS[i].UDH.Type == UDH_UserUDH )
+		  LOG_DEBUG( "  - no text read (UDH type: user)" ) ;
+
+	  }
+
+
+	  // MessageReference:
+
+	  sms_tpmr msg_ref = receivedSMS.SMS[i].MessageReference ;
+
+	  LOG_DEBUG( "  - message reference: %i", msg_ref ) ;
+
+	  if ( i == 0 )
+	  {
+
+		sms_tuple[3] = erl_mk_int( msg_ref ) ;
+
+		if ( sms_tuple[3] == NULL )
+		  raise_error( "Message reference term creation failed." ) ;
+
+
+		// GSM_DateTime defined in gammu/include/gammu-datetime.h:
+
+		/* We directly convert the struct into its time_utils:timestamp/0
+		 * counterpart, which is { date(), time() }, so:
+		 * { { Year, Month, Day }, { Hour, Minute, Second } }.
+		 *
+		 * (Timezone not used here)
+		 *
+		 */
+
+		date_triplet[0] = erl_mk_int( receivedSMS.SMS[i].DateTime.Year ) ;
+
+		if ( date_triplet[0] == NULL )
+		  raise_error( "Timestamp year term creation failed." ) ;
+
+		date_triplet[1] = erl_mk_int( receivedSMS.SMS[i].DateTime.Month ) ;
+
+		if ( date_triplet[1] == NULL )
+		  raise_error( "Timestamp month term creation failed." ) ;
+
+		date_triplet[2] = erl_mk_int( receivedSMS.SMS[i].DateTime.Day ) ;
+
+		if ( date_triplet[2] == NULL )
+		  raise_error( "Timestamp day term creation failed." ) ;
+
+		timestamp_pair[0] = erl_mk_tuple( date_triplet, 3 ) ;
+
+		if ( timestamp_pair[0] == NULL )
+		  raise_error( "Timestamp date term creation failed." ) ;
+
+
+		time_triplet[0] = erl_mk_int( receivedSMS.SMS[i].DateTime.Hour ) ;
+
+		if ( time_triplet[0] == NULL )
+		  raise_error( "Timestamp hour term creation failed." ) ;
+
+
+		time_triplet[1] = erl_mk_int( receivedSMS.SMS[i].DateTime.Minute ) ;
+
+		if ( time_triplet[1] == NULL )
+		  raise_error( "Timestamp minute term creation failed." ) ;
+
+
+		time_triplet[2] = erl_mk_int( receivedSMS.SMS[i].DateTime.Second ) ;
+
+		if ( time_triplet[2] == NULL )
+		  raise_error( "Timestamp second term creation failed." ) ;
+
+		timestamp_pair[1] = erl_mk_tuple( time_triplet, 3 ) ;
+
+		if ( timestamp_pair[1] == NULL )
+		  raise_error( "Timestamp time term creation failed." ) ;
+
+		sms_tuple[4] = erl_mk_tuple( timestamp_pair, 2 ) ;
+
+		if ( sms_tuple[4] == NULL )
+		  raise_error( "Timestamp term creation failed." ) ;
+
+	  }
+
+	  /* In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
+	   * gammu/smsd/core.c.
+	   *
+	   */
+
+	}
+
+	/* Here we went through all SMS parts, time to aggregate their texts in
+	 * BinText (i.e. sms_tuple[2]) and create the returned overall tuple for
+	 * that SMS.
+	 *
+	 */
+
+	// Null-terminated:
+	string_buffer[ copy_index + 1 ] = 0 ;
+
+	sms_tuple[2] = erl_mk_binary( string_buffer, strlen( string_buffer ) ) ;
+
+	if ( sms_tuple[2] == NULL )
+	  raise_error( "Text term creation failed." ) ;
+
+	/* Now the overall { BinSenderNumber, EncodingValue, BinText,
+	 * MessageReference, Timestamp } tuple:
+	 */
+	sms_array[ current_sms ] = erl_mk_tuple( sms_tuple, 5 ) ;
+
+	if ( sms_array[ current_sms ] == NULL )
+	  raise_error( "SMS tuple creation failed." ) ;
+
+	current_sms++ ;
+
+	if ( current_sms == max_sms_read )
+	  raise_error( "Too many SMS to read." ) ;
+
+  }
+
+  // Now that we collected all SMS, let's build that list and return it:
+  ETERM * sms_list = erl_mk_list( sms_array, current_sms ) ;
+
+  if ( sms_list == NULL )
+	raise_error( "SMS list creation failed." ) ;
+
+  write_term( buffer, sms_list ) ;
 
 }
 
