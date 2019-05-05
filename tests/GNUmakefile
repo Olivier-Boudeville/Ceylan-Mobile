@@ -2,6 +2,8 @@ MOBILE_TOP = ..
 
 
 .PHONY: mobile-test mobile-test-debug mobile-test-terse                   \
+		mobile-class-test mobile-class-test-debug mobile-class-test-terse \
+		mobile-read-test mobile-read-test-debug mobile-read-test-terse    \
 		clean clean-local clean-logs                                      \
 		info-vars
 
@@ -56,6 +58,22 @@ mobile-class-test-debug: pre-test
 mobile-class-test-terse: pre-test
 	@$(MAKE) -s mobile_class_run $(TEST_ENV)
 
+
+
+
+# Displays the logs iff failed:
+mobile-read-test: pre-test
+	@$(MAKE) -s mobile_read_run $(TEST_ENV) || cat seaplus-driver.*.log
+
+
+# Displays the logs in all cases:
+mobile-read-test-debug: pre-test
+	@$(MAKE) -s mobile_read_run $(TEST_ENV) ; cat seaplus-driver.*.log
+
+
+# Displays no log:
+mobile-read-test-terse: pre-test
+	@$(MAKE) -s mobile_read_run $(TEST_ENV)
 
 
 
