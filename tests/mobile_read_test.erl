@@ -61,9 +61,9 @@ run() ->
 			test_facilities:display( "No SMS to read found." );
 
 		SMSList ->
-			test_facilities:display( "~B SMS read: ~ts", [ length( SMSList ),
-				text_utils:strings_to_string( [ mobile:received_sms_to_string( S )
-												|| S <- SMSList ] ) ] )
+			test_facilities:display( "~B SMS read: ~ts",
+				[ length( SMSList ), text_utils:strings_to_enumerated_string(
+				  [ mobile:received_sms_to_string( S ) || S <- SMSList ] ) ] )
 
 	end,
 
