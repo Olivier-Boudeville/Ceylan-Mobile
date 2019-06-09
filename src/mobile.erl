@@ -796,8 +796,8 @@ read_all_sms( DeleteOnReading ) ->
 %
 % (helper)
 %
-to_sms( { BinSenderNumber, EncodingValue, BinText, MessageReference,
-		  Timestamp } ) ->
+to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
+		  BinText } ) ->
 	#received_sms{ sender_number=BinSenderNumber,
 				   encoding=enum_to_encoding( EncodingValue ),
 				   text=BinText,
