@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, March 3, 2019</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, April 29, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, June 10, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library, version 1.0.</td>
 </tr>
@@ -370,7 +370,7 @@ Leaving monitor mode...
 $ gammu getallsms
 </pre>
 <p>With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
-<p>Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile.</p>
+<p>Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl">this example</a> as a first guideline.</p>
 </div>
 </div>
 <div class="section" id="software">
@@ -495,12 +495,10 @@ $ make mobile-test
 <div class="section" id="some-sms-related-general-information">
 <h2><a class="toc-backref" href="#id18">Some SMS-related General Information</a></h2>
 <p>The text to be sent as a SMS must be somehow encoded in messages.</p>
-<p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used, and then only 70 characters will fit in that SMS.</p>
-<p>Should the message be longer than what can a single SMS carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.</p>
-<p>See also:</p>
-<ul class="simple">
-<li>a <a class="reference external" href="https://messente.com/documentation/tools/sms-length-calculator">Free Online SMS Length Calculator</a></li>
-</ul>
+<p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used, and then only 70 characters will fit in that SMS.</p>
+<p>Should the message be longer than what a single SMS can carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.</p>
+<p>Ceylan-Mobile automatically detects the relevant encoding and type (single/multiple) parts needed; the user just has to specify the text message that shall be sent.</p>
+<p>See also a <a class="reference external" href="https://messente.com/documentation/tools/sms-length-calculator">Free Online SMS Length Calculator</a>.</p>
 </div>
 <div class="section" id="issues-planned-enhancements">
 <h2><a class="toc-backref" href="#id19">Issues &amp; Planned Enhancements</a></h2>
@@ -515,7 +513,7 @@ $ make mobile-test
 </div>
 <div class="section" id="support">
 <h2><a class="toc-backref" href="#id20">Support</a></h2>
-<p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
+<p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent through the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
 </div>
 <div class="section" id="ceylan-mobile-inner-workings">
 <h2><a class="toc-backref" href="#id21">Ceylan-Mobile Inner Workings</a></h2>
@@ -561,7 +559,7 @@ $ make mobile-test
 </div>
 <div class="section" id="troubleshooting-telecom-level-issues">
 <h2><a class="toc-backref" href="#id26">Troubleshooting Telecom-level Issues</a></h2>
-<p>Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards.</p>
+<p>Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards. Ultimately some combination may work.</p>
 <p>On GNU/Linux, being root and monitoring the system and Gammu logs (and/or using the <tt class="docutils literal"><span class="pre">--debug-file</span></tt> Gammu command-line option) should certainly help.</p>
 </div>
 <div class="section" id="please-react">
