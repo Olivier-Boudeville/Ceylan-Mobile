@@ -333,7 +333,7 @@ int main( int argc, char **argv )
 	 */
 	arity param_count ;
 
-	get_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
+	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
 
 	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
 	  current_fun_id, param_count, index ) ;
@@ -842,7 +842,7 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   GSM_StateMachine * gammu_fsm )
 {
 
-  char * message = get_binary_parameter( read_buf, index ) ;
+  char * message = read_binary_parameter( read_buf, index ) ;
 
   if ( message == NULL )
 	raise_gammu_error( gammu_fsm,
@@ -854,7 +854,7 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   EncodeUnicode( sms.Text, message, strlen( message ) ) ;
 
   // Message recipient:
-  char * recipient_number = get_binary_parameter( read_buf, index ) ;
+  char * recipient_number = read_binary_parameter( read_buf, index ) ;
 
   if ( recipient_number == NULL )
 	raise_gammu_error( gammu_fsm,
@@ -868,10 +868,10 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   // No User Data Header, just a plain message:
   sms.UDH.Type = UDH_NoUDH ;
 
-  sms.Class = get_int_parameter( read_buf, index ) ;
+  sms.Class = read_int_parameter( read_buf, index ) ;
 
   sms.Coding = get_gammu_encoding(
-	get_int_parameter( read_buf, index ) ) ;
+	read_int_parameter( read_buf, index ) ) ;
 
 
   // Sets the SMSC number in message:
@@ -929,14 +929,14 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   GSM_StateMachine * gammu_fsm )
 {
 
-  char * message = get_binary_parameter( read_buf, index ) ;
+  char * message = read_binary_parameter( read_buf, index ) ;
 
   if ( message == NULL )
 	raise_gammu_error( gammu_fsm,
 	  "SMS message could not be obtained (multipart)." ) ;
 
    // Message recipient:
-  char * recipient_number = get_binary_parameter( read_buf, index ) ;
+  char * recipient_number = read_binary_parameter( read_buf, index ) ;
 
   if ( recipient_number == NULL )
 	raise_gammu_error( gammu_fsm,
@@ -953,13 +953,13 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   GSM_MultiPartSMSInfo SMSInfo ;
   GSM_ClearMultiPartSMSInfo( &SMSInfo ) ;
 
-  SMSInfo.Class = get_int_parameter( read_buf, index ) ;
+  SMSInfo.Class = read_int_parameter( read_buf, index ) ;
 
   // A message will consist of one part:
   SMSInfo.EntriesNum = 1 ;
 
   // Encoding has ultimately only to be Unicode or not:
-  enum encoding e = get_int_parameter( read_buf, index ) ;
+  enum encoding e = read_int_parameter( read_buf, index ) ;
 
   switch( e )
   {
@@ -1183,7 +1183,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
   bool delete_on_reading ;
 
-  int delete_int = get_int_parameter( read_buf, index ) ;
+  int delete_int = read_int_parameter( read_buf, index ) ;
 
   switch( delete_int )
   {
