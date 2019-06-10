@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Monday, April 29, 2019
+:Lastly updated: Monday, June 10, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -76,7 +76,7 @@ The latest version of this documentation is to be found at the `official Mobile 
 Overview
 ========
 
-A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, UPS notifications, etc.).
+A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, `UPS <https://en.wikipedia.org/wiki/Uninterruptible_power_supply>`_ notifications, etc.).
 
 For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:
 
@@ -101,7 +101,7 @@ The solution presented here relies on the `Gammu <https://wammu.eu/gammu/>`_ lib
 Securing the Prerequisites
 ==========================
 
-Please read the full document prior to operating, as iterations, trials and errors will probably have to be performed before, hopefully, succeeding ultimately.
+Please read the full document prior to making operative choices, since iterations, trials and errors will probably have to be performed (before, hopefully, succeeding ultimately).
 
 
 
@@ -114,7 +114,7 @@ Finding a good mobile package is quite country-specific. For example French cust
 
 As we want an automated use of this SIM card (through the 3G device selected in the next section), one should ensure that, in the card's configuration, the request for the PIN code has been disabled.
 
-This can be done by inserting the SIM card in a mobile phone, and through the settings disabling once for all said verification. This may also be a good way of checking whether the SIM card works properly before hacking around.
+This can be done by inserting the SIM card in a mobile phone, and, through the settings, disabling once for all said verification. This may also be a good way of checking whether the SIM card works properly before hacking around.
 
 
 
@@ -127,18 +127,18 @@ Well, no. Welcome to a surprising mess instead!
 
 First of all, as we understand it, mobiles are far less appropriate than 3G keys for this exercice (they are not well supported, they tend to enter various sleep modes), but be reassured that your mileage may vary with keys as well.
 
-In order to select a proper device (phone or key), first of all one should look at the `Gammu Phone Database <https://wammu.eu/phones/>`_ (which lists keys as well).
+In order to select a proper device (phone or key), first of all one should look at the `Gammu Phone Database <https://wammu.eu/phones/>`_ (which, despite its name, lists keys as well).
 
 We tried to favour the *acknowledged* entries in this database, moreover the ones with multiple success reports.
 
-For the record, we selected only Huawei chips (supposedly becoming, for better or for worse, a de facto standard) of various quite widespread offers, and bought 4 secondhand 3G keys of different models [#]_, which we named that way:
+For the record, we selected (before the controversy) only Huawei chips (supposedly becoming, or having been, for better or for worse, a de facto standard) of various quite widespread offers, and bought 4 secondhand 3G keys of different models [#]_, which we named that way:
 
  - ``K3G-1``: a black and orange generic model (no specific brand apparently), labelled HSDPA, with a Huawei E169 chip
  - ``K3G-2`` : white (with a green LED, invisible unless lit), from a former operator, based on a Huawei E170
  - ``K3G-3`` : white, from another former operator, based on a Huawei E172 (labelled as E1752); can host an additional MicroSD card
  - ``K3G-4`` : white, from same former operator as ``K3G-2``, based on Huawei E180 (firmware ``11.104.16.01.00``), with a rotating USB connection; can also host an additional MicroSD card
 
-.. [#] For a whopping expensively bill of 10 euros.
+.. [#] For a whopping expensive bill of 10 euros.
 
 To anticipate a bit:
 
@@ -153,9 +153,9 @@ We were told that our 4 keys were unlocked, yet none of them seemed to properly 
 
 Not sure which operation unblocked them, as most of the attempted operations reportedly failed or could not be properly interpreted in terms of result. This `online calculator <http://www.deblokgsm.com/server/huaweicalc-us.php>`_ for Huawei chips seemed to work (giving a NCK unlocking code and another one for the flash operation), even if it is difficult to assess whether the use of any actual code really succeeded.
 
-We are not so keen on installing third-party, untrusted software on said Windows box (even installing the driver located on their ROM appearing as a mass storage is somewhat unpleasant), but flashing tools are required whenever having to unlock.
+We were not so keen on installing third-party, untrusted software on said Windows box (even installing the driver located on their ROM appearing as a mass storage is somewhat unpleasant), but flashing tools are required whenever having to unlock.
 
-For them, `Sandboxie <https://www.sandboxie.com/>`_ or similar may be used in order to isolate, at least to some extent, the various software that one may try in one's quest for a correctly-behaving 3G key. At least for us, quite frequently Windows was not even able to detect that the key was inserted.
+For them, `Sandboxie <https://www.sandboxie.com/>`_ or similar may be used in order to isolate, at least to some extent, the various software that one may try in one's quest for a correctly-behaving 3G key. At least for us, quite frequently (even without sandboxing) Windows was not even able to detect that such keys were inserted.
 
 More generally, `various problems <https://stackoverflow.com/questions/29365148/gammu-stops-receiving-sms-aftar-a-while>`_ might explain why a 3G key is misbehaving (i.e. does not seem able to operate, at least `not durably <https://wiki.archlinux.org/index.php/USB_3G_Modem#Connection_halts_after_few_minutes_running>`_), including failed unlocking, buggy firmware versions and alike, and other issues discussed at later steps.
 
@@ -168,7 +168,7 @@ USB Supply & Connection
 
 Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer port.
 
-A problem might be that the device could end up being insufficiently powered device. Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.
+A problem might be that the device could end up being insufficiently powered (ex: weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.
 
 
 
@@ -196,7 +196,7 @@ For example, as root:
   $ lsmod > ~/lsmod-after.txt
   $ diff ~/lsmod-before.txt ~/lsmod-after.txt
 
-In our case, the ``option`` and ``usb_wwan`` modules were loaded, so we ensured that, from now then, they were automatically loaded at boot (to avoid that a later kernel update block their loading), by creating a ``/etc/modules-load.d/for-3g-keys.conf`` file with following content::
+In our case, the ``option`` and ``usb_wwan`` modules were loaded, so we ensured that, from now then, they were automatically loaded at boot (to avoid that a later kernel update block their loading), by creating a ``/etc/modules-load.d/for-3g-keys.conf`` file with following content (just one module per line)::
 
  option
  usb_wwan
@@ -213,7 +213,7 @@ For example, at connection, our ``K3G-1`` key will appear as::
   Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
 
 
-Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
+Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
 
 Here such drivers are of no use, and what we want is to switch the keys to modems.
 
@@ -259,7 +259,7 @@ For example, ``/dev/ttyUSB0``, ``/dev/ttyUSB1``, ``/dev/ttyUSB2`` and ``/dev/tty
 
 A tests with Gammu will tell them apart.
 
-First, that tool shall be installed.
+So, first, that tool shall be installed.
 
 One's distribution should provide it, as it is fairly standard::
 
@@ -357,7 +357,7 @@ We re-use that group so that this non-privileged user can also write in the Gamm
  $ touch /var/log/gammu-ceylan.log
  $ chgrp uucp /var/log/gammu-ceylan.log
 
-This should be sufficient so that ``sheldon`` is able to send SMS, not involving ``root`` anymore.
+This should be sufficient so that ``sheldon`` is able to send SMS, not involving ``root`` anymore in the process.
 
 
 Wrapping-up Telecom Configuration
@@ -458,7 +458,7 @@ Once successful, one will be able to send SMS back and forth between the 3G devi
 
 With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
 
-Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile.
+Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl>`_ as a first guideline.
 
 
 
@@ -474,12 +474,15 @@ All three of them rely on `Erlang <http://erlang.org>`_ (for the user API) and o
 Erlang Environment
 ..................
 
-`Erlang <http://www.erlang.org/>`_, version 21.0 or higher, is needed.
+`Erlang <http://www.erlang.org/>`_, version 22.0 or higher, is needed.
 
 One may obtain it from many ways, including one's distribution (ex: ``pacman erlang``), directly `from its sources <http://www.erlang.org/downloads>`_ or possibly thanks to our `install-erlang.sh <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh>`_ script; a simple use of it is::
 
-  $ ./install-erlang.sh --doc-install --generate-plt
+  $ ./install-erlang.sh
 
+or::
+
+  $ ./install-erlang.sh --doc-install --generate-plt
 
 One may execute ``./install-erlang.sh --help`` for more details about how to configure it.
 
@@ -551,7 +554,7 @@ Once proper Erlang and C environments are available, the `Ceylan-Myriad reposito
  $ cd Ceylan-Mobile && make all
 
 
-Then only one will be able to fight encodings (ex: for special characters) and SMS parts and sequences. MMS should provide a lot of fun too.
+Then one will be able to enjoy using one's mobile from Erlang.
 
 
 Testing Ceylan-Mobile
@@ -604,14 +607,14 @@ Some SMS-related General Information
 
 The text to be sent as a SMS must be somehow encoded in messages.
 
-Either the default, very limited `alphabet of 7bit encoding <https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38>`_ can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the ``|^€{}[]\`` will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode `UCS-2 <https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding>`_ encoding will have to be used, and then only 70 characters will fit in that SMS.
+Either the default, very limited `alphabet of 7bit encoding <https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38>`_ can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the ``|^€{}[]\`` characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode `UCS-2 <https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding>`_ encoding will have to be used, and then only 70 characters will fit in that SMS.
 
-Should the message be longer than what can a single SMS carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.
+Should the message be longer than what a single SMS can carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.
+
+Ceylan-Mobile automatically detects the relevant encoding and type (single/multiple) parts needed; the user just has to specify the text message that shall be sent.
 
 
-See also:
-
-- a `Free Online SMS Length Calculator <https://messente.com/documentation/tools/sms-length-calculator>`_
+See also a `Free Online SMS Length Calculator <https://messente.com/documentation/tools/sms-length-calculator>`_.
 
 
 
@@ -632,7 +635,7 @@ Notably:
 Support
 =======
 
-Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent to the `project interface <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_, or directly at the email address mentioned at the beginning of this document.
+Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent through the `project interface <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_, or directly at the email address mentioned at the beginning of this document.
 
 
 
@@ -655,7 +658,7 @@ Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, Sync
 
 Please feel free to enrich Ceylan-Mobile!
 
-A source of inspiration has been `python-gammu <https://github.com/gammu/python-gammu/>`_.
+A source of inspiration has also been `python-gammu <https://github.com/gammu/python-gammu/>`_.
 
 
 
@@ -692,7 +695,7 @@ About SMS
 Troubleshooting Telecom-level Issues
 ====================================
 
-Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards.
+Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards. Ultimately some combination may work.
 
 On GNU/Linux, being root and monitoring the system and Gammu logs (and/or using the ``--debug-file`` Gammu command-line option) should certainly help.
 
