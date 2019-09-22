@@ -28,7 +28,7 @@ PROJECT_CSS := pygments-default.css,mobile.css
 PROJECT_ICON := mobile-icon.png
 
 
-WEB_CONTENT = *.html *.css *.png tmp-rst/*.pdf
+WEB_CONTENT = *.html *.css *.png *.pdf
 
 # Read from the user's environment:
 GITHUB_PAGES_BASE := $(shell basename "(MOBILE_WEB_MIRROR_BRANCH)")
@@ -54,6 +54,10 @@ all:
 full-doc: $(CURRENT_MOBILE_HTML)
 
 
+html: clean-doc $(HTML_TARGET)
+
+
+
 # Creates a separate repository for the GitHub pages branch:
 # (please then remove all initial content of that branch)
 #
@@ -64,12 +68,12 @@ clone-mirror:
 export-doc: clean-doc full-doc export-to-official export-to-mirror
 
 
-export-to-official:
+export-to-official: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Mobile documentation to official website"
 	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 
 
-export-to-mirror:
+export-to-mirror: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Mobile documentation to mirror website in $(MOBILE_WEB_MIRROR_BRANCH)"
 	@/bin/cp -f $(WEB_CONTENT) $(MOBILE_WEB_MIRROR_BRANCH) && cd $(MOBILE_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Mobile doc updated." && git push && git pull --ff-only
 

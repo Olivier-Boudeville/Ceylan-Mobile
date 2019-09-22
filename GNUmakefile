@@ -9,7 +9,7 @@ MOBILE_TOP = .
 		info-erlang-for-c info-paths info-compile info-parse-transform
 
 
-MODULES_DIRS = src doc tests
+MODULES_DIRS = src doc test
 
 
 # To override the 'all' default target with a parallel version:

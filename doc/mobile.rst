@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2019 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Monday, June 10, 2019
+:Lastly updated: Sunday, September 22, 2019
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -458,7 +458,7 @@ Once successful, one will be able to send SMS back and forth between the 3G devi
 
 With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
 
-Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl>`_ as a first guideline.
+Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_ as a first guideline.
 
 
 
@@ -474,7 +474,7 @@ All three of them rely on `Erlang <http://erlang.org>`_ (for the user API) and o
 Erlang Environment
 ..................
 
-`Erlang <http://www.erlang.org/>`_, version 22.0 or higher, is needed.
+`Erlang <http://www.erlang.org/>`_, version 22.1 or higher, is needed.
 
 One may obtain it from many ways, including one's distribution (ex: ``pacman erlang``), directly `from its sources <http://www.erlang.org/downloads>`_ or possibly thanks to our `install-erlang.sh <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh>`_ script; a simple use of it is::
 
@@ -546,12 +546,12 @@ Once proper Erlang and C environments are available, the `Ceylan-Myriad reposito
 
 .. code:: bash
 
- $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad
- $ cd Ceylan-Myriad && make all && cd ..
- $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus
- $ cd Ceylan-Seaplus && make all && cd ..
- $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile
- $ cd Ceylan-Mobile && make all
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
+ $ cd myriad && make all && cd ..
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
+ $ cd seaplus && make all && cd ..
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile mobile
+ $ cd mobile && make all
 
 
 Then one will be able to enjoy using one's mobile from Erlang.
@@ -560,9 +560,9 @@ Then one will be able to enjoy using one's mobile from Erlang.
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
+To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
 
- $ cd tests
+ $ cd test
  $ make mobile-test
 		Running unitary test mobile_run (second form) from mobile_test mobile.beam
   --> Testing module mobile_test.
