@@ -31,7 +31,7 @@
 </tr>
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body">Sunday, March 3, 2019</td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Monday, June 10, 2019</td>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body">Sunday, September 22, 2019</td>
 </tr>
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library, version 1.0.</td>
 </tr>
@@ -370,7 +370,7 @@ Leaving monitor mode...
 $ gammu getallsms
 </pre>
 <p>With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
-<p>Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl">this example</a> as a first guideline.</p>
+<p>Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">this example</a> as a first guideline.</p>
 </div>
 </div>
 <div class="section" id="software">
@@ -379,7 +379,7 @@ $ gammu getallsms
 <p>All three of them rely on <a class="reference external" href="http://erlang.org">Erlang</a> (for the user API) and on C (for the library driver), which must therefore be both available.</p>
 <div class="section" id="erlang-environment">
 <h4>Erlang Environment</h4>
-<p><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 22.0 or higher, is needed.</p>
+<p><a class="reference external" href="http://www.erlang.org/">Erlang</a>, version 22.1 or higher, is needed.</p>
 <p>One may obtain it from many ways, including one's distribution (ex: <tt class="docutils literal">pacman erlang</tt>), directly <a class="reference external" href="http://www.erlang.org/downloads">from its sources</a> or possibly thanks to our <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh">install-erlang.sh</a> script; a simple use of it is:</p>
 <pre class="literal-block">
 $ ./install-erlang.sh
@@ -438,20 +438,20 @@ $ mkdir /tmp/gammu-dummy-device
 <h4>Myriad, Seaplus and Mobile</h4>
 <p>Once proper Erlang and C environments are available, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a> and then this <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">Ceylan-Mobile repository</a>, like in:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad
-$ <span class="nb">cd</span> Ceylan-Myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus
-$ <span class="nb">cd</span> Ceylan-Seaplus <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile
-$ <span class="nb">cd</span> Ceylan-Mobile <span class="o">&amp;&amp;</span> make all
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
+$ <span class="nb">cd</span> myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
+$ <span class="nb">cd</span> seaplus <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+$ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile mobile
+$ <span class="nb">cd</span> mobile <span class="o">&amp;&amp;</span> make all
 </pre>
 <p>Then one will be able to enjoy using one's mobile from Erlang.</p>
 </div>
 <div class="section" id="testing-ceylan-mobile">
 <h4>Testing Ceylan-Mobile</h4>
-<p>To test the current functional coverage, one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/tests/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no 3G device):</p>
+<p>To test the current functional coverage, one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no 3G device):</p>
 <pre class="literal-block">
-$ cd tests
+$ cd test
 $ make mobile-test
        Running unitary test mobile_run (second form) from mobile_test mobile.beam
  --&gt; Testing module mobile_test.
