@@ -36,10 +36,10 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 ---------------------------------------------------------
 
 
-:Organisation: Copyright (C) 2019-2019 Olivier Boudeville
+:Organisation: Copyright (C) 2019-2020 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Sunday, September 22, 2019
+:Lastly updated: Thursday, January 2, 2020
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
