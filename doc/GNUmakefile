@@ -16,6 +16,8 @@ OVERALL_DOCUMENT_SOURCE := $(DOC_NAME).rst
 CURRENT_MOBILE_PDF := $(DOC_NAME).pdf
 CURRENT_MOBILE_HTML := $(DOC_NAME).html
 
+HTML_TARGET = $(CURRENT_MOBILE_HTML)
+
 
 DOC_GENERATED_FILES := $(CURRENT_MOBILE_PDF) $(CURRENT_MOBILE_HTML)
 
@@ -31,7 +33,7 @@ PROJECT_ICON := mobile-icon.png
 WEB_CONTENT = *.html *.css *.png *.pdf
 
 # Read from the user's environment:
-GITHUB_PAGES_BASE := $(shell basename "(MOBILE_WEB_MIRROR_BRANCH)")
+GITHUB_PAGES_BASE := $(shell basename "$(MOBILE_WEB_MIRROR_BRANCH)")
 
 
 
@@ -92,7 +94,11 @@ info-doc:
 
 
 info-web:
+	@echo "HTML_TARGET = $(HTML_TARGET)"
+	@echo "SP = $(SP)"
 	@echo "WEB_CONTENT = $(WEB_CONTENT)"
+	@echo "WEB_SRV = $(WEB_SRV)"
+	@echo "WEB_ROOT = $(WEB_ROOT)"
 	@echo "MOBILE_WEB_MIRROR_BRANCH = $(MOBILE_WEB_MIRROR_BRANCH)"
 	@echo "GITHUB_PAGES_BASE = $(GITHUB_PAGES_BASE)"
 
