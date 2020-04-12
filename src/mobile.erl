@@ -146,7 +146,7 @@
 
 
 % Exported helpers:
--export([ received_sms_to_string/1 ]).
+-export([ received_sms_to_string/1, get_execution_target/0 ]).
 
 
 
@@ -823,3 +823,27 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 stop() ->
 	[ process_dictionary:removeExisting( K ) ||
 		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
+
+
+
+% Returns the execution target this module (hence, probably, that layer as a
+% whole) was compiled with, i.e. either the atom 'development' or 'production'.
+
+% Dispatched in actual clauses, otherwise Dialyzer will detect an
+% underspecification:
+%
+% -spec get_execution_target() -> execution_target().
+
+-ifdef(exec_target_is_production).
+
+-spec get_execution_target() -> 'production'.
+get_execution_target() ->
+	production.
+
+-else. % exec_target_is_production
+
+-spec get_execution_target() -> 'development'.
+get_execution_target() ->
+	development.
+
+-endif. % exec_target_is_production
