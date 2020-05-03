@@ -13,13 +13,17 @@ DOC_NAME := $(DOC_BASE_NAME)-$(CURRENT_VERSION)
 OVERALL_DOCUMENT_SOURCE := $(DOC_NAME).rst
 
 
-CURRENT_MOBILE_PDF := $(DOC_NAME).pdf
 CURRENT_MOBILE_HTML := $(DOC_NAME).html
 
 HTML_TARGET = $(CURRENT_MOBILE_HTML)
 
 
-DOC_GENERATED_FILES := $(CURRENT_MOBILE_PDF) $(CURRENT_MOBILE_HTML)
+CURRENT_MOBILE_PDF := $(DOC_NAME).pdf
+
+PDF_TARGET = $(CURRENT_MOBILE_PDF)
+
+
+DOC_GENERATED_FILES := $(HTML_TARGET) $(PDF_TARGET)
 
 DOC_FILES := $(DOC_GENERATED_FILES) mobile-example.png
 
@@ -38,7 +42,7 @@ GITHUB_PAGES_BASE := $(shell basename "$(MOBILE_WEB_MIRROR_BRANCH)")
 
 
 
-.PHONY: all doc full-doc clone-mirror                    \
+.PHONY: all doc full-doc html pdf clone-mirror           \
 		export-doc export-to-official export-to-mirror   \
 		info-web clean clean-doc
 
@@ -52,12 +56,12 @@ all:
 
 
 
-
-full-doc: $(CURRENT_MOBILE_HTML)
+full-doc: $(HTML_TARGET)
 
 
 html: clean-doc $(HTML_TARGET)
 
+pdf: clean-doc $(PDF_TARGET)
 
 
 # Creates a separate repository for the GitHub pages branch:
