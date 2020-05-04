@@ -1,38 +1,29 @@
 MOBILE_TOP = ..
 
 
-DOCUTILS_TOP = $(MOBILE_TOP)
-
-DOC_BASE_NAME := mobile
-
-# The current, operational version of Mobile:
-CURRENT_VERSION := 1.0
-
-DOC_NAME := $(DOC_BASE_NAME)-$(CURRENT_VERSION)
-
-OVERALL_DOCUMENT_SOURCE := $(DOC_NAME).rst
+DOC_BASE_NAME := Ceylan-Mobile-Layer-technical-manual-english
 
 
-CURRENT_MOBILE_HTML := $(DOC_NAME).html
-
-HTML_TARGET = $(CURRENT_MOBILE_HTML)
+OVERALL_DOCUMENT_SOURCE := $(DOC_BASE_NAME).rst
 
 
-CURRENT_MOBILE_PDF := $(DOC_NAME).pdf
+CURRENT_MOBILE_HTML := $(DOC_BASE_NAME).html
 
-PDF_TARGET = $(CURRENT_MOBILE_PDF)
+HTML_TARGET := $(CURRENT_MOBILE_HTML)
+
+
+CURRENT_MOBILE_PDF := $(DOC_BASE_NAME).pdf
+
+PDF_TARGET := $(CURRENT_MOBILE_PDF)
 
 
 DOC_GENERATED_FILES := $(HTML_TARGET) $(PDF_TARGET)
-
-DOC_FILES := $(DOC_GENERATED_FILES) mobile-example.png
 
 
 
 PROJECT_CSS := pygments-default.css,mobile.css
 
 PROJECT_ICON := mobile-icon.png
-
 
 WEB_CONTENT = *.html *.css *.png *.pdf
 
@@ -42,9 +33,10 @@ GITHUB_PAGES_BASE := $(shell basename "$(MOBILE_WEB_MIRROR_BRANCH)")
 
 
 
-.PHONY: all doc full-doc html pdf clone-mirror           \
+.PHONY: doc all full-doc html pdf clone-mirror           \
 		export-doc export-to-official export-to-mirror   \
-		info-web clean clean-doc
+		clean clean-doc info info-web
+
 
 
 # Default do-nothing target:
@@ -52,11 +44,14 @@ doc:
 
 
 all:
-	@echo "  Run 'make full-doc' to generate the manual of the MOBILE-$(CURRENT_VERSION) layer."
+	@echo "  Run 'make full-doc' to generate the manual of the 'Mobile' layer."
 
 
 
-full-doc: $(HTML_TARGET)
+full-doc: $(DOC_GENERATED_FILES)
+	@/bin/ln -sf $(CURRENT_MOBILE_HTML) mobile.html
+	@/bin/ln -sf mobile.html index.html
+	@/bin/ln -sf $(CURRENT_MOBILE_PDF) mobile.pdf
 
 
 html: clean-doc $(HTML_TARGET)
@@ -74,6 +69,12 @@ clone-mirror:
 export-doc: clean-doc full-doc export-to-official export-to-mirror
 
 
+# Drawback: scp will not preserve symlinks, it will duplicate files instead.
+#
+# rsync would not, but requires a different source layout (copies a full tree,
+# not a set of files), so currently not used:
+# rsync -avze "ssh $(SP)" $(SOME_WEB_TREE) $(WEB_SRV):$(WEB_ROOT)/Mobile/
+#
 export-to-official: $(DOC_GENERATED_FILES)
 	@echo "   Exporting Mobile documentation to official website"
 	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
@@ -84,17 +85,19 @@ export-to-mirror: $(DOC_GENERATED_FILES)
 	@/bin/cp -f $(WEB_CONTENT) $(MOBILE_WEB_MIRROR_BRANCH) && cd $(MOBILE_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Mobile doc updated." && git push && git pull --ff-only
 
 
+
 clean: clean-doc
 
+
 clean-doc:
-	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc \
-	$(CURRENT_MOBILE_PDF) $(DOC_GENERATED_FILES)
+	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc $(DOC_GENERATED_FILES)
+
 
 info: info-doc info-web
 
 info-doc:
 	@echo "OVERALL_DOCUMENT_SOURCE = $(OVERALL_DOCUMENT_SOURCE)"
-	@echo "DOC_FILES = $(DOC_FILES)"
+	@echo "DOC_TRACKER = $(DOC_TRACKER)"
 
 
 info-web:
@@ -109,5 +112,4 @@ info-web:
 
 DOCUTILS_TOP = .
 
-# For SEAPLUS_TOP:
 include $(MOBILE_TOP)/GNUmakesettings.inc

@@ -21,7 +21,7 @@
 
 :raw-html:`<a name="mobile_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile-1.0.html">browse mirror</a> <a href="mobile-1.0.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile 1.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile%201.0]%20Remark">email us</a></p></div>`
 
 
 
@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2020 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Thursday, January 2, 2020
+:Lastly updated: Monday, May 4, 2020
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -53,9 +53,9 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 
 The latest version of this documentation is to be found at the `official Mobile website <http://mobile.esperide.org>`_ (``http://mobile.esperide.org``).
 
-:raw-html:`This Mobile documentation is also available in the PDF format (see <a href="mobile-1.0.pdf">mobile.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Mobile/mobile-1.0.html">here</a>.`
+:raw-html:`This Mobile documentation is also available in the PDF format (see <a href="mobile.pdf">mobile.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">here</a>.`
 
-:raw-latex:`The documentation is also mirrored \href{https://olivier-boudeville.github.io/Ceylan-Mobile/mobile-1.0.html}{here}.`
+:raw-latex:`The documentation is also mirrored \href{https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html}{here}.`
 
 
 
