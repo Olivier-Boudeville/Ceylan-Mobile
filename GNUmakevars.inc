@@ -1,30 +1,55 @@
 # Prerequisite: MOBILE_TOP must be set.
 
+# Useful to target for example the root of the current layer (ex: to locate the
+# relevant, layer-local '_build' directory):
+#
+ifndef LAYER_TOP
+	LAYER_TOP := $(MOBILE_TOP)
+endif
+
 
 # Project section.
 
 # PROJECT_NAME should be defined on a per-project basis.
 ifndef PROJECT_NAME
-	PROJECT_NAME = Mobile
+	PROJECT_NAME := Ceylan-Mobile
 endif
 
 
-MOBILE_VERSION := 1.0.1
+# REBAR3_PROJECT_NAME should be defined on a per-project basis.
+ifndef REBAR3_PROJECT_NAME
+	REBAR3_PROJECT_NAME := mobile
+endif
+
+
+# The uniquely-defined version of this layer, for all uses (including rebar and
+# hex):
+#
+MOBILE_VERSION := 1.0.2
+
 
 # PROJECT_VERSION should be defined on a per-project basis.
 ifndef PROJECT_VERSION
-	PROJECT_VERSION = $(MOBILE_VERSION)
-endif
-
-
-ifndef PACKAGE_NAME
-	PACKAGE_NAME = Ceylan-Mobile
+	PROJECT_VERSION := $(MOBILE_VERSION)
 endif
 
 
 ifndef PACKAGE_TOP
 	PACKAGE_TOP = $(MOBILE_TOP)
 endif
+
+
+# For any quick, local, non release-packaged update thereof:
+SEAPLUS_CHECKOUT_BUILD = $(LAYER_TOP)/_checkouts/seaplus
+SEAPLUS_SIBLING_BUILD = $(LAYER_TOP)/../seaplus
+
+
+# The OTP tree of the Seaplus application within a local OTP _build tree:
+SEAPLUS_LOCAL_APP := $(LAYER_TOP)/_build/default/lib/seaplus
+
+# Where Seaplus BEAMs are to lie when used as an OTP application:
+SEAPLUS_LOCAL_EBIN := $(SEAPLUS_LOCAL_APP)/ebin
+
 
 
 MOBILE_RELEASE_BASE := mobile-$(PROJECT_VERSION)
@@ -42,6 +67,10 @@ MOBILE_BEAM := $(MOBILE_SRC)
 
 # Include path section.
 MOBILE_INC = -I$(MOBILE_SRC)
+
+
+# See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
+MOBILE_BEAM_DIRS := $(MOBILE_BEAM)
 
 
 
@@ -67,37 +96,14 @@ GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 # If wanting to use the system-wide library:
 GAMMU_LIBS := $(shell pkg-config --libs gammu)
 
-# If wanting to use aany custom (ex: debug) build:
+# If wanting to use any custom (ex: debug) build:
 #GAMMU_LIBS := -L$(HOME)/Software/libgammu/lib -lGammu
-
-
-DOC_ROOT       = $(MOBILE_TOP)/doc
-MOBILE_DOC_DIR = $(DOC_ROOT)/web/main/documentation/mobile
 
 
 INC += $(MOBILE_INC) $(GAMMU_INC)
 
 
-
-ifndef VM_TEST_NAME
-
-VM_NAME := mobile_debug
-
-endif
-
-
-ifndef VM_TEST_NAME
-
-VM_TEST_NAME := mobile_test
-
-endif
-
-
-
-
-# So that they can be fetched from outside
-# (see the 'list-beam-dirs' target)
-#
+# See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
 MOBILE_BEAM_DIRS = $(MOBILE_TOP)/src
 
 
@@ -105,47 +111,23 @@ MOBILE_BEAM_DIRS = $(MOBILE_TOP)/src
 BEAM_DIRS += $(MOBILE_BEAM_DIRS)
 
 
+
+ifndef VM_TEST_NAME
+	VM_NAME := mobile_debug
+endif
+
+
+ifndef VM_TEST_NAME
+	VM_TEST_NAME := mobile_test
+endif
+
+
+
 # Overall settings section.
 
-
-#EXECUTION_TARGET=production
-
-ifndef EXECUTION_TARGET
-
-  # Other possible value: production
-  EXECUTION_TARGET=development
-
-endif
-
-
-ifeq ($(EXECUTION_TARGET),development)
-
-  #$(info Execution target is development)
-
-  ENABLE_DEBUG=true
-
-else ifeq ($(EXECUTION_TARGET),production)
-
-  #$(info Execution target is production)
-
-  ENABLE_DEBUG=false
-
-else
-
-  $(error Invalid execution target '$(EXECUTION_TARGET)'; expecting either 'development' or 'production')
-
-endif
-
-
-
-#ENABLE_DEBUG=false
-
-# By default, this debug mode is enabled:
-ifndef ENABLE_DEBUG
-
-	ENABLE_DEBUG = true
-
-endif
+# One may define here:
+# EXECUTION_TARGET := production / development [the default]
+# ENABLE_DEBUG := false / true [the default]
 
 
 
@@ -154,24 +136,17 @@ endif
 #
 ifeq ($(ENABLE_DEBUG),true)
 
-	MOBILE_DEBUG_OPT = -DDEBUG_MOBILE -DMOBILE_ENABLE_LOG=1
+	MOBILE_DEBUG_OPT := -DDEBUG_MOBILE -DMOBILE_ENABLE_LOG=1
 
 else
 
-	MOBILE_DEBUG_OPT = -DMOBILE_ENABLE_LOG=0
+	MOBILE_DEBUG_OPT := -DMOBILE_ENABLE_LOG=0
 
 endif
 
 
 
 # Build section.
-
-# Libtool not used anymore:
-
-#LIBTOOL = $(shell which libtool)
-
-# This is a C-based (not C++) example:
-#LIBTOOL_C_OPT += --tag=CC --verbose
 
 
 # Compiler section.
@@ -187,28 +162,21 @@ MOBILE_BASE_NAME := mobile
 
 
 
-
 # Erlang subsection.
 
 
 ifndef COMPILER_OPT_FOR_MOBILE_CLASSES
 
-	   COMPILER_OPT_FOR_MOBILE_CLASSES =                      \
-			$(ERLANG_COMPILER_OPT_BASE)                        \
-			$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
+	COMPILER_OPT_FOR_MOBILE_CLASSES =                      \
+		$(ERLANG_COMPILER_OPT_BASE)                        \
+		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
 
 endif
 
 
-#ifndef ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES
-
-	   # Standard (non-class) modules in Mobile shall not be compiled with the
-	   #  Mobile parse-transform, but with the Myriad one:
-	   #
-	   ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
+ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
 				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
 
-#endif
 
 
 # Conditionally defined so that upper layer may update these settings (ex:
@@ -229,19 +197,8 @@ endif
 
 # No PARSE_TRANSFORM_DIRS to be defined here.
 
-# Variable defined to be re-usable by upper layers, so that compiling their own
-# parse transforms can take advantage of the Mobile one:
-#
-ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE =                \
-					$(OVERALL_PZ_OPT)                           \
-					-DMOBILE_ROOT=\"$(MOBILE_TOP)\"             \
-					-pz $(MOBILE_TOP)/src
-
-
 
 # Linking section.
-
-
 
 
 
@@ -252,16 +209,10 @@ MOBILE_PLT_FILE := $(MOBILE_TOP)/mobile.plt
 
 
 # This is the merged PLT of the level just below in the software stack.
-# For 'MOBILE', it is the PLT of 'Myriad':
+# For 'Mobile', it is the PLT of 'Seaplus':
 ifndef PREDECESSOR_PLT
-	   PREDECESSOR_PLT = $(MYRIAD_PLT_FILE)
+	PREDECESSOR_PLT = $(SEAPLUS_PLT_FILE)
 endif
-
-# To use a generic rule to produce it (unless already defined):
-ifndef PLT_FILE
-	   PLT_FILE = $(PACKAGE_TOP)/$(PACKAGE_NAME).plt
-endif
-
 
 
 # We define the path to the Seaplus layer:
