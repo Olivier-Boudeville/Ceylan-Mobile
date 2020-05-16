@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2020 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Monday, May 4, 2020
+:Lastly updated: Friday, May 15, 2020
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -462,29 +462,21 @@ Currently, with Ceylan-Mobile one is able to fetch various information from the 
 
 
 
-Software
---------
+Software Prerequisites
+----------------------
 
 Ceylan-Mobile relies on `Ceylan-Seaplus <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_, which itself relies on `Ceylan-Myriad <https://github.com/Olivier-Boudeville/Ceylan-Myriad>`_.
 
 All three of them rely on `Erlang <http://erlang.org>`_ (for the user API) and on C (for the library driver), which must therefore be both available.
 
+We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU ``make``.
 
 
 Erlang Environment
 ..................
 
-`Erlang <http://www.erlang.org/>`_, version 22.1 or higher, is needed.
+Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.org#prerequisites>`_  for more precise guidelines, knowing that Ceylan-Mobile does not need modules with conditional support such as ``crypto`` or ``wx``.
 
-One may obtain it from many ways, including one's distribution (ex: ``pacman erlang``), directly `from its sources <http://www.erlang.org/downloads>`_ or possibly thanks to our `install-erlang.sh <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/conf/install-erlang.sh>`_ script; a simple use of it is::
-
-  $ ./install-erlang.sh
-
-or::
-
-  $ ./install-erlang.sh --doc-install --generate-plt
-
-One may execute ``./install-erlang.sh --help`` for more details about how to configure it.
 
 
 C Environment
@@ -717,7 +709,7 @@ Have fun with Mobile - but do not spam people!
 
 .. figure:: mobile-title.png
    :alt: Mobile logo
-   :width: 50 %
+   :width: 35%
    :align: center
 
 :raw-html:`<a name="mobile_bottom"></a>`
