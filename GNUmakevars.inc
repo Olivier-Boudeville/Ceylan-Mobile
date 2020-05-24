@@ -215,18 +215,36 @@ ifndef PREDECESSOR_PLT
 endif
 
 
-# We define the path to the Seaplus layer:
+# We define the path to the Seaplus layer (possibly available as a symbolic
+# link).
 #
-# (it may be a symbolic link pointing to the actual Seaplus package to be used,
-# which itself may be either a 'Ceylan-Seaplus' directory or a 'seaplus' one)
+# For the sake of these build-related makefiles, dependencies may be found
+# either in a local _checkouts child directory (if checkout directories are used
+# and if the top-level package of interest is the current one), or in sibling
+# directories (i.e. whose build root is at the same level as this one).
+# This last case happens notably if not using checkout directories, or if using
+# them and if all the packages mentioned here are themselves dependencies (in
+# which case they are all sitting together in the _checkouts child directory).
+#
+# Note also we rely on the names of build roots (ex: myriad) as opposed to
+# project/repository names (ex: Ceylan-Myriad):
 #
 ifneq ($(wildcard $(MOBILE_TOP)/../seaplus),)
 
+	# By default, expect sibling directories:
 	SEAPLUS_TOP = $(MOBILE_TOP)/../seaplus
 
 else
 
-	# Default:
-	SEAPLUS_TOP = $(MOBILE_TOP)/../Ceylan-Seaplus
+	# Otherwise assume a checkout one:
+	ifneq ($(wildcard $(MOBILE_TOP)/_checkouts/seaplus),)
+
+		SEAPLUS_TOP = $(MOBILE_TOP)/_checkouts/seaplus
+
+   else
+
+		FORCE_EVAL := $(error Unable to find the build root of Ceylan-Seaplus)
+
+	endif
 
 endif
