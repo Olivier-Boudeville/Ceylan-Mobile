@@ -124,7 +124,7 @@
 -type sms_timestamp() :: text_utils:bin_string().
 
 
-% For the record:
+% For the received_sms record:
 -include("mobile.hrl").
 
 
@@ -151,7 +151,7 @@
 
 
 % For the Seaplus support (to be included after local exports):
--include("seaplus.hrl").
+-include_lib("seaplus/include/seaplus.hrl").
 
 
 
