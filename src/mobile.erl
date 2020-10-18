@@ -27,7 +27,7 @@
 
 
 
-% Module offering the Ceylan-Mobile services.
+% Module implementing the Ceylan-Mobile services.
 %
 % Operates through a Seaplus-based interface to the Gammu backend library.
 %
@@ -311,8 +311,8 @@
 -define( mobile_gsm_charset_key, "_mobile_gsm_charset" ).
 
 
-% Key in the process dictionary allowing to keep the encoding conversion table in the context
-% once for all:
+% Key in the process dictionary allowing to keep the encoding conversion table
+% in the context once for all:
 %
 -define( mobile_encoding_key, "_mobile_encoding_table" ).
 
@@ -340,7 +340,7 @@ start_common() ->
 	%
 	io:setopts( [ { encoding, unicode } ] ),
 
-	[ process_dictionary:putAsNew( K, V ) || { K, V } <- [
+	[ process_dictionary:put_as_new( K, V ) || { K, V } <- [
 			{ ?mobile_gsm_charset_key, create_gsm_charset() },
 			{ ?mobile_encoding_key, create_encoding_table() } ] ].
 
@@ -576,8 +576,8 @@ send_sms( Message, MobileNumber, Class ) ->
 		{ single_sms, Encoding, ReadyMessage } ->
 
 			%trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
-			%					   "class ~B and encoding ~s.",
-			%					   [ ReadyMessage, Class, Encoding ] ),
+			%	"class ~B and encoding ~s.",
+			%	[ ReadyMessage, Class, Encoding ] ),
 
 			send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
 
@@ -585,8 +585,8 @@ send_sms( Message, MobileNumber, Class ) ->
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
 			%trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
-			%					   "class ~B and encoding ~s.",
-			%					   [ ReadyMessage, Class, Encoding ] ),
+			%	"class ~B and encoding ~s.",
+			%	[ ReadyMessage, Class, Encoding ] ),
 
 			send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
 
@@ -597,7 +597,7 @@ send_sms( Message, MobileNumber, Class ) ->
 % (helper)
 scan_characters( Message ) ->
 
-	GSMCharSet = process_dictionary:getExisting( ?mobile_gsm_charset_key ),
+	GSMCharSet = process_dictionary:get_existing( ?mobile_gsm_charset_key ),
 
 	scan_characters( Message, _GSMUCharCount=0, _UCS2UCharCount=0,
 					 _CurrentEncoding=gsm_uncompressed,
@@ -642,8 +642,8 @@ scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 		true ->
 			% Still the default GSM alphabet, yet must be escaped then:
 			scan_characters( H, GSMUCharCount+2, UCS2UCharCount+1,
-							 CurrentEncoding, [ C, $\ | GSMUMessage ],
-							 UCS2UMessage, GSMCharSet );
+				CurrentEncoding, [ C, $\ | GSMUMessage ], UCS2UMessage,
+				GSMCharSet );
 
 		false ->
 			% Either belonging to the unescaped default GSM alphabet, or to the
@@ -655,8 +655,8 @@ scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 
 				true ->
 					scan_characters( H, GSMUCharCount+1, UCS2UCharCount+1,
-									 CurrentEncoding, [ C | GSMUMessage ],
-									 UCS2UMessage, GSMCharSet );
+						CurrentEncoding, [ C | GSMUMessage ],
+						UCS2UMessage, GSMCharSet );
 
 				false ->
 					% Alphabet switch required, no need to take care of GSM
@@ -664,8 +664,8 @@ scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 					% or multipart SMS is needed then:
 					%
 					scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
-									 unicode_uncompressed, _GSMUMessage=[],
-									 UCS2UMessage, GSMCharSet )
+						unicode_uncompressed, _GSMUMessage=[],
+						UCS2UMessage, GSMCharSet )
 
 			end
 
@@ -677,15 +677,15 @@ scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 %
 %scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 scan_characters( _Message, _GSMUCharCount, UCS2UCharCount,
-				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
-				 UCS2UMessage, _GSMCharSet ) when UCS2UCharCount > 70 ->
+		CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+		UCS2UMessage, _GSMCharSet ) when UCS2UCharCount > 70 ->
 
 	% No need to go further:
 	{ multiple_sms, CurrentEncoding, UCS2UMessage };
 
 scan_characters( _Message=[ _C | H ], _GSMUCharCount, UCS2UCharCount,
-				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
-				 UCS2UMessage, GSMCharSet ) ->
+		CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+		UCS2UMessage, GSMCharSet ) ->
 
 	% No need to take care of GSM anymore:
 	scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
@@ -816,16 +816,13 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   message_reference=MsgRef,
 									   timestamp=Timestamp } ) ->
 	text_utils:format( "received SMS sent from number '~s' (with encoding ~s) "
-					   "whose text is: '~ts' "
-					   "(reference: ~p, sending timestamp: ~s)",
-					   [ Number, Encoding, Text, MsgRef,
-						 time_utils:timestamp_to_string( Timestamp ) ] ).
+		"whose text is: '~ts' (reference: ~p, sending timestamp: ~s)",
+		[ Number, Encoding, Text, MsgRef,
+		  time_utils:timestamp_to_string( Timestamp ) ] ).
 
 
 
 % Service-specific stop procedure.
 stop() ->
-	[ process_dictionary:removeExisting( K ) ||
+	[ process_dictionary:remove_existing( K ) ||
 		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
-
-
