@@ -36,10 +36,10 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 ---------------------------------------------------------
 
 
-:Organisation: Copyright (C) 2019-2020 Olivier Boudeville
+:Organisation: Copyright (C) 2019-2021 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Friday, May 15, 2020
+:Lastly updated: Saturday, January 23, 2021
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -217,7 +217,9 @@ Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: 
 
 Here such drivers are of no use, and what we want is to switch the keys to modems.
 
-For that, as root, following package shall be installed first::
+For that, as root, following package shall be installed first:
+
+.. code:: bash
 
  $ pacman -Sy usb_modeswitch
 
@@ -239,9 +241,12 @@ to a newer::
 Bye bye mass storage, hello modem!
 
 
-This mode switch can also be done manually, like in::
+This mode switch can also be done manually, like in:
+
+.. code:: bash
 
   $ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
+
 
 ``lsusb`` would then ultimately report, for ``K3G-2``::
 
@@ -261,7 +266,9 @@ A tests with Gammu will tell them apart.
 
 So, first, that tool shall be installed.
 
-One's distribution should provide it, as it is fairly standard::
+One's distribution should provide it, as it is fairly standard:
+
+.. code:: bash
 
   $ pacman gammu
 
@@ -270,7 +277,9 @@ It should notably provide the Gammu library (ex: in ``/usr/lib64/libGammu.so.8.1
 
 With this package comes the ``/usr/bin/gammu`` executable (of course relying on said library), which is useful to test one's configuration.
 
-The executable may read its test configuration from ``/etc/gammurc``, whose content may be, for example in order to test whether ``/dev/ttyUSB1`` (the tty we use for ``K3G-2``) is relevant::
+The executable may read its test configuration from ``/etc/gammurc``, whose content may be, for example in order to test whether ``/dev/ttyUSB1`` (the tty we use for ``K3G-2``) is relevant:
+
+.. code:: ini
 
  [gammu]
  device = /dev/ttyUSB1
@@ -280,7 +289,9 @@ The executable may read its test configuration from ``/etc/gammurc``, whose cont
 
 
 
-To check whether one's 3G device is supported by the system, one may use::
+To check whether one's 3G device is supported by the system, one may use:
+
+.. code:: bash
 
   $ gammu --identify
 
@@ -317,13 +328,17 @@ So a better approach will be to use ``udev`` in order to give them a stable name
 	 SYMLINK+="ttyUSB-my-3G-key"
 
 
-Then one should run::
+Then one should run:
+
+.. code:: bash
 
    $ udevadm control --reload-rules && udevadm trigger
 
 One the key is inserted again, it should be available with its new, stable name.
 
-It can be checked more in-depth::
+It can be checked more in-depth:
+
+.. code:: bash
 
  $ udevadm info --query=all --name=ttyUSB-my-3G-key
   P: /devices/pci0000:00/0000:00:14.0/usb2/2-3/2-3:1.1/ttyUSB1/tty/ttyUSB1
@@ -334,7 +349,9 @@ It can be checked more in-depth::
   S: serial/by-id/usb-HUAWEI_Technologies_HUAWEI_Mobile-if01-port0
   [...]
 
-One may ensure thanks to ``fuser`` that no component (Network Manager or alike) took control of it::
+One may ensure thanks to ``fuser`` that no component (Network Manager or alike) took control of it:
+
+.. code:: bash
 
   $ fuser -va /dev/ttyUSB-my-3G-key
 					 USER        PID ACCESS COMMAND
@@ -344,15 +361,21 @@ One may ensure thanks to ``fuser`` that no component (Network Manager or alike) 
 
 
 
-To interact with such a ``/dev/ttyUSB*`` file, the user (let's name him ``sheldon``) must be in the ``uucp`` group; so, as root::
+To interact with such a ``/dev/ttyUSB*`` file, the user (let's name him ``sheldon``) must be in the ``uucp`` group; so, as root:
+
+.. code:: bash
 
   $ gpasswd -a sheldon uucp
 
-And, as ``sheldon``::
+And, as ``sheldon``:
+
+.. code:: bash
 
   $ newgrp uucp
 
-We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root::
+We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root:
+
+.. code:: bash
 
  $ touch /var/log/gammu-ceylan.log
  $ chgrp uucp /var/log/gammu-ceylan.log
@@ -365,14 +388,18 @@ Wrapping-up Telecom Configuration
 
 Now, with that user, is time for a bit of configuration before testing.
 
-One may use::
+One may use:
+
+.. code:: bash
 
  $ gammu getsecuritystatus
 
 to ensure that no PIN code is required before using the 3G device (hence expecting as answer: ``Nothing to enter.``).
 
 
-Various calls can be made in order to convince oneself that the key operate properly::
+Various calls can be made in order to convince oneself that the key operate properly:
+
+.. code:: bash
 
  $ gammu battery
  Battery level        : 0 percent
@@ -382,14 +409,18 @@ Various calls can be made in order to convince oneself that the key operate prop
  0 SMS parts in 0 SMS sequences
 
 
-The `SMSC <https://en.wikipedia.org/wiki/Short_Message_service_center>`_ number of the carrier having issued one's SIM card must be set before any actual SMS sending::
+The `SMSC <https://en.wikipedia.org/wiki/Short_Message_service_center>`_ number of the carrier having issued one's SIM card must be set before any actual SMS sending:
+
+.. code:: bash
 
   $ gammu setsmsc 1 "+33695000XYZ"
 
 Should this operation fail, it may be a sign that the 3G device is still locked.
 
 
-This can be checked::
+This can be checked:
+
+.. code:: bash
 
   $ gammu getsmsc
   Location             : 1
@@ -400,7 +431,9 @@ This can be checked::
 
 
 
-Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible number (like one's mobile), and root is used at first to overcome any permission issue::
+Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible number (like one's mobile), and root is used at first to overcome any permission issue:
+
+.. code:: bash
 
   $ gammu sendsms TEXT ${TARGET_NUMBER} -text "Hello world!"
   If you want break, press Ctrl+C...
@@ -408,7 +441,9 @@ Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible
 
 As the SMSC has just been set previously, one should not get ``Failed to get SMSC number from phone``.
 
-This can be monitored::
+This can be monitored:
+
+.. code:: bash
 
   $ gammu monitor 1
   Press Ctrl+C to break...
@@ -451,7 +486,9 @@ This can be monitored::
 
 Then the same could be attempted with this time a non-privileged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
 
-Once successful, one will be able to send SMS back and forth between the 3G device and "normal" phones::
+Once successful, one will be able to send SMS back and forth between the 3G device and "normal" phones:
+
+.. code:: bash
 
  $ gammu getallsms
 
@@ -492,7 +529,9 @@ The Gammu configuration file will be searched, on POSIX systems, first as ``~/.g
 
 For debugging purposes, using the ``dummy`` driver is quite convenient.
 
-So for example one could have following content for ``/etc/gammurc``::
+So for example one could have following content for ``/etc/gammurc``:
+
+.. code:: ini
 
  [gammu]
  model = dummy
@@ -500,34 +539,37 @@ So for example one could have following content for ``/etc/gammurc``::
  device = /tmp/gammu-dummy-device
 
 
-Create that directory (as the user to make use of Gammu) first::
+Create that directory (as the user to make use of Gammu) first:
+
+.. code:: bash
 
  $ mkdir /tmp/gammu-dummy-device
+
 
 Otherwise you get: ``you don't have the required permission.``.
 
 It will populate this directory with data faking a real phone::
 
- /tmp/gammu-dummy-device
- --- alarm
- --- calendar
- --- fs
- |__ |-- incoming
- --- note
- --- operations.log
- --- pbk
- |__ --- DC
- |__ --- MC
- |__ --- ME
- |__ --- RC
- |__ |__ SM
- --- sms
- |__ --- 1
- |__ --- 2
- |__ --- 3
- |__ --- 4
- |__ |__ 5
- |__ todo
+  /tmp/gammu-dummy-device
+  --- alarm
+  --- calendar
+  --- fs
+  |__ |-- incoming
+  --- note
+  --- operations.log
+  --- pbk
+  |__ --- DC
+  |__ --- MC
+  |__ --- ME
+  |__ --- RC
+  |__ |__ SM
+  --- sms
+  |__ --- 1
+  |__ --- 2
+  |__ --- 3
+  |__ --- 4
+  |__ |__ 5
+  |__ todo
 
 
 
@@ -552,7 +594,9 @@ Then one will be able to enjoy using one's mobile from Erlang.
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device)::
+To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device):
+
+.. code:: bash
 
  $ cd test
  $ make mobile-test
@@ -570,7 +614,9 @@ To test the current functional coverage, one may run `mobile_test.erl <https://g
   Signal quality: signal strength is 42 dBm (42%), error rate is 0%.
   [...]
 
-One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness)::
+One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness):
+
+.. code:: console-session
 
   [debug] Starting Seaplus session...
   [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
@@ -697,6 +743,7 @@ Please React!
 =============
 
 If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the Support_ guidelines).
+
 
 
 Ending Word
