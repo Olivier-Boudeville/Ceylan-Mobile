@@ -21,7 +21,7 @@
 
 :raw-html:`<a name="mobile_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile%201.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">go to project</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile%201.0]%20Remark">email us</a></p></div>`
 
 
 
@@ -39,7 +39,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2021 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Saturday, January 23, 2021
+:Lastly updated: Monday, February 8, 2021
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -95,6 +95,7 @@ An alternate, less satisfying solution [#]_ could be to use the services of a SM
 
 The solution presented here relies on the `Gammu <https://wammu.eu/gammu/>`_ library for the actual control of the 3G device, and on `Ceylan-Seaplus <http://seaplus.esperide.org/>`_ to make it available to Erlang.
 
+The project repository is located `here <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_.
 
 
 
@@ -519,7 +520,7 @@ Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.
 C Environment
 .............
 
-One may use a recent enough version of GCC (ex: ``pacman gcc``).
+One may use a recent enough version of GCC (ex: ``pacman -Sy gcc``).
 
 
 Gammu Conventions
@@ -576,7 +577,15 @@ It will populate this directory with data faking a real phone::
 Myriad, Seaplus and Mobile
 ..........................
 
-Once proper Erlang and C environments are available, the `Ceylan-Myriad repository <https://github.com/Olivier-Boudeville/Ceylan-Myriad>`_ should be cloned and built, before doing the same with the `Ceylan-Seaplus repository <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_ and then this `Ceylan-Mobile repository <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_, like in:
+Once proper Erlang and C environments are available and Gammu is setup, the `Ceylan-Myriad repository <https://github.com/Olivier-Boudeville/Ceylan-Myriad>`_ should be cloned and built, before doing the same with the `Ceylan-Seaplus repository <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_ and then this `Ceylan-Mobile repository <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_. This can be done directly (manually) or thanks to rebar3 (automatically).
+
+
+Then one will be able to enjoy using one's mobile from Erlang.
+
+Using Cutting-Edge GIT
+**********************
+
+Once Erlang is available, a manual install should be just a matter of executing:
 
 .. code:: bash
 
@@ -587,14 +596,31 @@ Once proper Erlang and C environments are available, the `Ceylan-Myriad reposito
  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile mobile
  $ cd mobile && make all
 
+(for OTP compliance, using short names, such as ``myriad``, ``seaplus`` and ``mobile``, for clones rather than long ones, such as ``Ceylan-Myriad``, ``Ceylan-Seaplus`` and ``Ceylan-Mobile``, is recommended)
 
-Then one will be able to enjoy using one's mobile from Erlang.
+
+
+Using Rebar3
+************
+
+The usual rebar3 machinery is in place and functional, so the Mobile prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself can be obtained simply thanks to:
+
+.. code:: bash
+
+  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git mobile
+  $ cd mobile
+  $ rebar3 compile
+
+Then Mobile and its tests shall be ready for a successful execution.
+
+Note that rebar3 is an alternate way of building Mobile, as one may rely directly on our make-based system instead.
+
 
 
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device):
+To test the current functional coverage, once the prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself have been secured (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device):
 
 .. code:: bash
 
@@ -636,6 +662,11 @@ One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.2716
   [debug] Stopping the Seaplus C driver.
   [trace] At stop: currently allocated blocks: 0; length of freelist: 0.
   [debug] Stopping Seaplus session.
+
+
+
+.. Note:: Mobile is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Mobile/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_), so in terms of usability, some confidence exists. However such test-beds lack an actual 3G key and often Gammu, so these tests cover mostly the build of Ceylan-Mobile.
+
 
 :raw-latex:`\pagebreak`
 
