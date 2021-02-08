@@ -1,5 +1,73 @@
 # Prerequisite: MOBILE_TOP must be set.
 
+# To understand why taking into account such conditionals requires to specify
+# them first, and in each layer, rather than at the end of the last one, refer
+# to the section about conditionals at the top of the GNUmakevars.inc of Myriad.
+
+
+# Overall settings section.
+
+#EXECUTION_TARGET = production
+
+ifndef EXECUTION_TARGET
+
+	# Other possible value: production
+	EXECUTION_TARGET = development
+
+endif
+
+
+ifeq ($(EXECUTION_TARGET),development)
+
+	#$(info Execution target is development)
+
+	ENABLE_DEBUG = true
+
+else ifeq ($(EXECUTION_TARGET),production)
+
+	#$(info Execution target is production)
+
+	ENABLE_DEBUG = false
+
+else
+
+	$(error Invalid Mobile execution target '$(EXECUTION_TARGET)'; expecting either 'development' or 'production')
+
+endif
+
+
+
+ifeq ($(ENABLE_DEBUG),true)
+	ENABLE_MOBILE_DEBUG_OPT = -Dmobile_debug_mode
+else
+	ENABLE_MOBILE_DEBUG_OPT =
+endif
+
+
+
+# Defining (optional) layer-specific flags, typically used by in-code
+# conditional compilation primitives (see cond_utils for their management):
+
+# Topics covered by flags:
+#  - xx (none yet)
+
+# Defining debug flags (at least the most verbose are by default commented-out):
+ifeq ($(ENABLE_DEBUG),true)
+	#MOBILE_DEBUG_FLAGS += -Dmobile_debug_xx
+endif
+
+# Defining check flags:
+ifeq ($(EXECUTION_TARGET),development)
+	# Does not exist: MOBILE_CHECK_FLAGS += -Dmobile_check_xx
+endif
+
+
+ERLANG_COMPILER_OPT_BASE += $(MOBILE_DEBUG_FLAGS)               \
+							$(MOBILE_CHECK_FLAGS)
+
+
+
+
 # Useful to target for example the root of the current layer (ex: to locate the
 # relevant, layer-local '_build' directory):
 #
@@ -16,9 +84,9 @@ ifndef PROJECT_NAME
 endif
 
 
-# REBAR3_PROJECT_NAME should be defined on a per-project basis.
-ifndef REBAR3_PROJECT_NAME
-	REBAR3_PROJECT_NAME := mobile
+# PROJECT_NAME_FOR_REBAR should be defined on a per-project basis.
+ifndef PROJECT_NAME_FOR_REBAR
+	PROJECT_NAME_FOR_REBAR := mobile
 endif
 
 
@@ -32,6 +100,7 @@ MOBILE_VERSION := 1.0.2
 ifndef PROJECT_VERSION
 	PROJECT_VERSION := $(MOBILE_VERSION)
 endif
+
 
 
 ifndef PACKAGE_TOP
@@ -71,6 +140,39 @@ MOBILE_INC = -I$(MOBILE_SRC)
 
 # See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
 MOBILE_BEAM_DIRS := $(MOBILE_BEAM)
+
+
+# When building Mobile in an OTP context from its usual (GIT) root (ex: with
+# 'make rebar3-application'), the BEAMs of Ceylan dependencies are to be found
+# in the OTP build tree - rather than in a supposedly fully-built usual root for
+# them:
+#
+# (these information are useful only at compilation-time, in order to locate the
+# needed parse transforms and their dependencies; at runtime, the OTP rules
+# ensure that the relevant ebin directories are in the code path)
+#
+# Note that this implies that the BEAM files in all ebin directories should be
+# up to date with the ones in the build trees, otherwise hard-to-debug
+# discrepancies may happen (these OTP/rebar-related directories act as default
+# catch-alls, should no prior directory correspond in the BEAM paths).
+#
+SEAPLUS_OTP_BEAM_DIR_FROM_USUAL = $(LAYER_TOP)/$(SEAPLUS_REBAR_BUILD_BASE)/ebin
+
+
+# In an OTP/rebar3-style application layout (not speaking of sibling base
+# directories here), at compilation time as well, modules compiled (directly or
+# not) by the Seaplus parse transform will expect its modules to be located in:
+#
+# (a third place could be considered, in the _build tree of Seaplus itself, yet
+# it would not provide any additional chance)
+#
+SEAPLUS_OTP_BEAM_DIR_FROM_OTP = $(LAYER_TOP)/../seaplus/ebin/
+
+
+# To locate Seaplus modules from all OTP contexts:
+SEAPLUS_PARSE_TRANSFORMS_PZ_OPT = -pz $(SEAPLUS_OTP_BEAM_DIR_FROM_USUAL) \
+								  -pz $(SEAPLUS_OTP_BEAM_DIR_FROM_OTP)
+
 
 
 
@@ -131,17 +233,13 @@ endif
 
 
 
-# Tells whether the debug mode will be activated for the next Mobile classes to
+# Tells whether the debug mode will be activated for the next Mobile modules to
 # be built (maximum performance versus extended checkings).
 #
 ifeq ($(ENABLE_DEBUG),true)
-
 	MOBILE_DEBUG_OPT := -DDEBUG_MOBILE -DMOBILE_ENABLE_LOG=1
-
 else
-
 	MOBILE_DEBUG_OPT := -DMOBILE_ENABLE_LOG=0
-
 endif
 
 
@@ -155,6 +253,10 @@ endif
 
 MOBILE_BASE_NAME := mobile
 
+# None for Mobile:
+ifndef BOOTSTRAP_MODULES
+	BOOTSTRAP_MODULES = $(empty)
+endif
 
 
 # C subsection.
@@ -165,13 +267,6 @@ MOBILE_BASE_NAME := mobile
 # Erlang subsection.
 
 
-ifndef COMPILER_OPT_FOR_MOBILE_CLASSES
-
-	COMPILER_OPT_FOR_MOBILE_CLASSES =                      \
-		$(ERLANG_COMPILER_OPT_BASE)                        \
-		$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
-
-endif
 
 
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
@@ -191,11 +286,6 @@ ifndef ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES
 
 endif
 
-
-## Parse-transform related section.
-
-
-# No PARSE_TRANSFORM_DIRS to be defined here.
 
 
 # Linking section.
@@ -218,10 +308,12 @@ endif
 # We define the path to the Seaplus layer (possibly available as a symbolic
 # link).
 #
-# For the sake of these build-related makefiles, dependencies may be found
-# either in a local _checkouts child directory (if checkout directories are used
-# and if the top-level package of interest is the current one), or in sibling
-# directories (i.e. whose build root is at the same level as this one).
+# For the sake of these build-related makefiles, Ceylan dependencies will be
+# searched (in that order, the one enforced in otp_utils) in a local _checkouts
+# child directory (if checkout directories are used and if the top-level package
+# of interest is the current one), otherwise in sibling directories (i.e. whose
+# build root is at the same level as this one).
+#
 # This last case happens notably if not using checkout directories, or if using
 # them and if all the packages mentioned here are themselves dependencies (in
 # which case they are all sitting together in the _checkouts child directory).
@@ -229,22 +321,19 @@ endif
 # Note also we rely on the names of build roots (ex: myriad) as opposed to
 # project/repository names (ex: Ceylan-Myriad):
 #
-ifneq ($(wildcard $(MOBILE_TOP)/../seaplus),)
-
-	# By default, expect sibling directories:
-	SEAPLUS_TOP = $(MOBILE_TOP)/../seaplus
-
+# First priority is an existing checkout directory:
+ifneq ($(wildcard $(MOBILE_TOP)/_checkouts/seaplus/.),)
+	SEAPLUS_TOP = $(MOBILE_TOP)/_checkouts/seaplus
 else
-
-	# Otherwise assume a checkout one:
-	ifneq ($(wildcard $(MOBILE_TOP)/_checkouts/seaplus),)
-
-		SEAPLUS_TOP = $(MOBILE_TOP)/_checkouts/seaplus
-
+	# Second, a sibling one is searched for:
+	ifneq ($(wildcard $(MOBILE_TOP)/../seaplus/.),)
+		SEAPLUS_TOP = $(MOBILE_TOP)/../seaplus
    else
-
-		FORCE_EVAL := $(error Unable to find the build root of Ceylan-Seaplus)
-
+		# Otherwise most probably in a 'rebar3 compile' context:
+		ifneq ($(wildcard $(MOBILE_TOP)/_build/default/lib/seaplus/.),)
+			SEAPLUS_TOP = $(MOBILE_TOP)/_build/default/lib/seaplus
+		else
+			FORCE_EVAL := $(error Unable to find the build root of Ceylan-Seaplus from $(realpath .).)
+		endif
 	endif
-
 endif
