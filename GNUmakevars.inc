@@ -267,11 +267,14 @@ endif
 # Erlang subsection.
 
 
+ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE =                \
+					$(OVERALL_PZ_OPT)                           \
+					-DMOBILE_ROOT=\"$(MOBILE_TOP)\"             \
+					-pz $(MOBILE_TOP)/src
 
 
 ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
-				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_MOBILE)
-
+				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
 
 # Conditionally defined so that upper layer may update these settings (ex:
