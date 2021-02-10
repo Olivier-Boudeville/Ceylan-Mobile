@@ -1,3 +1,4 @@
+![Erlang CI](https://github.com/Olivier-Boudeville/Ceylan-Mobile/workflows/Erlang%20CI/badge.svg)
 # Ceylan-Mobile
 Part of the Ceylan project in charge of the control of mobile phones from Erlang.
 
