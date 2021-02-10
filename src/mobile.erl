@@ -183,7 +183,7 @@
 % device.
 %
 -spec get_firmware_information() ->
-				   { revision_text(), date_text(), revision_number() }.
+					{ revision_text(), date_text(), revision_number() }.
 
 
 % Returns the IMEI/serial number of the (supposedly connected) mobile device.
@@ -220,7 +220,8 @@
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
--spec send_regular_sms( sms_message(), mobile_number() ) -> sms_sending_report().
+-spec send_regular_sms( sms_message(), mobile_number() ) ->
+								sms_sending_report().
 
 
 
@@ -279,7 +280,7 @@
 % Returns whether it succeeded, and the message TPRM reference.
 %
 -spec send_sms( sms_message(), mobile_number() ) ->
-					  sms_sending_report().
+						sms_sending_report().
 
 
 
@@ -289,7 +290,7 @@
 % Returns whether it succeeded, and the message TPRM reference.
 %
 -spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
-					  sms_sending_report().
+						sms_sending_report().
 
 
 
@@ -333,10 +334,13 @@ start_link() ->
 % (helper)
 start_common() ->
 
+	cond_utils:if_defined( mobile_debug_base,
+						   trace_bridge:debug( "Starting Mobile." ) ),
+
 	% This is needed whenever for example the overall (Erlang) application is
 	% launched with the '-noinput' option (in this case the VM encoding switches
 	% from unicode to latin1, and we cannot output proper UTF-8 characters
-	% anymore (they are displayed as question marks in terminals):
+	% anymore: they are displayed as question marks in terminals):
 	%
 	io:setopts( [ { encoding, unicode } ] ),
 
@@ -445,7 +449,7 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+			%trace_bridge:debug_fmt( "Sending '~s' as a single SMS, with "
 			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage } ;
@@ -453,7 +457,7 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:warning_fmt(
+			%trace_bridge:warning_fmt(
 			%  "Sending '~s' as a single SMS (as requested), with "
 			%  "encoding ~s, yet expecting it to be truncated.",
 			%  [ ReadyMessage, Encoding ] ),
@@ -483,7 +487,7 @@ send_regular_sms( Message, MobileNumber, Class, Encoding )
 
 	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
-	%trace_utils:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
+	%trace_bridge:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
 	%						[ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
@@ -511,7 +515,7 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:warning_fmt(
+			%trace_bridge:warning_fmt(
 			%  "Sending '~s' as a multipart SMS (as requested), with "
 			%  "encoding ~s, yet believing a single-part SMS would have "
 			%  "sufficed.", [ ReadyMessage, Encoding ] ),
@@ -521,7 +525,7 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+			%trace_bridge:debug_fmt( "Sending '~s' as a multipart SMS, with "
 			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage }
@@ -549,7 +553,7 @@ send_multipart_sms( Message, MobileNumber, Class, Encoding )
 
 	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
-	%trace_utils:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
+	%trace_bridge:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
 	%						[ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
@@ -575,7 +579,7 @@ send_sms( Message, MobileNumber, Class ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:debug_fmt( "Sending '~s' as a single SMS, with "
+			%trace_bridge:debug_fmt( "Sending '~s' as a single SMS, with "
 			%	"class ~B and encoding ~s.",
 			%	[ ReadyMessage, Class, Encoding ] ),
 
@@ -584,7 +588,7 @@ send_sms( Message, MobileNumber, Class ) ->
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_utils:debug_fmt( "Sending '~s' as a multipart SMS, with "
+			%trace_bridge:debug_fmt( "Sending '~s' as a multipart SMS, with "
 			%	"class ~B and encoding ~s.",
 			%	[ ReadyMessage, Class, Encoding ] ),
 
