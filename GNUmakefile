@@ -1,7 +1,7 @@
 MOBILE_TOP = .
 
 
-.PHONY: help help-intro help-mobile                                      \
+.PHONY: help help-intro help-mobile check-gammu                          \
 		all register-version-in-header register-mobile list-beam-dirs    \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
@@ -31,6 +31,15 @@ help-intro:
 
 help-mobile:
 	@cd $(MYRIAD_TOP) && $(MAKE) -s help-myriad
+
+
+all: check-gammu
+
+
+
+check-gammu:
+	@echo "Checking availability of gammu"
+	@if pkg-config gammu; then echo "Gammu is available." ; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (ex: 'pacman -Sy gammu' on Arch Linux)." 1>&2 ; exit 12 ; fi
 
 
 register-version-in-header:

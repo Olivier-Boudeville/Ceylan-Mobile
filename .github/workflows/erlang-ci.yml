@@ -18,6 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Compile
+	  run: sudo apt-get install gammu
       run: rebar3 compile
     - name: Run tests
       run: make test NODE_NAMING="--sn"
