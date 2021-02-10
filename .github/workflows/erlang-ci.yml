@@ -33,6 +33,8 @@ jobs:
         #apt-get update
         echo "## Updating packages"
         apt-get update
+        #echo "## Searching for gammu-related packages"
+        #apt-cache search gammu
         echo "## Installing libgammu-dev"
         apt-get install --assume-yes libgammu-dev
         rebar3 compile
