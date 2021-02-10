@@ -45,6 +45,12 @@ run() ->
 
 	test_facilities:display( "Testing the Ceylan-Mobile service." ),
 
+	% Here the driver (i.e. mobile_seaplus_driver) has been generated in another
+	% directory (in 'src'), so we have to ensure that Seaplus will be able to
+	% find it at runtime:
+	%
+	system_utils:add_path_for_executable_lookup( "../src" ),
+
 	% Not mobile:start_link(), as here we want to survive a crash of the mobile
 	% service (i.e. to be able to handle failures explicitly, as messages
 	% received by this test process):
