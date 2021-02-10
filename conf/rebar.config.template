@@ -51,9 +51,12 @@
 % Previously 'MYRIAD_REBAR_PROFILE=${REBAR_PROFILE}' was added, yet
 % REBAR_PROFILE is actually not set, so we rely on our default value instead.
 %
-{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook"} ]}.
+% Still a bad case of reckless rebar3 rebuilds (ex: for mobile.erl), so:
+%{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook"} ]}.
+{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook"} ]}.
 
-{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"} ]}.
+%{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"} ]}.
+{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook"} ]}.
 
 
 
