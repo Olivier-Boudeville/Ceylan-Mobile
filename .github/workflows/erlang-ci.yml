@@ -31,6 +31,8 @@ jobs:
         #add-apt-repository universe
         #echo "## Updating packages (2/2)"
         #apt-get update
+        echo "## Updating packages"
+        apt-get update
         echo "## Installing libgammu-dev"
         apt-get install --assume-yes libgammu-dev
         rebar3 compile
