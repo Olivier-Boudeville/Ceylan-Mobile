@@ -21,6 +21,7 @@ mobile-all-tests: mobile-test mobile-class-test
 GAMMU_DUMMY_DIR := /tmp/gammu-dummy-device
 
 pre-test: all clean-logs
+	@echo "Creating test Gammu dummy directory $(GAMMU_DUMMY_DIR)"
 	@/bin/mkdir -p $(GAMMU_DUMMY_DIR)
 
 
