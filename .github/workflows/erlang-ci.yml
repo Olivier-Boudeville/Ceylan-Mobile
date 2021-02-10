@@ -39,4 +39,6 @@ jobs:
         apt-get install --assume-yes libgammu-dev
         rebar3 compile
     - name: Run tests
-      run: make mobile-all-tests NODE_NAMING="--sn"
+      run: |
+        make all
+        cd test && make mobile-all-tests NODE_NAMING="--sn"
