@@ -21,7 +21,7 @@ mobile-all-tests: mobile-test mobile-class-test
 GAMMU_DUMMY_DIR := /tmp/gammu-dummy-device
 
 pre-test: all clean-logs
-	@echo "Creating test Gammu dummy directory $(GAMMU_DUMMY_DIR)"
+	@echo "    Creating test Gammu dummy directory $(GAMMU_DUMMY_DIR)"
 	@/bin/mkdir -p $(GAMMU_DUMMY_DIR)
 
 
@@ -78,7 +78,7 @@ mobile-read-test-terse: pre-test
 
 
 
-test: test-local
+test: pre-test #test-local
 
 
 # We cannot execute directly the 'test' target, as we need a proper environment:
