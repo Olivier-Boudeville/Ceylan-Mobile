@@ -44,14 +44,15 @@ run() ->
 	test_facilities:display( "Testing the Ceylan-Mobile services "
 							 "regarding SMS classes." ),
 
+	mobile_test:set_up_mobile_environment(),
+
 	mobile:start(),
 
 	case preferences:get( mobile_number ) of
 
 		undefined ->
 			test_facilities:display( "No registered preference regarding a "
-									 "target mobile number, no actual sending "
-									 "performed." );
+				"target mobile number, no actual sending performed." );
 
 		MobileNumber ->
 			actual_sending_test( MobileNumber )
@@ -73,10 +74,8 @@ actual_sending_test( MobileNumber ) ->
 	MessageFormat = "Hello class #~B, âêîôû!",
 
 	test_facilities:display( "~n~nThe next sending-related  tests will target "
-							 "the following recipient mobile number: '~s', "
-							 "with SMS of following classes: ~w.",
-							 [ MobileNumber, Classes ] ),
-
+		"the following recipient mobile number: '~s', with SMS of following "
+		"classes: ~w.", [ MobileNumber, Classes ] ),
 
 	Reports = [ mobile:send_sms( text_utils:format( MessageFormat, [ Cl ] ),
 								 MobileNumber, Cl ) || Cl <- Classes ],

@@ -35,7 +35,31 @@
 -module(mobile_test).
 
 
--export([ run/0 ]).
+-export([ run/0, set_up_mobile_environment/0 ]).
+
+
+% Sets up a relevant environment for the execution of Mobile (and Seaplus).
+%
+% (shared between tests)
+%
+set_up_mobile_environment() ->
+
+	test_facilities:display( "Setting up a Mobile-compliant environment." ),
+
+	% Here the driver (i.e. mobile_seaplus_driver) has been generated in another
+	% directory (in 'src'), so we have to ensure that Seaplus will be able to
+	% find it at runtime:
+	%
+	system_utils:add_path_for_executable_lookup( "../src" ),
+
+	% We also need to secure the Seaplus library itself
+	% (i.e. libseaplus-x.y.z.so), thus to locate the Seaplus dependency itself;
+	% we consider here that it can be found either as a sibling tree of this
+	% Mobile one (if using our native conventions), or in a rebar3 build tree
+	% (if using this tool). Hence:
+	%
+	system_utils:add_paths_for_library_lookup(
+	  [ "../../seaplus/src/", "../_build/default/lib/seaplus/src/" ] ).
 
 
 
@@ -45,11 +69,7 @@ run() ->
 
 	test_facilities:display( "Testing the Ceylan-Mobile service." ),
 
-	% Here the driver (i.e. mobile_seaplus_driver) has been generated in another
-	% directory (in 'src'), so we have to ensure that Seaplus will be able to
-	% find it at runtime:
-	%
-	system_utils:add_path_for_executable_lookup( "../src" ),
+	set_up_mobile_environment(),
 
 	% Not mobile:start_link(), as here we want to survive a crash of the mobile
 	% service (i.e. to be able to handle failures explicitly, as messages
