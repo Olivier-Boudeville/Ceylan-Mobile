@@ -4,5 +4,5 @@
   0},
  {<<"seaplus">>,
   {git,"git://github.com/Olivier-Boudeville/Ceylan-Seaplus",
-       {ref,"d45ff16f2ceabab3c8a84fabb43f641d94236716"}},
+       {ref,"e09ed786d5ce61b10adb067a091577379cec65df"}},
   0}].
