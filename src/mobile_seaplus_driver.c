@@ -24,7 +24,7 @@
  * <http://www.mozilla.org/MPL/>.
  *
  * Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
- * Creation date: Sunday, December 16, 2018
+ * Creation date: Sunday, December 16, 2018.
  *
  */
 
@@ -51,9 +51,6 @@
 #include "gammu.h"
 
 
-// For exit:
-#include <stdlib.h>
-
 // For signal:
 #include <signal.h>
 
@@ -62,6 +59,12 @@
 
 // For va_start and friends:
 #include <stdarg.h>
+
+// For free:
+#include <stdlib.h>
+
+// For printf:
+#include <stdio.h>
 
 
 
@@ -223,8 +226,8 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
   sms_send_status = ERR_NONE ;
 
 
-  /* In case of success, returning { send_success, SMSRef }, otherwise
-   * returning { send_failure, SMSRef }:
+  /* In case of success, returning {send_success, SMSRef}, otherwise returning
+   * {send_failure, SMSRef}:
    *
    */
 
@@ -276,9 +279,26 @@ void mobile_interrupt( signal_reported sign )
 
 
 
-// No parameter expected nor taken into account:
-int main( int argc, char **argv )
+int main( int argc, char *argv[] )
 {
+
+  /* Notably useful to perform a first check that all library dependencies are
+   * satisfied:
+   *
+   */
+  if ( argc != 1 )
+  {
+	printf( "This is a Ceylan-Seaplus driver generated for service "
+	  "Ceylan-Mobile. It is not meant to be executed by itself, "
+	  "but to be run by the Erlang-based Seaplus integration logic. "
+	  "Exiting now.\n" ) ;
+
+	return EXIT_SUCCESS ;
+
+  }
+
+  printf( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
+	"now running>\n" ) ;
 
   // Provided by the Seaplus library:
   byte * current_read_buf ;
@@ -288,7 +308,7 @@ int main( int argc, char **argv )
   start_seaplus_driver( read_buf ) ;
 
 
-  LOG_TRACE( "Mobile Driver started." ) ;
+  LOG_TRACE( "Ceylan-Mobile driver started." ) ;
 
   // Gammu uses strings in the local encoding:
   GSM_InitLocales( NULL ) ;
@@ -321,7 +341,7 @@ int main( int argc, char **argv )
    * (i.e. after having performed at least one write_*_result call).
    *
    * Here it is not always the case as, for example when sending a SMS, the
-   * operation will be known to be completed only in an asynchronously manner,
+   * operation will be known to be completed only in an asynchronous manner,
    * i.e. only from an interrupt handler - which is thus the only part of the
    * program able to send back an answer.
    *
@@ -346,7 +366,6 @@ int main( int argc, char **argv )
 	// Relevant default, as most operations will send directly an answer:
 	answer_sent = true ;
 
-
 	// Current index in the input buffer (for decoding purpose):
 	buffer_index index = 0 ;
 
@@ -362,7 +381,8 @@ int main( int argc, char **argv )
 	 */
 	arity param_count ;
 
-	read_function_information( read_buf, &index, &current_fun_id, &param_count ) ;
+	read_function_information( read_buf, &index, &current_fun_id,
+	  &param_count ) ;
 
 	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
 	  current_fun_id, param_count, index ) ;
@@ -375,7 +395,6 @@ int main( int argc, char **argv )
 	{
 
 
-
 	case GET_BACKEND_INFORMATION_0_ID:
 
 		/* -spec get_backend_information() ->
@@ -385,7 +404,7 @@ int main( int argc, char **argv )
 		LOG_DEBUG( "Executing get_backend_information/0." ) ;
 		check_arity_is( 0, param_count, GET_BACKEND_INFORMATION_0_ID ) ;
 
-		// Returning for example: { gammu, "1.40.0" }:
+		// Returning for example: {gammu, "1.40.0"}:
 
 		write_tuple_header_result( &output_sm_buf, 2 ) ;
 
@@ -393,7 +412,6 @@ int main( int argc, char **argv )
 		write_string_result( &output_sm_buf, GetGammuVersion() ) ;
 
 		break ;
-
 
 
 	case GET_DEVICE_NAME_0_ID:
@@ -409,7 +427,6 @@ int main( int argc, char **argv )
 		write_binary_string_result( &output_sm_buf, device_name ) ;
 
 		break ;
-
 
 
 	case GET_DEVICE_MANUFACTURER_0_ID:
@@ -428,7 +445,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case GET_DEVICE_MODEL_0_ID:
 
 		// -spec get_device_model() -> model_name().
@@ -443,7 +459,6 @@ int main( int argc, char **argv )
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
 		break ;
-
 
 
 	case GET_FIRMWARE_INFORMATION_0_ID:
@@ -472,7 +487,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case GET_IMEI_CODE_0_ID:
 
 		// -spec get_imei_code() -> imei().
@@ -487,7 +501,6 @@ int main( int argc, char **argv )
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
 		break ;
-
 
 
 	case GET_HARDWARE_INFORMATION_0_ID:
@@ -529,7 +542,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case GET_IMSI_CODE_0_ID:
 
 		// -spec get_imsi_code() -> imsi_code().
@@ -544,7 +556,6 @@ int main( int argc, char **argv )
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
 		break ;
-
 
 
 	case GET_SIGNAL_QUALITY_0_ID:
@@ -571,7 +582,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_REGULAR_SMS_2_ID:
 
 		/* No SEND_REGULAR_SMS_2_ID case: the Erlang part is to trigger only the
@@ -583,7 +593,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_REGULAR_SMS_3_ID:
 
 		/* No SEND_REGULAR_SMS_3_ID case: the Erlang part is to trigger only the
@@ -593,7 +602,6 @@ int main( int argc, char **argv )
 		raise_error( "Unexpected call to driver-level send_regular_sms/3." ) ;
 
 		break ;
-
 
 
 	case SEND_REGULAR_SMS_4_ID:
@@ -614,7 +622,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_MULTIPART_SMS_2_ID:
 
 		/* No SEND_MULTIPART_SMS_2_ID case: the Erlang part is to trigger only
@@ -626,7 +633,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_MULTIPART_SMS_3_ID:
 
 		/* No SEND_MULTIPART_SMS_3_ID case: the Erlang part is to trigger only
@@ -636,7 +642,6 @@ int main( int argc, char **argv )
 		raise_error( "Unexpected call to driver-level send_multipart_sms/3." ) ;
 
 		break ;
-
 
 
 	case SEND_MULTIPART_SMS_4_ID:
@@ -657,7 +662,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_SMS_2_ID:
 
 		/* No SEND_SMS_2_ID case: the Erlang part is to select the right version
@@ -669,7 +673,6 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	case SEND_SMS_3_ID:
 
 		/* No SEND_SMS_3_ID case: the Erlang part is to select the right version
@@ -679,7 +682,6 @@ int main( int argc, char **argv )
 		raise_error( "Unexpected call to driver-level send_sms/3." ) ;
 
 		break ;
-
 
 
 	case READ_ALL_SMS_1_ID:
@@ -698,9 +700,7 @@ int main( int argc, char **argv )
 		break ;
 
 
-
 	default:
-
 		// Hopefully no 'break' has been forgotten above!
 		raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
 		  current_fun_id ) ;
@@ -832,7 +832,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   GSM_SetConfigNum( gammu_fsm, section_id ) ;
   check_gammu_error( error, gammu_fsm ) ;
 
-  // Number of replies to await:
+  // Number of replies to wait for:
   int reply_count = 3 ;
 
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
@@ -1181,8 +1181,8 @@ enum encoding get_mobile_encoding( GSM_Coding_Type e )
 
 /* Reads all SMS already received (if any).
  *
- * Returns a list of { BinSenderNumber, EncodingValue, BinText,
- *                     MessageReference, Timestamp }.
+ * Returns a list of {BinSenderNumber, EncodingValue, BinText,
+ *                    MessageReference, Timestamp} entries.
  *
  * Does not block.
  *
@@ -1279,7 +1279,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 	/* For each SMS, the Erlang counterpart expects:
 	 *
-	 * { BinSenderNumber, EncodingValue, MessageReference, Timestamp, BinText }
+	 * {BinSenderNumber, EncodingValue, MessageReference, Timestamp, BinText}
 	 *
 	 * Fields of interest currently not returned here: SMS, PDU, Class.
 	 *
@@ -1336,7 +1336,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		LOG_DEBUG( "  - sender number (%i bytes): '%s'", decoded_len,
 		  decoded_string ) ;
 
-		// As length already known:
+		// As length is already known:
 		write_binary_result( &output_sm_buf, decoded_string, decoded_len ) ;
 
 	  }
@@ -1371,8 +1371,8 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 
 		/* Then Timestamp; we directly convert the struct into its
-		 * time_utils:timestamp/0 counterpart, which is { date(), time() },
-		 * namely: { { Year, Month, Day }, { Hour, Minute, Second } }.
+		 * time_utils:timestamp/0 counterpart, which is {date(), time()},
+		 * namely: { {Year, Month, Day}, {Hour, Minute, Second} }.
 		 *
 		 * (Timezone not used here)
 		 *
@@ -1380,17 +1380,17 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 		// Note that GSM_DateTime is defined in gammu/include/gammu-datetime.h.
 
-		// For { date(), time() }:
+		// For {date(), time()}:
 		write_tuple_header_result( &output_sm_buf, 2 ) ;
 
-		// For date(), hence { Year, Month, Day }:
+		// For date(), hence {Year, Month, Day}:
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
 		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Year ) ;
 		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Month ) ;
 		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Day ) ;
 
-		// For time(), hence { Hour, Minute, Second }:
+		// For time(), hence {Hour, Minute, Second}:
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
 		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Hour ) ;
@@ -1450,7 +1450,8 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 		LOG_DEBUG( "Deleting SMS." ) ;
 
-		GSM_Error gammu_error = GSM_DeleteSMS( gammu_fsm, &receivedSMS.SMS[ i ] ) ;
+		GSM_Error gammu_error =
+		  GSM_DeleteSMS( gammu_fsm, &receivedSMS.SMS[ i ] ) ;
 
 		check_gammu_error( gammu_error, gammu_fsm ) ;
 
@@ -1490,8 +1491,8 @@ void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm )
 
 
 
-/* Raises specified error: reports it in logs, shutdown relevant phone services,
- * and halts.
+/* Raises specified error: reports it in logs, shutdowns relevant phone
+ * services, and halts.
  *
  */
 void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
