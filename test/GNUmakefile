@@ -12,7 +12,8 @@ MOBILE_TOP = ..
 all:
 
 
-mobile-all-tests: mobile-test mobile-class-test
+# No more need for a specific target (now just run 'make test' as usual):
+#mobile-all-tests: mobile-test mobile-class-test
 
 
 # If using a dummy device, its directory must already exist before using it:
@@ -26,7 +27,15 @@ pre-test: all clean-logs
 
 
 # Shell environment needed for the testing:
-TEST_ENV = PATH=$(MOBILE_TOP)/src:$(PATH) LD_LIBRARY_PATH=$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)
+
+# (now useless, as directly managed from the test cases themselves, as it is
+# clearer/more reliable; see mobile_test:set_up_mobile_environment/0)
+#
+#TEST_ENV = PATH=$(MOBILE_TOP)/src:$(PATH) LD_LIBRARY_PATH=$(GAMMU_LIB_DIR):$(SEAPLUS_LIB_DIR):$(LD_LIBRARY_PATH)
+
+
+# Targets only defined for convenience (the usual 'make test' is now
+# sufficient):
 
 
 # Displays the logs iff failed:
