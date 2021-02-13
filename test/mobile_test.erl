@@ -94,8 +94,8 @@ run() ->
 		mobile:get_firmware_information(),
 
 	test_facilities:display( "Firmware information: revision is '~s', "
-							 "date is '~s' and revision number is ~w.",
-							 [ RevisionText, DateText, RevisionNumber ] ),
+		"date is '~s' and revision number is ~w.",
+		[ RevisionText, DateText, RevisionNumber ] ),
 
 
 	test_facilities:display( "IMEI code: '~s'.", [ mobile:get_imei_code() ] ),
@@ -128,8 +128,7 @@ run() ->
 
 		undefined ->
 			test_facilities:display( "No registered preference regarding a "
-									 "target mobile number, no actual sending "
-									 "performed." );
+				"target mobile number, no actual sending performed." );
 
 		MobileNumber ->
 			actual_sending_test( MobileNumber )
@@ -149,10 +148,9 @@ actual_sending_test( MobileNumber ) ->
 	Class = 1,
 
 	test_facilities:display( "~n~nThe next sending tests will target the "
-							 "following recipient mobile number: '~s', first "
-							 "with a few single-part SMS, of various lengths, "
-							 "of class ~B, and needing various encodings.",
-							 [ MobileNumber, Class ] ),
+		"following recipient mobile number: '~s', first with a few "
+		"single-part SMS, of various lengths, of class ~B, and needing "
+		"various encodings.", [ MobileNumber, Class ] ),
 
 
 	% Single (non-multipart) SMS testing:
@@ -163,8 +161,8 @@ actual_sending_test( MobileNumber ) ->
 	FirstSMSReport = mobile:send_regular_sms( FirstMessage, MobileNumber ),
 
 	test_facilities:display( "~nSent first (single-part) SMS (message: '~s') "
-							 "with default settings, whose report is: ~w.",
-							 [ FirstMessage, FirstSMSReport ] ),
+		"with default settings, whose report is: ~w.",
+		[ FirstMessage, FirstSMSReport ] ),
 
 
 	% With (uncompressed) GSM encoding, the single received SMS should stop just
@@ -184,8 +182,8 @@ actual_sending_test( MobileNumber ) ->
 	SecondSMSReport = mobile:send_regular_sms( SecondMessage, MobileNumber ),
 
 	test_facilities:display( "~nSent second (single-part) SMS (message: '~s') "
-							 "with default settings, whose report is: ~w.",
-							 [ SecondMessage, SecondSMSReport ] ),
+		"with default settings, whose report is: ~w.",
+		[ SecondMessage, SecondSMSReport ] ),
 
 
 	EncodingTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
@@ -210,9 +208,8 @@ actual_sending_test( MobileNumber ) ->
 												  Class, gsm_uncompressed ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-							 "test of GSM uncompressed encoding, "
-							 "whose report is: ~w.",
-							 [ GSMUncompMsg, GSMUncompSMSReport ] ),
+		"test of GSM uncompressed encoding, whose report is: ~w.",
+		[ GSMUncompMsg, GSMUncompSMSReport ] ),
 
 
 
@@ -228,9 +225,8 @@ actual_sending_test( MobileNumber ) ->
 								   MobileNumber, Class, unicode_uncompressed ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-							 "test of Unicode uncompressed encoding, "
-							 "whose report is: ~w.",
-							 [ UnicodeUncompMsg, UnicodeUncompSMSReport ] ),
+		"test of Unicode uncompressed encoding, whose report is: ~w.",
+		[ UnicodeUncompMsg, UnicodeUncompSMSReport ] ),
 
 
 	AutoMsg = text_utils:format( EncodingTestFormatMsg,
@@ -241,9 +237,8 @@ actual_sending_test( MobileNumber ) ->
 	AutoSMSReport = mobile:send_regular_sms( AutoMsg, MobileNumber ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-							 "test of (automatic) encoding, "
-							 "whose report is: ~w.",
-							 [ AutoMsg, AutoSMSReport ] ),
+		"test of (automatic) encoding, whose report is: ~w.",
+		[ AutoMsg, AutoSMSReport ] ),
 
 
 
@@ -253,18 +248,19 @@ actual_sending_test( MobileNumber ) ->
 							 "this time using multipart SMS." ),
 
 
-	FirstMultiSMSReport = mobile:send_multipart_sms( FirstMessage, MobileNumber ),
+	FirstMultiSMSReport = mobile:send_multipart_sms( FirstMessage,
+													 MobileNumber ),
 
 	test_facilities:display( "~nSent first multipart SMS (message: '~s') "
-							 "with default settings, whose report is: ~w.",
-							 [ FirstMessage, FirstMultiSMSReport ] ),
+		"with default settings, whose report is: ~w.",
+		[ FirstMessage, FirstMultiSMSReport ] ),
 
 	SecondMultiSMSReport = mobile:send_multipart_sms( SecondMessage,
 													  MobileNumber ),
 
 	test_facilities:display( "~nSent second multipart SMS (message: '~s') "
-							 "with default settings, whose report is: ~w.",
-							 [ SecondMessage, SecondMultiSMSReport ] ),
+		"with default settings, whose report is: ~w.",
+		[ SecondMessage, SecondMultiSMSReport ] ),
 
 	EncodingMultiTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
 		"this is a longer message meant *not* to be truncated, thanks to the "
@@ -294,20 +290,19 @@ actual_sending_test( MobileNumber ) ->
 									   MobileNumber, Class, gsm_uncompressed ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~s') "
-							 "for the test of GSM uncompressed encoding, "
-							 "whose report is: ~w.",
-							 [ GSMMultiUncompMsg, GSMMultiUncompSMSReport ] ),
+		"for the test of GSM uncompressed encoding, whose report is: ~w.",
+		[ GSMMultiUncompMsg, GSMMultiUncompSMSReport ] ),
 
 
 
 	UnicodeMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
 											   [ "Unicode uncompressed" ] ),
 
-	%test_facilities:display( "Sending now: '~ts'.", [ UnicodeMultiUncompMsg ] ),
+	%test_facilities:display( "Sending now: '~ts'.",
+	%    [ UnicodeMultiUncompMsg ] ),
 
-	UnicodeMultiUncompSMSReport =
-		mobile:send_multipart_sms( UnicodeMultiUncompMsg, MobileNumber,
-								   Class, unicode_uncompressed ),
+	UnicodeMultiUncompSMSReport = mobile:send_multipart_sms(
+		UnicodeMultiUncompMsg, MobileNumber, Class, unicode_uncompressed ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~s') "
 		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
@@ -320,12 +315,12 @@ actual_sending_test( MobileNumber ) ->
 
 	%test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
 
-	AutoMultiSMSReport = mobile:send_multipart_sms( AutoMultiMsg, MobileNumber ),
+	AutoMultiSMSReport = mobile:send_multipart_sms( AutoMultiMsg,
+													MobileNumber ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~s') "
-							 "for the test of (automatic) encoding, "
-							 "whose report is: ~w.",
-							 [ AutoMultiMsg, AutoMultiSMSReport ] ),
+		"for the test of (automatic) encoding, whose report is: ~w.",
+		[ AutoMultiMsg, AutoMultiSMSReport ] ),
 
 
 	%test_facilities:display( "Sending now the same message in full automatic "
@@ -334,8 +329,7 @@ actual_sending_test( MobileNumber ) ->
 	FullSMSReport = mobile:send_sms( AutoMultiMsg, MobileNumber ),
 
 	test_facilities:display( "~nSent message: '~s' in full automatic mode, "
-							 "report is: ~w.",
-							 [ AutoMultiMsg, FullSMSReport ] ),
+		"report is: ~w.", [ AutoMultiMsg, FullSMSReport ] ),
 
 	% Automatic, single part, test for either encoding:
 	mobile:send_sms( "Unicode expected: âêîôû.", MobileNumber ),
