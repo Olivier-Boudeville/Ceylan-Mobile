@@ -117,7 +117,8 @@ GSM_Coding_Type get_gammu_encoding( enum encoding e ) ;
 enum encoding get_mobile_encoding( GSM_Coding_Type e ) ;
 
 
-void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm ) ;
+void check_gammu_error( GSM_Error error, const char * step_description,
+  GSM_StateMachine * gammu_fsm ) ;
 
 void raise_gammu_error( GSM_StateMachine * gammu_fsm,
   const char * format, ... ) ;
@@ -297,8 +298,8 @@ int main( int argc, char *argv[] )
 
   }
 
-  printf( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
-	"now running>\n" ) ;
+  LOG_TRACE( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
+	"now running>" ) ;
 
   // Provided by the Seaplus library:
   byte * current_read_buf ;
@@ -438,7 +439,7 @@ int main( int argc, char *argv[] )
 
 		// Life-cycle of a global string buffer, not to manage here:
 		gammu_error = GSM_GetManufacturer( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get manufacturer", gammu_fsm ) ;
 
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
@@ -454,7 +455,7 @@ int main( int argc, char *argv[] )
 
 		// Life-cycle of a global string buffer, not to manage here:
 		gammu_error = GSM_GetModel( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get model", gammu_fsm ) ;
 
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
@@ -476,7 +477,8 @@ int main( int argc, char *argv[] )
 		gammu_error = GSM_GetFirmware( gammu_fsm, string_buffer,
 		  aux_string_buffer, &rev_number ) ;
 
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get firmware information",
+		  gammu_fsm ) ;
 
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
@@ -496,7 +498,7 @@ int main( int argc, char *argv[] )
 
 		// Life-cycle of a global string buffer, not to manage here:
 		gammu_error = GSM_GetIMEI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get IMEI code", gammu_fsm ) ;
 
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
@@ -551,7 +553,7 @@ int main( int argc, char *argv[] )
 
 		// Life-cycle of a global string buffer, not to manage here:
 		gammu_error = GSM_GetSIMIMSI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get IMSI code", gammu_fsm ) ;
 
 		write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
@@ -569,7 +571,7 @@ int main( int argc, char *argv[] )
 
 		GSM_SignalQuality sq ;
 		gammu_error = GSM_GetSignalQuality( gammu_fsm, &sq ) ;
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "get signal quality", gammu_fsm ) ;
 
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
@@ -812,17 +814,17 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   // Autodetect the configuration file (ex: ~/.gammurc):
   GSM_Error error = GSM_FindGammuRC( &iniConfig, NULL ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "find Gammu RC", gammu_fsm ) ;
 
   // Read it:
   int read_section_count = 0 ;
 
   // To be populated from INI content (and deallocated just after):
   GSM_Config * config = GSM_GetConfig( gammu_fsm, read_section_count ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "get configuration", gammu_fsm ) ;
 
   error = GSM_ReadConfig( iniConfig, config, read_section_count ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "init configuration", gammu_fsm ) ;
 
   INI_Free( iniConfig ) ;
 
@@ -830,13 +832,13 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   int section_id = 1 ;
 
   GSM_SetConfigNum( gammu_fsm, section_id ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "set configuration number", gammu_fsm ) ;
 
   // Number of replies to wait for:
   int reply_count = 3 ;
 
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "init connection", gammu_fsm ) ;
 
   // No user data:
   GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback, NULL ) ;
@@ -844,7 +846,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   // We need to know the SMSC number:
   device_smsc.Location = 1 ;
   error = GSM_GetSMSC( gammu_fsm, &device_smsc ) ;
-  check_gammu_error( error, gammu_fsm ) ;
+  check_gammu_error( error, "get SMSC", gammu_fsm ) ;
 
   // interrupt_sm_buf managed fully and directly in its callback.
 
@@ -911,7 +913,7 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
 
   // Finally:
   GSM_Error gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
-  check_gammu_error( gammu_error, gammu_fsm ) ;
+  check_gammu_error( gammu_error, "send SMS", gammu_fsm ) ;
 
   /* We do not have yet anything to return, but the callback will. */
   //write_as_XXX( buffer, ... ) ;
@@ -1027,7 +1029,7 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   GSM_Error gammu_error = GSM_EncodeMultiPartSMS( debug_info, &SMSInfo,
 	&MultiSMS ) ;
 
-  check_gammu_error( gammu_error, gammu_fsm ) ;
+  check_gammu_error( gammu_error, "encode multipart SMS", gammu_fsm ) ;
 
   size_t recipient_number_len = strlen( recipient_number ) ;
 
@@ -1056,7 +1058,7 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
 
 	// Send this message:
 	gammu_error = GSM_SendSMS( gammu_fsm, &MultiSMS.SMS[i] ) ;
-	check_gammu_error( gammu_error, gammu_fsm ) ;
+	check_gammu_error( gammu_error, "send SMS", gammu_fsm ) ;
 
 	/* We do not have yet anything to return, but the callback will. */
 	//write_XXX_result( output_sm_buffer, ... ) ;
@@ -1272,7 +1274,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	// Size is 2, as we are cons'ing, like in [ X, [ Y, [] ] ]:
 	write_list_header_result( &output_sm_buf, 2 ) ;
 
-	check_gammu_error( read_error, gammu_fsm ) ;
+	check_gammu_error( read_error, "read SMS", gammu_fsm ) ;
 
 	isFirst = false ;
 
@@ -1453,7 +1455,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		GSM_Error gammu_error =
 		  GSM_DeleteSMS( gammu_fsm, &receivedSMS.SMS[ i ] ) ;
 
-		check_gammu_error( gammu_error, gammu_fsm ) ;
+		check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
 
 	  }
 
@@ -1480,12 +1482,16 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 
 
-void check_gammu_error( GSM_Error error, GSM_StateMachine * gammu_fsm )
+// Checks whether a Gammu error happened, and reports any available information.
+void check_gammu_error( GSM_Error error, const char * step_description,
+  GSM_StateMachine * gammu_fsm )
 {
 
   if ( error != ERR_NONE )
-	raise_gammu_error( gammu_fsm, "Gammu error: %s",
-	  GSM_ErrorString( error ) ) ;
+	raise_gammu_error( gammu_fsm, "Gammu error in the '%s' step: '%s'.",
+	  step_description, GSM_ErrorString( error ) ) ;
+  else
+	LOG_TRACE( "Step '~s' did not trigger a Gammu error.", step_description );
 
 }
 
@@ -1528,7 +1534,7 @@ void stop_gammu( GSM_StateMachine * gammu_fsm )
   {
 
 	GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
-	check_gammu_error( error, gammu_fsm ) ;
+	check_gammu_error( error, "stop Gammu", gammu_fsm ) ;
 
   }
 
