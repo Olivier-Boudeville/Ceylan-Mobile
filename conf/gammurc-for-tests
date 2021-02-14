@@ -1,0 +1,15 @@
+[gammu]
+
+model = dummy
+
+#logfile = /tmp/gammu.log
+logfile = /var/log/gammu-ceylan.log
+
+logformat = textalldate
+
+#connection = at
+connection = none
+
+#device = /dev/ttyUSB1
+#device = /dev/ttyUSB-C3G
+device = /tmp/gammu-dummy-device
