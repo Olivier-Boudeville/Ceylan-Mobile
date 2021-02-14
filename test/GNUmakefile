@@ -1,7 +1,8 @@
 MOBILE_TOP = ..
 
 
-.PHONY: mobile-test mobile-test-debug mobile-test-terse                   \
+.PHONY: secure-gammu-config-file use-gammu-test-config-file               \
+		mobile-test mobile-test-debug mobile-test-terse                   \
 		mobile-class-test mobile-class-test-debug mobile-class-test-terse \
 		mobile-read-test mobile-read-test-debug mobile-read-test-terse    \
 		clean clean-local clean-logs                                      \
@@ -10,6 +11,20 @@ MOBILE_TOP = ..
 
 
 all:
+
+
+# Gammu requires a configuration file, and this location was found the most
+# reliable (see https://docs.gammu.org/config/):
+#
+GAMMU_RC_FILE="${HOME}/.gammurc"
+
+secure-gammu-config-file:
+	@if [ -f "${GAMMU_RC_FILE}" ]; then echo "An already-existing Gammu configuration file exists in '${GAMMU_RC_FILE}', using it instead of our dummy test one." ; else $(MAKE) -s use-gammu-test-config-file ; fi
+
+
+use-gammu-test-config-file:
+	@echo "Setting up our dummy Gammu test configuration file in '${GAMMU_RC_FILE}' as none existed."
+	@/bin/cp -f $(MOBILE_TOP)/conf/gammurc-for-tests ${HOME}/.gammurc
 
 
 # No more need for a specific target (now just run 'make test' as usual):
@@ -21,7 +36,7 @@ all:
 #
 GAMMU_DUMMY_DIR := /tmp/gammu-dummy-device
 
-pre-test: all clean-logs
+pre-test: secure-gammu-config-file all clean-logs
 	@echo "    Creating test Gammu dummy directory $(GAMMU_DUMMY_DIR)"
 	@/bin/mkdir -p $(GAMMU_DUMMY_DIR)
 
