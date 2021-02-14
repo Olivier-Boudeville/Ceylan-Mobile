@@ -40,5 +40,5 @@ jobs:
         rebar3 compile
     - name: Run tests
       run: |
-        make mobile-test NODE_NAMING="--sn"
+        cd test && make mobile-test NODE_NAMING="--sn"
         make test NODE_NAMING="--sn"
