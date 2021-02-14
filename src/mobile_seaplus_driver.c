@@ -1511,16 +1511,16 @@ void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
 	  GSM_TerminateConnection( gammu_fsm ) ;
   }
 
-  // Uses Seaplus service, variadic-forwarding:
+  // Uses Seaplus service, variadic-forwarding by forwarding these values:
 
-  va_list extra_args ;
+  va_list extra_values ;
 
-  va_start( extra_args, format ) ;
+  va_start( extra_values, format ) ;
 
-  raise_error( format, extra_args ) ;
+  raise_error_variadic( format, &extra_values ) ;
 
   // This clean-up will never happen:
-  va_end( extra_args ) ;
+  va_end( extra_values ) ;
 
 }
 
