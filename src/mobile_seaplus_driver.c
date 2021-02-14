@@ -298,18 +298,17 @@ int main( int argc, char *argv[] )
 
   }
 
-  LOG_TRACE( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
-	"now running>" ) ;
-
   // Provided by the Seaplus library:
   byte * current_read_buf ;
 
   input_buffer read_buf = &current_read_buf ;
 
+  // No driver log before this point:
   start_seaplus_driver( read_buf ) ;
 
+  LOG_TRACE( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
+	"now running>" ) ;
 
-  LOG_TRACE( "Ceylan-Mobile driver started." ) ;
 
   // Gammu uses strings in the local encoding:
   GSM_InitLocales( NULL ) ;
@@ -1488,10 +1487,18 @@ void check_gammu_error( GSM_Error error, const char * step_description,
 {
 
   if ( error != ERR_NONE )
+  {
 	raise_gammu_error( gammu_fsm, "Gammu error in the '%s' step: '%s'.",
 	  step_description, GSM_ErrorString( error ) ) ;
+  }
+
+  // Uncomment in case of need for heavy debugging:
+  /*
   else
-	LOG_TRACE( "Step '~s' did not trigger a Gammu error.", step_description );
+  {
+	LOG_TRACE( "Step '%s' did not trigger a Gammu error.", step_description );
+  }
+  */
 
 }
 
