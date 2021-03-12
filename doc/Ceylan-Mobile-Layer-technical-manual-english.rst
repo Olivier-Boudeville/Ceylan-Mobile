@@ -13,11 +13,6 @@
 .. role:: raw-latex(raw)
    :format: latex
 
-.. comment Would appear too late, can only be an be used only in preamble:
-.. comment :raw-latex:`\usepackage{graphicx}`
-.. comment As a result, in this document at least a '.. figure:: XXXX' must
-.. exist, otherwise: 'Undefined control sequence \includegraphics.'.
-
 
 :raw-html:`<a name="mobile_top"></a>`
 
@@ -25,8 +20,8 @@
 
 
 
-:raw-html:`<center><img src="mobile-title.png" width="50%"></img></center>`
-:raw-latex:`\includegraphics[scale=0.70]{mobile-title.png}`
+:raw-html:`<center><img src="mobile-title.png" width="40%"></img></center>`
+:raw-latex:`\centering \includegraphics[scale=0.70]{mobile-title.png}`
 
 
 
@@ -39,7 +34,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2021 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Monday, February 8, 2021
+:Lastly updated: Friday, March 12, 2021
 :Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
 :Abstract:
 
@@ -780,14 +775,9 @@ If you have information more detailed or more recent than those presented in thi
 Ending Word
 ===========
 
-Have fun with Mobile - but do not spam people!
+Have fun with Ceylan-Mobile - but do not spam people!
 
-.. comment Mostly added to ensure there is at least one figure directive,
-.. otherwise the LateX graphic support will not be included:
-
-.. figure:: mobile-title.png
-   :alt: Mobile logo
-   :width: 35%
-   :align: center
+:raw-html:`<center><img src="mobile-title.png" width="25%"></img></center>`
+:raw-latex:`\begin{figure}[h] \centering \includegraphics[scale=0.2]{mobile-title.png} \end{figure}`
 
 :raw-html:`<a name="mobile_bottom"></a>`
