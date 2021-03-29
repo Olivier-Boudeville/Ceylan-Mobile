@@ -231,7 +231,7 @@
 % Returns whether it succeeded, and the message TPRM reference.
 %
 -spec send_regular_sms( sms_message(), mobile_number(), encoding() ) ->
-							 sms_sending_report().
+								sms_sending_report().
 
 
 
@@ -279,8 +279,7 @@
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
--spec send_sms( sms_message(), mobile_number() ) ->
-						sms_sending_report().
+-spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
 
 
 
@@ -300,6 +299,7 @@
 % Does not block.
 %
 -spec read_all_sms( boolean() ) -> [ received_sms() ].
+
 
 
 
@@ -344,9 +344,9 @@ start_common() ->
 	%
 	io:setopts( [ { encoding, unicode } ] ),
 
-	[ process_dictionary:put_as_new( K, V ) || { K, V } <- [
-			{ ?mobile_gsm_charset_key, create_gsm_charset() },
-			{ ?mobile_encoding_key, create_encoding_table() } ] ].
+	[ process_dictionary:put_as_new( K, V ) || { K, V } <-
+		[ { ?mobile_gsm_charset_key, create_gsm_charset() },
+		  { ?mobile_encoding_key, create_encoding_table() } ] ].
 
 
 
@@ -449,8 +449,8 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~s' as a single SMS, with "
-			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			%trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
+			%    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage } ;
 
@@ -458,8 +458,8 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
 			%trace_bridge:warning_fmt(
-			%  "Sending '~s' as a single SMS (as requested), with "
-			%  "encoding ~s, yet expecting it to be truncated.",
+			%  "Sending '~ts' as a single SMS (as requested), with "
+			%  "encoding ~ts, yet expecting it to be truncated.",
 			%  [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage }
@@ -516,8 +516,8 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 		{ single_sms, Encoding, ReadyMessage } ->
 
 			%trace_bridge:warning_fmt(
-			%  "Sending '~s' as a multipart SMS (as requested), with "
-			%  "encoding ~s, yet believing a single-part SMS would have "
+			%  "Sending '~ts' as a multipart SMS (as requested), with "
+			%  "encoding ~ts, yet believing a single-part SMS would have "
 			%  "sufficed.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage } ;
@@ -525,8 +525,8 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~s' as a multipart SMS, with "
-			%					   "encoding ~s.", [ ReadyMessage, Encoding ] ),
+			%trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
+			%    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
 
 			{ Encoding, ReadyMessage }
 
@@ -576,11 +576,10 @@ send_sms( Message, MobileNumber, Class ) ->
 	% Select the right sending primitive to call:
 	case scan_characters( Message ) of
 
-
 		{ single_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~s' as a single SMS, with "
-			%	"class ~B and encoding ~s.",
+			%trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
+			%	"class ~B and encoding ~ts.",
 			%	[ ReadyMessage, Class, Encoding ] ),
 
 			send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
@@ -588,8 +587,8 @@ send_sms( Message, MobileNumber, Class ) ->
 
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~s' as a multipart SMS, with "
-			%	"class ~B and encoding ~s.",
+			%trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
+			%	"class ~B and encoding ~ts.",
 			%	[ ReadyMessage, Class, Encoding ] ),
 
 			send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
@@ -604,14 +603,14 @@ scan_characters( Message ) ->
 	GSMCharSet = process_dictionary:get_existing( ?mobile_gsm_charset_key ),
 
 	scan_characters( Message, _GSMUCharCount=0, _UCS2UCharCount=0,
-					 _CurrentEncoding=gsm_uncompressed,
-					 _GSMUMessage=[], _UCS2UMessage=Message, GSMCharSet ).
+		_CurrentEncoding=gsm_uncompressed, _GSMUMessage=[],
+		_UCS2UMessage=Message, GSMCharSet ).
 
 
 % (sub-helper)
 scan_characters( _Message=[], GSMUCharCount, _UCS2UCharCount,
-				 CurrentEncoding=gsm_uncompressed, GSMUMessage,
-				 _UCS2UMessage, _GSMCharSet ) ->
+		CurrentEncoding=gsm_uncompressed, GSMUMessage, _UCS2UMessage,
+		_GSMCharSet ) ->
 
 	% Can only be decide once all characters have been examined (as even the
 	% last one may be a Unicode one):
@@ -630,15 +629,15 @@ scan_characters( _Message=[], GSMUCharCount, _UCS2UCharCount,
 
 
 scan_characters( _Message=[], _GSMUCharCount, _UCS2UCharCount,
-				 CurrentEncoding=unicode_uncompressed, _GSMUMessage,
-				 UCS2UMessage, _GSMCharSet ) ->
+		CurrentEncoding=unicode_uncompressed, _GSMUMessage, UCS2UMessage,
+		_GSMCharSet ) ->
 	%  If not having exit beforehand, it means:
 	{ single_sms, CurrentEncoding, UCS2UMessage };
 
 
 scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
-				 CurrentEncoding=gsm_uncompressed, GSMUMessage,
-				 UCS2UMessage, GSMCharSet ) ->
+		CurrentEncoding=gsm_uncompressed, GSMUMessage, UCS2UMessage,
+		GSMCharSet ) ->
 
 	% With the default GSM alphabet, some characters have to be escaped:
 	case lists:member( C, [ $|, $^, $€, ${, $}, $[, $], $\\ ] ) of
@@ -693,8 +692,7 @@ scan_characters( _Message=[ _C | H ], _GSMUCharCount, UCS2UCharCount,
 
 	% No need to take care of GSM anymore:
 	scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
-					 CurrentEncoding, _GSMUMessage=[], UCS2UMessage,
-					 GSMCharSet ).
+		CurrentEncoding, _GSMUMessage=[], UCS2UMessage, GSMCharSet ).
 
 
 
@@ -819,8 +817,8 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   text=Text,
 									   message_reference=MsgRef,
 									   timestamp=Timestamp } ) ->
-	text_utils:format( "received SMS sent from number '~s' (with encoding ~s) "
-		"whose text is: '~ts' (reference: ~p, sending timestamp: ~s)",
+	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
+		 "whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
 		[ Number, Encoding, Text, MsgRef,
 		  time_utils:timestamp_to_string( Timestamp ) ] ).
 

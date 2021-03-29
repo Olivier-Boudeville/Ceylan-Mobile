@@ -59,7 +59,7 @@ set_up_mobile_environment() ->
 	% (if using this tool). Hence:
 	%
 	system_utils:add_paths_for_library_lookup(
-	  [ "../../seaplus/src/", "../_build/default/lib/seaplus/src/" ] ).
+		[ "../../seaplus/src/", "../_build/default/lib/seaplus/src/" ] ).
 
 
 
@@ -81,30 +81,30 @@ run() ->
 
 	test_facilities:display( "Back-end information: ~p.", [ Info ] ),
 
-	test_facilities:display( "Device name: ~s.",
+	test_facilities:display( "Device name: ~ts.",
 							 [ mobile:get_device_name() ] ),
 
-	test_facilities:display( "Device manufacturer: ~s.",
+	test_facilities:display( "Device manufacturer: ~ts.",
 							 [ mobile:get_device_manufacturer() ] ),
 
-	test_facilities:display( "Device model: ~s.",
+	test_facilities:display( "Device model: ~ts.",
 							 [ mobile:get_device_model() ] ),
 
 	{ RevisionText, DateText, RevisionNumber } =
 		mobile:get_firmware_information(),
 
-	test_facilities:display( "Firmware information: revision is '~s', "
-		"date is '~s' and revision number is ~w.",
+	test_facilities:display( "Firmware information: revision is '~ts', "
+		"date is '~ts' and revision number is ~w.",
 		[ RevisionText, DateText, RevisionNumber ] ),
 
 
-	test_facilities:display( "IMEI code: '~s'.", [ mobile:get_imei_code() ] ),
+	test_facilities:display( "IMEI code: '~ts'.", [ mobile:get_imei_code() ] ),
 
 
 	% This operation may not be supported by the end device:
 	try
 
-		test_facilities:display( "Hardware information: '~s'.",
+		test_facilities:display( "Hardware information: '~ts'.",
 								 [ mobile:get_hardware_information() ] )
 
 	catch
@@ -115,14 +115,14 @@ run() ->
 
 	end,
 
-	test_facilities:display( "IMSI code: '~s'.", [ mobile:get_imsi_code() ] ),
+	test_facilities:display( "IMSI code: '~ts'.", [ mobile:get_imsi_code() ] ),
 
 	{ SignalStrength, SignalStrengthPercent, ErrorRate } =
 		mobile:get_signal_quality(),
 
 	test_facilities:display( "Signal quality: signal strength is ~B dBm (~B%), "
-			 "error rate is ~B%.",
-			 [ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
+		"error rate is ~B%.",
+		[ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
 
 	case preferences:get( mobile_number ) of
 
@@ -148,7 +148,7 @@ actual_sending_test( MobileNumber ) ->
 	Class = 1,
 
 	test_facilities:display( "~n~nThe next sending tests will target the "
-		"following recipient mobile number: '~s', first with a few "
+		"following recipient mobile number: '~ts', first with a few "
 		"single-part SMS, of various lengths, of class ~B, and needing "
 		"various encodings.", [ MobileNumber, Class ] ),
 
@@ -160,7 +160,7 @@ actual_sending_test( MobileNumber ) ->
 
 	FirstSMSReport = mobile:send_regular_sms( FirstMessage, MobileNumber ),
 
-	test_facilities:display( "~nSent first (single-part) SMS (message: '~s') "
+	test_facilities:display( "~nSent first (single-part) SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
 		[ FirstMessage, FirstSMSReport ] ),
 
@@ -181,7 +181,7 @@ actual_sending_test( MobileNumber ) ->
 
 	SecondSMSReport = mobile:send_regular_sms( SecondMessage, MobileNumber ),
 
-	test_facilities:display( "~nSent second (single-part) SMS (message: '~s') "
+	test_facilities:display( "~nSent second (single-part) SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
 		[ SecondMessage, SecondSMSReport ] ),
 
@@ -207,8 +207,8 @@ actual_sending_test( MobileNumber ) ->
 	GSMUncompSMSReport = mobile:send_regular_sms( GSMUncompMsg, MobileNumber,
 												  Class, gsm_uncompressed ),
 
-	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-		"test of GSM uncompressed encoding, whose report is: ~w.",
+	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
+		"for the test of GSM uncompressed encoding, whose report is: ~w.",
 		[ GSMUncompMsg, GSMUncompSMSReport ] ),
 
 
@@ -224,8 +224,8 @@ actual_sending_test( MobileNumber ) ->
 	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
 								   MobileNumber, Class, unicode_uncompressed ),
 
-	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-		"test of Unicode uncompressed encoding, whose report is: ~w.",
+	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
+		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
 		[ UnicodeUncompMsg, UnicodeUncompSMSReport ] ),
 
 
@@ -236,8 +236,8 @@ actual_sending_test( MobileNumber ) ->
 
 	AutoSMSReport = mobile:send_regular_sms( AutoMsg, MobileNumber ),
 
-	test_facilities:display( "~nSent (single-part) SMS (message: '~s') for the "
-		"test of (automatic) encoding, whose report is: ~w.",
+	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
+		"for the test of (automatic) encoding, whose report is: ~w.",
 		[ AutoMsg, AutoSMSReport ] ),
 
 
@@ -251,14 +251,14 @@ actual_sending_test( MobileNumber ) ->
 	FirstMultiSMSReport = mobile:send_multipart_sms( FirstMessage,
 													 MobileNumber ),
 
-	test_facilities:display( "~nSent first multipart SMS (message: '~s') "
+	test_facilities:display( "~nSent first multipart SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
 		[ FirstMessage, FirstMultiSMSReport ] ),
 
 	SecondMultiSMSReport = mobile:send_multipart_sms( SecondMessage,
 													  MobileNumber ),
 
-	test_facilities:display( "~nSent second multipart SMS (message: '~s') "
+	test_facilities:display( "~nSent second multipart SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
 		[ SecondMessage, SecondMultiSMSReport ] ),
 
@@ -287,9 +287,9 @@ actual_sending_test( MobileNumber ) ->
 	%						 [ GSMMultiUncompMsg ] ),
 
 	GSMMultiUncompSMSReport = mobile:send_multipart_sms( GSMMultiUncompMsg,
-									   MobileNumber, Class, gsm_uncompressed ),
+										MobileNumber, Class, gsm_uncompressed ),
 
-	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+	test_facilities:display( "~nSent multipart SMS (message: '~ts') "
 		"for the test of GSM uncompressed encoding, whose report is: ~w.",
 		[ GSMMultiUncompMsg, GSMMultiUncompSMSReport ] ),
 
@@ -304,7 +304,7 @@ actual_sending_test( MobileNumber ) ->
 	UnicodeMultiUncompSMSReport = mobile:send_multipart_sms(
 		UnicodeMultiUncompMsg, MobileNumber, Class, unicode_uncompressed ),
 
-	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+	test_facilities:display( "~nSent multipart SMS (message: '~ts') "
 		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
 		[ UnicodeMultiUncompMsg, UnicodeMultiUncompSMSReport ] ),
 
@@ -318,7 +318,7 @@ actual_sending_test( MobileNumber ) ->
 	AutoMultiSMSReport = mobile:send_multipart_sms( AutoMultiMsg,
 													MobileNumber ),
 
-	test_facilities:display( "~nSent multipart SMS (message: '~s') "
+	test_facilities:display( "~nSent multipart SMS (message: '~ts') "
 		"for the test of (automatic) encoding, whose report is: ~w.",
 		[ AutoMultiMsg, AutoMultiSMSReport ] ),
 
@@ -328,7 +328,7 @@ actual_sending_test( MobileNumber ) ->
 
 	FullSMSReport = mobile:send_sms( AutoMultiMsg, MobileNumber ),
 
-	test_facilities:display( "~nSent message: '~s' in full automatic mode, "
+	test_facilities:display( "~nSent message: '~ts' in full automatic mode, "
 		"report is: ~w.", [ AutoMultiMsg, FullSMSReport ] ),
 
 	% Automatic, single part, test for either encoding:

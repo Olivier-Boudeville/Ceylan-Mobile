@@ -74,7 +74,7 @@ actual_sending_test( MobileNumber ) ->
 	MessageFormat = "Hello class #~B, âêîôû!",
 
 	test_facilities:display( "~n~nThe next sending-related  tests will target "
-		"the following recipient mobile number: '~s', with SMS of following "
+		"the following recipient mobile number: '~ts', with SMS of following "
 		"classes: ~w.", [ MobileNumber, Classes ] ),
 
 	Reports = [ mobile:send_sms( text_utils:format( MessageFormat, [ Cl ] ),
