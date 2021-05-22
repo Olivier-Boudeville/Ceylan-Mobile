@@ -686,13 +686,13 @@ scan_characters( _Message, _GSMUCharCount, UCS2UCharCount,
 	% No need to go further:
 	{ multiple_sms, CurrentEncoding, UCS2UMessage };
 
-scan_characters( _Message=[ _C | H ], _GSMUCharCount, UCS2UCharCount,
-		CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+scan_characters( _Message=[ _C | H ], _ZeroGSMUCharCount, UCS2UCharCount,
+		CurrentEncoding=unicode_uncompressed, _EmptyGSMUMessage,
 		UCS2UMessage, GSMCharSet ) ->
 
 	% No need to take care of GSM anymore:
-	scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
-		CurrentEncoding, _GSMUMessage=[], UCS2UMessage, GSMCharSet ).
+	scan_characters( H, _StillZeroGSMUCharCount=0, UCS2UCharCount+1,
+		CurrentEncoding, _StillEmptyGSMUMessage=[], UCS2UMessage, GSMCharSet ).
 
 
 
