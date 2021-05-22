@@ -12,33 +12,13 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # See https://hub.docker.com/_/erlang:
     container:
-      image: erlang:23.2.0
+      image: erlang:latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Compile
-      run: |
-        echo "Checking distribution and version"
-        cat /etc/*-release
-        # Actually does not look as an Ubuntu but a Debian:
-        #echo "## Listing repositories: $(cat /etc/apt/sources.list)"
-        #echo "## Updating packages (1/2)"
-        #apt-get update
-        #echo "## Installing add-apt-repository"
-        #apt-get install --assume-yes software-properties-common
-        #echo "## Adding universe"
-        #add-apt-repository universe
-        #echo "## Updating packages (2/2)"
-        #apt-get update
-        echo "## Updating packages"
-        apt-get update
-        #echo "## Searching for gammu-related packages"
-        #apt-cache search gammu
-        echo "## Installing libgammu-dev"
-        apt-get install --assume-yes libgammu-dev
-        rebar3 compile
+      run: rebar3 compile
     - name: Run tests
-      run: |
-        cd test && make pre-test mobile-test NODE_NAMING="--sn"
-        make test NODE_NAMING="--sn"
+      run: make test NODE_NAMING="--sn"
