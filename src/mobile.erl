@@ -37,12 +37,12 @@
 
 % API declaration.
 %
-% Note that the functions below have a spec, yet are not even defined here.
-
+% Note that the first functions below have a spec (and a pseudo edoc
+% documentation), yet are not even defined here (Seaplus is take care of them
+% automatically).
 
 
 % API types:
-
 
 -type backend_type() :: 'gammu'.
 
@@ -166,10 +166,11 @@
 %
 % Note that most functions have their implementation generated through Seaplus
 % and thus are unfortunately invisible to edoc; their doc tags are thus
-% intentionally non-standard ('doc:') to avoid that edoc to fail.
+% intentionally non-standard ('doc:') to avoid that edoc fails.
 
 
--spec get_backend_information() -> { backend_type(), backend_version() }.
+% We list first the spec (with a doc-like description) of the functions that we
+% leave as fully generated through Seaplus.
 
 
 % doc: Returns the name of the (supposedly connected) mobile device.
@@ -217,53 +218,12 @@
 
 
 
--spec send_regular_sms( sms_message(), mobile_number() ) ->
-								sms_sending_report().
-
-
--spec send_regular_sms( sms_message(), mobile_number(), sms_class() ) ->
-								sms_sending_report().
-
-
--spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
-						encoding() ) -> sms_sending_report().
-
-
-
--spec send_multipart_sms( sms_message(), mobile_number() ) ->
-								sms_sending_report().
-
-
-
--spec send_multipart_sms( sms_message(), mobile_number(), encoding() ) ->
-								sms_sending_report().
-
-
--spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
-						  encoding() ) -> sms_sending_report().
-
-
-
--spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
-
-
-
-% doc: Sends specified SMS, of specified class, determining automatically the
-% best encoding to use, and whether a regular SMS or a multipart one is needed.
-%
-% Returns whether it succeeded, and the message TPRM reference.
-%
--spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
-						sms_sending_report().
-
-
-% doc: Returns the list of all read SMS.
--spec read_all_sms( boolean() ) -> [ received_sms() ].
-
-
 
 
 % API function overriding section.
+
+% Then we list the functions that we chose to override specifically (these ones
+% will be directly seen by edoc then).
 
 
 % Key in the process dictionary allowing to keep the GSM charset in the context
@@ -289,7 +249,6 @@ start() ->
 
 
 % @doc Starts and links the Mobile service.
-%
 start_link() ->
 	start_common().
 
@@ -333,6 +292,7 @@ create_gsm_charset() ->
 		   % Removed as already expected to be escaped: $\\,
 		   $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
 		   $*, $+, $,, $-, $., $/ ] ).
+
 
 
 % @doc Returns a suitable bijective table.
@@ -380,6 +340,7 @@ get_hardware_information() ->
 % version as a string (ex: "1.40.0") and we use Myriad to easily convert it into
 % {1,40,0}:
 %
+-spec get_backend_information() -> { backend_type(), backend_version() }.
 get_backend_information() ->
 
 	% These two pseudo-calls are replaced at compilation time by the Seaplus
@@ -398,7 +359,8 @@ get_backend_information() ->
 
 
 
-% For the sending of SMS, we override a lot the default Seaplus behaviours.
+% For the (key) sending of SMS, we override a lot the default Seaplus
+% behaviours.
 
 
 % @doc Sends specified, regular (that is non-multipart) SMS (of class 1), using
@@ -406,6 +368,8 @@ get_backend_information() ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_regular_sms( sms_message(), mobile_number() ) ->
+								sms_sending_report().
 send_regular_sms( Message, MobileNumber ) ->
 	send_regular_sms( Message, MobileNumber, _Class=1 ).
 
@@ -416,6 +380,8 @@ send_regular_sms( Message, MobileNumber ) ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_regular_sms( sms_message(), mobile_number(), sms_class() ) ->
+								sms_sending_report().
 send_regular_sms( Message, MobileNumber, Class ) ->
 
 	% We directly branch to the more complete version, the only one to be known
@@ -450,6 +416,8 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
+						encoding() ) -> sms_sending_report().
 send_regular_sms( Message, MobileNumber, Class, Encoding )
   when is_list( Message ) andalso is_list( MobileNumber )
 	   andalso is_integer( Class ) andalso is_atom( Encoding ) ->
@@ -478,6 +446,8 @@ send_regular_sms( Message, MobileNumber, Class, Encoding )
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_multipart_sms( sms_message(), mobile_number() ) ->
+								sms_sending_report().
 send_multipart_sms( Message, MobileNumber ) ->
 	send_multipart_sms( Message, MobileNumber, _Class=1 ).
 
@@ -488,6 +458,8 @@ send_multipart_sms( Message, MobileNumber ) ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_multipart_sms( sms_message(), mobile_number(), encoding() ) ->
+								sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class ) ->
 
 	% We directly branch to the more complete version, the only one to be known
@@ -522,6 +494,8 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
+-spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
+						  encoding() ) -> sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class, Encoding )
   when is_list( Message ) andalso is_list( MobileNumber )
 	   andalso is_integer( Class ) andalso is_atom( Encoding ) ->
@@ -553,15 +527,20 @@ send_multipart_sms( Message, MobileNumber, Class, Encoding )
 % The most advanced SMS-sending primitive, switching automatically to the right
 % lower-level one, for the default class 1.
 %
+-spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
 send_sms( Message, MobileNumber ) ->
 	send_sms( Message, MobileNumber, _Class=1 ).
 
 
-% @doc Sends specified SMS message to specified mobile number.
+
+% @doc Sends specified SMS, of specified class, determining automatically the
+% best encoding to use, and whether a regular SMS or a multipart one is needed.
 %
 % The most advanced SMS-sending primitive, switching automatically to the right
 % lower-level one, based on specified class.
 %
+-spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
+						sms_sending_report().
 send_sms( Message, MobileNumber, Class ) ->
 
 	% Select the right sending primitive to call:
@@ -570,8 +549,8 @@ send_sms( Message, MobileNumber, Class ) ->
 		{ single_sms, Encoding, ReadyMessage } ->
 
 			%trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
-			%	"class ~B and encoding ~ts.",
-			%	[ ReadyMessage, Class, Encoding ] ),
+			%   "class ~B and encoding ~ts.",
+			%   [ ReadyMessage, Class, Encoding ] ),
 
 			send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
 
@@ -579,13 +558,12 @@ send_sms( Message, MobileNumber, Class ) ->
 		{ multiple_sms, Encoding, ReadyMessage } ->
 
 			%trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
-			%	"class ~B and encoding ~ts.",
-			%	[ ReadyMessage, Class, Encoding ] ),
+			%   "class ~B and encoding ~ts.",
+			%   [ ReadyMessage, Class, Encoding ] ),
 
 			send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
 
 	end.
-
 
 
 % (helper)
@@ -758,6 +736,7 @@ enum_to_encoding( Value ) ->
 %
 % Specialised here to transform conveniently its outputs.
 %
+-spec read_all_sms( boolean() ) -> [ received_sms() ].
 read_all_sms( DeleteOnReading ) ->
 
 	% These two pseudo-calls are replaced at compilation time by the Seaplus
@@ -775,6 +754,7 @@ read_all_sms( DeleteOnReading ) ->
 			0
 
 	end,
+
 
 	SMSList = case seaplus:call_port_for( PortKey, FunctionDriverId,
 										  _Args=[ DeleteToggle ] ) of
@@ -820,6 +800,7 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 % @doc Stops the Mobile service.
 %
 % Service-specific stop procedure.
+%
 stop() ->
 	[ process_dictionary:remove_existing( K ) ||
 		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
