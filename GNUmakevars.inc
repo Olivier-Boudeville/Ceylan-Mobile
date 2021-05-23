@@ -84,16 +84,22 @@ ifndef PROJECT_NAME
 endif
 
 
+# PROJECT_SHORT_NAME should be defined on a per-project basis.
+ifndef PROJECT_SHORT_NAME
+	PROJECT_SHORT_NAME := mobile
+endif
+
+
 # PROJECT_NAME_FOR_REBAR should be defined on a per-project basis.
 ifndef PROJECT_NAME_FOR_REBAR
-	PROJECT_NAME_FOR_REBAR := mobile
+	PROJECT_NAME_FOR_REBAR := $(PROJECT_SHORT_NAME)
 endif
 
 
 # The uniquely-defined version of this layer, for all uses (including rebar and
 # hex):
 #
-MOBILE_VERSION := 1.0.2
+MOBILE_VERSION := 1.0.4
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
@@ -306,6 +312,16 @@ MOBILE_PLT_FILE := $(MOBILE_TOP)/mobile.plt
 ifndef PREDECESSOR_PLT
 	PREDECESSOR_PLT = $(SEAPLUS_PLT_FILE)
 endif
+
+
+
+# Documentation section.
+
+
+ifndef EDOC_OPTS
+	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {includes,["$(LAYER_TOP)/include", "$(MYRIAD_TOP)/..", "$(SEAPLUS_TOP)/.."]}, {overview, "$(LAYER_TOP)/overview.edoc"}]'
+endif
+
 
 
 # We define the path to the Seaplus layer (possibly available as a symbolic

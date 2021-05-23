@@ -1,8 +1,7 @@
-
 .. _Top:
 
 
-.. title:: Welcome to the Ceylan-Mobile 1.0 documentation
+.. title:: Welcome to the Ceylan-Mobile documentation
 
 .. comment stylesheet specified through GNUmakefile
 
@@ -16,7 +15,7 @@
 
 :raw-html:`<a name="mobile_top"></a>`
 
-:raw-html:`<div class="banner"><p><em>Mobile 1.0 documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_bottom">go to bottom</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">go to project</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile%201.0]%20Remark">email us</a></p></div>`
+:raw-html:`<div class="banner"><p><em>Mobile documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_toc">go to toc</a> <a href="#mobile_bottom">go to bottom</a> <a href="api-doc/index.html">browse API</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">go to project</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile]%20Remark">email us</a></p></div>`
 
 
 
@@ -34,13 +33,17 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Organisation: Copyright (C) 2019-2021 Olivier Boudeville
 :Contact: about (dash) mobile (at) esperide (dot) com
 :Creation date: Sunday, March 3, 2019
-:Lastly updated: Friday, March 12, 2021
-:Dedication: Users and maintainers of the ``Mobile`` library, version 1.0.
+:Lastly updated: GENERATION_DATE
+:Version: PROJECT_VERSION
+:Status: Stable
+:Dedication: Users and maintainers of the ``Mobile`` library.
 :Abstract:
 
 	The role of the ``Mobile`` library is to control mobile phones from Erlang.
 	A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.
 
+	We present here a short overview of these services, to introduce them to newcomers.
+	The next level of information is either to browse the `Mobile API documentation <api-doc/index.html>`_ or simply to read the corresponding `source files <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_, which are intensely commented and generally straightforward.
 
 .. meta::
    :keywords: Mobile, cellular, phone, 3G, SMS, MMS, Erlang
@@ -54,14 +57,14 @@ The latest version of this documentation is to be found at the `official Mobile 
 
 
 
+
 :raw-latex:`\pagebreak`
 
-
+:raw-html:`<a name="mobile_toc"></a>`
 
 .. _`table of contents`:
 
-
-.. contents:: Table of Contents
+.. contents:: **Table of Contents**
   :depth: 3
 
 

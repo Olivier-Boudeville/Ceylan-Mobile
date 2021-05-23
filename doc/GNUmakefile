@@ -25,7 +25,8 @@ PROJECT_CSS := pygments-default.css,mobile.css
 
 PROJECT_ICON := mobile-icon.png
 
-WEB_CONTENT = *.html *.css *.png *.pdf
+WEB_CONTENT = *.html *.css *.png *.pdf api-doc
+
 
 # Read from the user's environment:
 GITHUB_PAGES_BASE := $(shell basename "$(MOBILE_WEB_MIRROR_BRANCH)")
@@ -33,22 +34,25 @@ GITHUB_PAGES_BASE := $(shell basename "$(MOBILE_WEB_MIRROR_BRANCH)")
 
 
 
-.PHONY: doc all full-doc html pdf clone-mirror           \
-		export-doc export-to-official export-to-mirror   \
-		clean clean-doc info info-web
+.PHONY: doc all full-doc create-links html pdf clone-mirror           \
+		export-doc export-doc-to-official export-doc-to-mirror        \
+		clean clean-doc clean-links info info-web
 
 
 
 # Default do-nothing target:
-doc:
-
-
 all:
 	@echo "  Run 'make full-doc' to generate the manual of the 'Mobile' layer."
 
 
+doc:
 
-full-doc: $(DOC_GENERATED_FILES)
+
+full-doc: $(DOC_GENERATED_FILES) api-doc
+
+
+# These links do not need to be in version control:
+create-links:
 	@/bin/ln -sf $(CURRENT_MOBILE_HTML) mobile.html
 	@/bin/ln -sf mobile.html index.html
 	@/bin/ln -sf $(CURRENT_MOBILE_PDF) mobile.pdf
@@ -58,15 +62,22 @@ html: clean-doc $(HTML_TARGET)
 
 pdf: clean-doc $(PDF_TARGET)
 
+api:
+	@cd $(LAYER_TOP) && $(MAKE) -s generate-api-doc
+
+
+# To generate the actual API documentation tree:
+api-doc: api
+
 
 # Creates a separate repository for the GitHub pages branch:
-# (please then remove all initial content of that branch)
-#
 clone-mirror:
+	@ echo "  Creating a separate repository for website in $(GITHUB_PAGES_BASE)"
 	@cd ../../ && git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git $(GITHUB_PAGES_BASE) && cd $(GITHUB_PAGES_BASE) && git checkout -b gh-pages
+	@echo "Please remove all initial content in that selected 'gh-pages' branch."
 
 
-export-doc: clean-doc full-doc export-to-official export-to-mirror
+export-doc: clean-doc full-doc export-doc-to-official export-doc-to-mirror
 
 
 # Drawback: scp will not preserve symlinks, it will duplicate files instead.
@@ -75,25 +86,33 @@ export-doc: clean-doc full-doc export-to-official export-to-mirror
 # not a set of files), so currently not used:
 # rsync -avze "ssh $(SP)" $(SOME_WEB_TREE) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 #
-export-to-official: $(DOC_GENERATED_FILES)
+export-doc-to-official: create-links $(DOC_GENERATED_FILES)
 	@echo "   Exporting Mobile documentation to official website"
-	@/bin/scp $(SP) $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
+	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 
 
-export-to-mirror: $(DOC_GENERATED_FILES)
+export-doc-to-mirror: create-links $(DOC_GENERATED_FILES)
 	@echo "   Exporting Mobile documentation to mirror website in $(MOBILE_WEB_MIRROR_BRANCH)"
-	@/bin/cp -f $(WEB_CONTENT) $(MOBILE_WEB_MIRROR_BRANCH) && cd $(MOBILE_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Mobile doc updated." && git push && git pull --ff-only
+	@/bin/cp -rf $(WEB_CONTENT) $(MOBILE_WEB_MIRROR_BRANCH) && cd $(MOBILE_WEB_MIRROR_BRANCH) && git add . && git merge -s ours && git commit -m "Mobile doc updated." && git push && git pull --ff-only
 
 
 
 clean: clean-doc
 
 
-clean-doc:
+clean-doc: clean-links
+	@echo "     Cleaning documentation"
 	-@/bin/rm -f *.aux *.log *.maf *.mtc* *.stc* *.tex *.toc $(DOC_GENERATED_FILES)
+	-@/bin/rm -rf api-doc
+
+
+clean-links:
+	-@/bin/rm -f mobile.html index.html mobile.pdf
+
 
 
 info: info-doc info-web
+
 
 info-doc:
 	@echo "OVERALL_DOCUMENT_SOURCE = $(OVERALL_DOCUMENT_SOURCE)"
@@ -112,4 +131,5 @@ info-web:
 
 DOCUTILS_TOP = .
 
+# For MYRIAD_TOP:
 include $(MOBILE_TOP)/GNUmakesettings.inc
