@@ -352,7 +352,7 @@ else
 		ifneq ($(wildcard $(MOBILE_TOP)/_build/default/lib/seaplus/.),)
 			SEAPLUS_TOP = $(MOBILE_TOP)/_build/default/lib/seaplus
 		else
-			FORCE_EVAL := $(error Unable to find the build root of Ceylan-Seaplus from $(realpath .).)
+			FORCE_EVAL := $(error Unable to find the build root of Ceylan-Seaplus from '$(realpath .)'.)
 		endif
 	endif
 endif
