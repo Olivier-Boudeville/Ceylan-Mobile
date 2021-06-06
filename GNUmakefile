@@ -160,7 +160,7 @@ info-parse-transform:
 	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
 	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
 
-rebar3-compile-pre-hook: info-context
+rebar3-compile-pre-hook: check-gammu info-context
 
 # Typically useful to know the software context for continuous integration:
 info-context: info-platform info-versions info-source-layout

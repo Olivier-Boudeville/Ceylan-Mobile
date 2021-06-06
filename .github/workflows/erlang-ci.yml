@@ -38,7 +38,6 @@ jobs:
         #apt-cache search gammu
         echo "## Installing libgammu-dev"
         apt-get install --assume-yes libgammu-dev
-        make check-gammu
         rebar3 compile
         #echo " - building from: $(pwd)"
         #echo " - content of parent directory: $(ls .. 2>/dev/null | tr '\n' ' ')"
