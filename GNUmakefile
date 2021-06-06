@@ -1,8 +1,8 @@
 MOBILE_TOP = .
 
 
-.PHONY: help help-intro help-mobile check-gammu                          \
-		all register-version-in-header register-mobile list-beam-dirs    \
+.PHONY: help help-intro help-mobile all check-gammu                      \
+		register-version-in-header register-mobile list-beam-dirs    \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
 		prepare-release clean-release clean-archive                      \
@@ -115,6 +115,10 @@ clean-archive:
 	-@cd .. && /bin/rm -f $(MOBILE_RELEASES)
 
 
+stats:
+	@$(MAKE_CODE_STATS) $(MYRIAD_TOP)
+
+
 info-erlang-for-c:
 	@echo "ERL_BASE = $(ERL_BASE)"
 	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
@@ -155,6 +159,15 @@ info-parse-transform:
 	@echo "ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_OPT_FOR_PT)"
 	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
 	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
+
+
+# Typically useful to know the software context for continuous integration:
+info-context: info-platform info-versions info-source-layout
+
+
+info-versions:
+	@echo "MYRIAD_VERSION = $(MYRIAD_VERSION)"
+	@echo "SEAPLUS_VERSION = $(SEAPLUS_VERSION)"
 
 
 include $(MOBILE_TOP)/GNUmakesettings.inc
