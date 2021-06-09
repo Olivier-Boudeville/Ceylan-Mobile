@@ -212,7 +212,7 @@ INC += $(MOBILE_INC) $(GAMMU_INC)
 
 
 # See Myriad counterpart variable (MYRIAD_BEAM_DIRS) for explanations:
-MOBILE_BEAM_DIRS = $(MOBILE_TOP)/src
+MOBILE_BEAM_DIRS = $(MOBILE_TOP)/src $(MOBILE_TOP)/..
 
 
 # We rely on Myriad as well:
