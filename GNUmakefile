@@ -2,11 +2,10 @@ MOBILE_TOP = .
 
 
 .PHONY: help help-intro help-mobile all check-gammu                      \
-		register-version-in-header register-mobile list-beam-dirs    \
+		register-version-in-header register-mobile list-beam-dirs        \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
-		prepare-release clean-release clean-archive                      \
-		info-erlang-for-c info-paths info-compile info-parse-transform
+		prepare-release clean-release clean-archive info-paths
 
 
 MODULES_DIRS = src doc test
@@ -35,17 +34,14 @@ help-mobile:
 
 all: check-gammu
 
-
-
 check-gammu:
-	@echo "Checking availability of gammu"
-	@if pkg-config gammu; then echo "Gammu is available." ; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (ex: 'pacman -Sy gammu' on Arch Linux)." 1>&2 ; exit 12 ; fi
+	@if pkg-config gammu; then echo "  Checking that Gammu is available: found."; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (ex: 'pacman -Sy gammu' on Arch Linux)." 1>&2; exit 12; fi
 
 
 register-version-in-header:
-	@if [ -z "$(VERSION_FILE)" ] ; then \
-	echo "Error, no version file defined." 1>&2 ; exit 51 ; else \
-	$(MAKE) register-mobile ; fi
+	@if [ -z "$(VERSION_FILE)" ]; then \
+	echo "Error, no version file defined." 1>&2; exit 51; else \
+	$(MAKE) register-mobile; fi
 
 
 register-mobile:
@@ -54,7 +50,7 @@ register-mobile:
 
 # Useful to extract internal layout for re-use in upper layers:
 list-beam-dirs:
-	@for d in $(MOBILE_BEAM_DIRS) ; do echo $$(readlink -f $$d) ; done
+	@for d in $(MOBILE_BEAM_DIRS); do echo $$(readlink -f $$d); done
 
 
 add-prerequisite-plts: link-plt
@@ -78,7 +74,7 @@ release: release-zip release-bz2 release-xz
 release-zip: prepare-release
 	@echo "     Creating Mobile release archive $(MOBILE_RELEASE_ARCHIVE_ZIP)"
 	@cd .. && zip -r $(MOBILE_RELEASE_ARCHIVE_ZIP) $(MOBILE_RELEASE_BASE) \
-	&& echo "     Archive $(MOBILE_RELEASE_ARCHIVE_ZIP) ready in "`pwd`
+	&& echo "     Archive $(MOBILE_RELEASE_ARCHIVE_ZIP) ready in $$(pwd)"
 
 
 release-bz2: prepare-release
@@ -119,46 +115,12 @@ stats:
 	@$(MAKE_CODE_STATS) $(MYRIAD_TOP)
 
 
-info-erlang-for-c:
-	@echo "ERL_BASE = $(ERL_BASE)"
-	@echo "ERL_INTERFACE = $(ERL_INTERFACE)"
-
-
 info-paths:
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 
-info-compile: info-erlang-compile info-c-compile
+info-compile: info-compile-seaplus
 
-
-info-erlang-compile:
-	@echo "ERLANG_COMPILER_BASE_OPT = $(ERLANG_COMPILER_BASE_OPT)"
-	@echo "BEAM_DIRS = $(BEAM_DIRS)"
-	@echo "INC = $(INC)"
-	@echo "ERLANG_COMPILER_EXEC_TARGET_OPT = $(ERLANG_COMPILER_EXEC_TARGET_OPT)"
-	@echo "ERLANG_COMPILER_DEBUG_OPT = $(ERLANG_COMPILER_DEBUG_OPT)"
-	@echo "ERLANG_COMPILER_NATIVE_COMPILATION_OPT = $(ERLANG_COMPILER_NATIVE_COMPILATION_OPT)"
-	@echo "ERLANG_COMPILER_WARNING_OPT = $(ERLANG_COMPILER_WARNING_OPT)"
-	@echo "ERLANG_COMPILER_OPT_BASE = $(ERLANG_COMPILER_OPT_BASE)"
-	@echo "OVERALL_PZ_OPT = $(OVERALL_PZ_OPT)"
-	@echo "ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES = $(ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES)"
-
-
-info-c-compile:
-	@echo "C_COMPILER = $(C_COMPILER)"
-	@echo "C_LINKER = $(C_LINKER)"
-	@echo "C_INC = $(C_INC)"
-	@echo "C_LIB = $(C_LIB)"
-	@echo "C_COMPILER_OPT = $(C_COMPILER_OPT)"
-	@echo "C_LINKER_OPT = $(C_LINKER_OPT)"
-	@echo "ERL_COMPILER  = $(ERL_COMPILER)"
-
-
-info-parse-transform:
-	@echo "BOOTSTRAP_MODULES = $(BOOTSTRAP_MODULES)"
-	@echo "ERLANG_COMPILER_OPT_FOR_PT = $(ERLANG_COMPILER_OPT_FOR_PT)"
-	@echo "META_BEAM_FILES = $(META_BEAM_FILES)"
-	@echo "ERLANG_COMPILER_PARSE_TRANSFORM_OPT = $(ERLANG_COMPILER_PARSE_TRANSFORM_OPT)"
 
 rebar3-compile-pre-hook: check-gammu info-context
 

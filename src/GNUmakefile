@@ -1,7 +1,8 @@
 MOBILE_TOP = ..
 
 
-.PHONY: run-driver info info-compile info-libs info-exec clean clean-local
+.PHONY: run-driver clean clean-local                        \
+		info info-compile-mobile info-libs info-exec
 
 
 %.o: %.c
@@ -52,9 +53,9 @@ clean-local:
 
 info: info-compile info-libs
 
-info-compile:
-	@echo "C_COMPILER = $(C_COMPILER)"
-	@echo "C_COMPILER_OPT_FOR_OBJ = $(C_COMPILER_OPT_FOR_OBJ)"
+info-compile: info-c-compile info-compile-mobile
+
+info-compile-mobile:
 	@echo "INC = $(INC)"
 	@echo "MOBILE_INC_OPT = $(MOBILE_INC_OPT)"
 
