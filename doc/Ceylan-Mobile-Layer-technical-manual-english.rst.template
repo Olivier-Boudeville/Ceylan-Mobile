@@ -19,7 +19,7 @@
 
 
 
-:raw-html:`<center><img src="mobile-title.png" width="40%"></img></center>`
+:raw-html:`<center><img src="mobile-title.png" id="responsive-image-small"></img></center>`
 :raw-latex:`\centering \includegraphics[scale=0.70]{mobile-title.png}`
 
 
@@ -780,7 +780,7 @@ Ending Word
 
 Have fun with Ceylan-Mobile - but do not spam people!
 
-:raw-html:`<center><img src="mobile-title.png" width="25%"></img></center>`
+:raw-html:`<center><img src="mobile-title.png" id="responsive-image-small"></img></center>`
 :raw-latex:`\begin{figure}[h] \centering \includegraphics[scale=0.2]{mobile-title.png} \end{figure}`
 
 :raw-html:`<a name="mobile_bottom"></a>`
