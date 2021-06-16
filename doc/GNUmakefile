@@ -60,7 +60,7 @@ create-links:
 
 # Creates a separate repository for the GitHub pages branch:
 clone-mirror:
-	@ echo "  Creating a separate repository for website in $(GITHUB_PAGES_BASE)"
+	@echo "  Creating a separate repository for website in $(GITHUB_PAGES_BASE)"
 	@cd ../../ && git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git $(GITHUB_PAGES_BASE) && cd $(GITHUB_PAGES_BASE) && git checkout -b gh-pages
 	@echo "Please remove all initial content in that selected 'gh-pages' branch."
 
@@ -75,7 +75,7 @@ export-doc: clean-doc doc export-doc-to-official export-doc-to-mirror
 # rsync -avze "ssh $(SP)" $(SOME_WEB_TREE) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 #
 export-doc-to-official: clean-doc create-links doc
-	@echo "   Exporting Mobile documentation to official website"
+	@echo "   Exporting Mobile documentation to official website ($(WEB_SRV))"
 	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 
 
