@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 <title>Welcome to the Ceylan-Mobile documentation</title>
 <meta content="Mobile, cellular, phone, 3G, SMS, MMS, Erlang" name="keywords" />
 <link rel="stylesheet" href="pygments-default.css" type="text/css" />
@@ -34,7 +34,7 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, March 3, 2019</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Wednesday, June 16, 2021</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Wednesday, June 30, 2021</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.4</p>
@@ -46,7 +46,7 @@
 <tr class="field"><th class="field-name">Dedication:</th><td class="field-body"><p class="first">Users and maintainers of the <tt class="docutils literal">Mobile</tt> library.</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Abstract:</th><td class="field-body"><p class="first">The role of the <tt class="docutils literal">Mobile</tt> library is to control mobile phones from Erlang.
+<tr class="field"><th class="field-name">Abstract:</th><td class="field-body"><p class="first">The role of the <a class="reference external" href="http://mobile.esperide.org/">Mobile</a> library is to control mobile phones from Erlang.
 A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.</p>
 <p class="last">We present here a short overview of these services, to introduce them to newcomers.
 The next level of information is either to browse the <a class="reference external" href="api-doc/index.html">Mobile API documentation</a> or simply to read the corresponding <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">source files</a>, which are intensely commented and generally straightforward.</p>
@@ -404,7 +404,9 @@ $ gammu getallsms
 </div>
 <div class="section" id="gammu-conventions">
 <h4>Gammu Conventions</h4>
-<p>The Gammu configuration file will be searched, on POSIX systems, first as <tt class="docutils literal"><span class="pre">~/.gammurc</span></tt>, then as <tt class="docutils literal">/etc/gammurc</tt>.</p>
+<p>Gammu must be installed and configured.</p>
+<p>Most distributions support Gammu packages; see as a guideline our corresponding <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/.github/workflows/erlang-ci.yml#L40">installation script</a> for continuous integration.</p>
+<p>Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as <tt class="docutils literal"><span class="pre">~/.gammurc</span></tt>, then as <tt class="docutils literal">/etc/gammurc</tt>.</p>
 <p>For debugging purposes, using the <tt class="docutils literal">dummy</tt> driver is quite convenient.</p>
 <p>So for example one could have following content for <tt class="docutils literal">/etc/gammurc</tt>:</p>
 <pre class="code ini literal-block">
