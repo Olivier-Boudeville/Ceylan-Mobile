@@ -38,8 +38,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Status: Stable
 :Dedication: Users and maintainers of the ``Mobile`` library.
 :Abstract:
-
-	The role of the ``Mobile`` library is to control mobile phones from Erlang.
+    The role of the `Mobile <http://mobile.esperide.org/>`_ library is to control mobile phones from Erlang.
 	A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.
 
 	We present here a short overview of these services, to introduce them to newcomers.
@@ -63,6 +62,7 @@ The latest version of this documentation is to be found at the `official Mobile 
 :raw-html:`<a name="mobile_toc"></a>`
 
 .. _`table of contents`:
+
 
 .. contents:: **Table of Contents**
   :depth: 3
@@ -524,7 +524,11 @@ One may use a recent enough version of GCC (ex: ``pacman -Sy gcc``).
 Gammu Conventions
 .................
 
-The Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc``.
+Gammu must be installed and configured.
+
+Most distributions support Gammu packages; see as a guideline our corresponding `installation script <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/.github/workflows/erlang-ci.yml#L40>`_ for continuous integration.
+
+Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc``.
 
 For debugging purposes, using the ``dummy`` driver is quite convenient.
 
