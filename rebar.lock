@@ -1,8 +1,8 @@
 [{<<"myriad">>,
   {git,"git://github.com/Olivier-Boudeville/Ceylan-Myriad",
-       {ref,"f117964e61fcdadf31b2312f07c5938471e36910"}},
+       {ref,"8f44bac459c997f6b2b2a1c853af5c694a5e8672"}},
   0},
  {<<"seaplus">>,
   {git,"git://github.com/Olivier-Boudeville/Ceylan-Seaplus",
-       {ref,"165f7bb3ec2afea04ace76afdccd9d8df7ba646a"}},
+       {ref,"7a400bafe460a3f2dff257bdb915cea4b8115820"}},
   0}].
