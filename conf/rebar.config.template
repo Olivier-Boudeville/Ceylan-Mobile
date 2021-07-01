@@ -53,10 +53,10 @@
 %
 % Still a bad case of reckless rebar3 rebuilds (ex: for mobile.erl), so:
 %{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook"} ]}.
-{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook"} ]}.
-
 %{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"} ]}.
-{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook"} ]}.
+
+{pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
+{post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
 
 
 
