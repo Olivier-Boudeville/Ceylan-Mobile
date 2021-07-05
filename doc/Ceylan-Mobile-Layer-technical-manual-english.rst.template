@@ -6,6 +6,11 @@
 .. comment stylesheet specified through GNUmakefile
 
 
+---------------------------------------------------------
+Mobile: Controlling Mobile Phones and 3G Keys from Erlang
+---------------------------------------------------------
+
+
 .. role:: raw-html(raw)
    :format: html
 
@@ -19,15 +24,9 @@
 
 
 
-:raw-html:`<center><img src="mobile-title.png" id="responsive-image-small"></img></center>`
+:raw-html:`<center><img src="mobile-title.png" id="responsive-image-small"></img>`
 :raw-latex:`\centering \includegraphics[scale=0.70]{mobile-title.png}`
 
-
-
-
----------------------------------------------------------
-Mobile: Controlling Mobile Phones and 3G Keys from Erlang
----------------------------------------------------------
 
 
 :Organisation: Copyright (C) 2019-GENERATION_YEAR_TAG Olivier Boudeville
@@ -38,7 +37,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Status: Stable
 :Dedication: Users and maintainers of the ``Mobile`` library.
 :Abstract:
-    The role of the `Mobile <http://mobile.esperide.org/>`_ library is to control mobile phones from Erlang.
+	The role of the `Mobile <http://mobile.esperide.org/>`_ library is to control mobile phones from Erlang.
 	A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.
 
 	We present here a short overview of these services, to introduce them to newcomers.
@@ -46,6 +45,8 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 
 .. meta::
    :keywords: Mobile, cellular, phone, 3G, SMS, MMS, Erlang
+
+:raw-html:`</center>`
 
 
 The latest version of this documentation is to be found at the `official Mobile website <http://mobile.esperide.org>`_ (``http://mobile.esperide.org``).
@@ -132,10 +133,10 @@ We tried to favour the *acknowledged* entries in this database, moreover the one
 
 For the record, we selected (before the controversy) only Huawei chips (supposedly becoming, or having been, for better or for worse, a de facto standard) of various quite widespread offers, and bought 4 secondhand 3G keys of different models [#]_, which we named that way:
 
- - ``K3G-1``: a black and orange generic model (no specific brand apparently), labelled HSDPA, with a Huawei E169 chip
- - ``K3G-2`` : white (with a green LED, invisible unless lit), from a former operator, based on a Huawei E170
- - ``K3G-3`` : white, from another former operator, based on a Huawei E172 (labelled as E1752); can host an additional MicroSD card
- - ``K3G-4`` : white, from same former operator as ``K3G-2``, based on Huawei E180 (firmware ``11.104.16.01.00``), with a rotating USB connection; can also host an additional MicroSD card
+- ``K3G-1``: a black and orange generic model (no specific brand apparently), labelled HSDPA, with a Huawei E169 chip
+- ``K3G-2`` : white (with a green LED, invisible unless lit), from a former operator, based on a Huawei E170
+- ``K3G-3`` : white, from another former operator, based on a Huawei E172 (labelled as E1752); can host an additional MicroSD card
+- ``K3G-4`` : white, from same former operator as ``K3G-2``, based on Huawei E180 (firmware ``11.104.16.01.00``), with a rotating USB connection; can also host an additional MicroSD card
 
 .. [#] For a whopping expensive bill of 10 euros.
 
