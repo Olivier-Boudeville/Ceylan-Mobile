@@ -12,15 +12,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-<div class="document">
-
+<div class="document" id="mobile-controlling-mobile-phones-and-3g-keys-from-erlang">
+<h1 class="title">Mobile: Controlling Mobile Phones and 3G Keys from Erlang</h1>
 
 <span class="target" id="top"></span><p><span class="raw-html"><a name="mobile_top"></a></span></p>
 <p><span class="raw-html"><div class="banner"><p><em>Mobile documentation</em> <a href="http://mobile.esperide.org">browse latest</a> <a href="https://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">browse mirror</a> <a href="mobile.pdf">get PDF</a> <a href="#mobile_top">go to top</a> <a href="#mobile_toc">go to toc</a> <a href="#mobile_bottom">go to bottom</a> <a href="api-doc/index.html">browse API</a> <a href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">go to project</a> <a href="mailto:about(dash)mobile(at)esperide(dot)com?subject=[Ceylan-Mobile]%20Remark">email us</a></p></div></span></p>
-<p><span class="raw-html"><center><img src="mobile-title.png" id="responsive-image-small"></img></center></span>
+<p><span class="raw-html"><center><img src="mobile-title.png" id="responsive-image-small"></img></span>
 </p>
-<div class="section" id="mobile-controlling-mobile-phones-and-3g-keys-from-erlang">
-<h1><a class="toc-backref" href="#id13">Mobile: Controlling Mobile Phones and 3G Keys from Erlang</a></h1>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -34,7 +32,7 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, March 3, 2019</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Wednesday, June 30, 2021</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Monday, July 5, 2021</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.4</p>
@@ -54,6 +52,7 @@ The next level of information is either to browse the <a class="reference extern
 </tr>
 </tbody>
 </table>
+<p><span class="raw-html"></center></span></p>
 <p>The latest version of this documentation is to be found at the <a class="reference external" href="http://mobile.esperide.org">official Mobile website</a> (<tt class="docutils literal"><span class="pre">http://mobile.esperide.org</span></tt>).</p>
 <p><span class="raw-html">This Mobile documentation is also available in the PDF format (see <a href="mobile.pdf">mobile.pdf</a>), and mirrored <a href="http://olivier-boudeville.github.io/Ceylan-Mobile/mobile.html">here</a>.</span></p>
 <p></p>
@@ -62,36 +61,46 @@ The next level of information is either to browse the <a class="reference extern
 <div class="contents topic" id="id1">
 <span id="table-of-contents"></span><p class="topic-title"><strong>Table of Contents</strong></p>
 <ul class="simple">
-<li><a class="reference internal" href="#mobile-controlling-mobile-phones-and-3g-keys-from-erlang" id="id13">Mobile: Controlling Mobile Phones and 3G Keys from Erlang</a><ul>
-<li><a class="reference internal" href="#overview" id="id14">Overview</a></li>
-<li><a class="reference internal" href="#securing-the-prerequisites" id="id15">Securing the Prerequisites</a><ul>
-<li><a class="reference internal" href="#carrier-subscription-getting-a-relevant-sim-card-first" id="id16">Carrier Subscription: Getting a relevant SIM Card first</a></li>
-<li><a class="reference internal" href="#relying-on-a-suitable-usb-mobile-phone-or-3g-key" id="id17">Relying on a Suitable USB Mobile Phone or 3G Key</a></li>
-<li><a class="reference internal" href="#usb-supply-connection" id="id18">USB Supply &amp; Connection</a></li>
-<li><a class="reference internal" href="#operating-system-support-configuration" id="id19">Operating-System Support &amp; Configuration</a></li>
-<li><a class="reference internal" href="#software-prerequisites" id="id20">Software Prerequisites</a></li>
+<li><a class="reference internal" href="#overview" id="id13">Overview</a></li>
+<li><a class="reference internal" href="#securing-the-prerequisites" id="id14">Securing the Prerequisites</a><ul>
+<li><a class="reference internal" href="#carrier-subscription-getting-a-relevant-sim-card-first" id="id15">Carrier Subscription: Getting a relevant SIM Card first</a></li>
+<li><a class="reference internal" href="#relying-on-a-suitable-usb-mobile-phone-or-3g-key" id="id16">Relying on a Suitable USB Mobile Phone or 3G Key</a></li>
+<li><a class="reference internal" href="#usb-supply-connection" id="id17">USB Supply &amp; Connection</a></li>
+<li><a class="reference internal" href="#operating-system-support-configuration" id="id18">Operating-System Support &amp; Configuration</a><ul>
+<li><a class="reference internal" href="#kernel-modules" id="id19">Kernel Modules</a></li>
+<li><a class="reference internal" href="#usb-identifiers-mode-switches" id="id20">USB Identifiers &amp; Mode Switches</a></li>
+<li><a class="reference internal" href="#managing-dev-ttyusb-entries" id="id21">Managing /dev/ttyUSB* entries</a></li>
+<li><a class="reference internal" href="#wrapping-up-telecom-configuration" id="id22">Wrapping-up Telecom Configuration</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#some-sms-related-general-information" id="id21">Some SMS-related General Information</a></li>
-<li><a class="reference internal" href="#issues-planned-enhancements" id="id22">Issues &amp; Planned Enhancements</a></li>
-<li><a class="reference internal" href="#support" id="id23">Support</a></li>
-<li><a class="reference internal" href="#ceylan-mobile-inner-workings" id="id24">Ceylan-Mobile Inner Workings</a></li>
-<li><a class="reference internal" href="#a-few-information-pointers" id="id25">A Few Information Pointers</a><ul>
-<li><a class="reference internal" href="#about-3g-devices" id="id26">About 3G Devices</a></li>
-<li><a class="reference internal" href="#about-gammu" id="id27">About Gammu</a></li>
-<li><a class="reference internal" href="#about-sms" id="id28">About SMS</a></li>
+<li><a class="reference internal" href="#software-prerequisites" id="id23">Software Prerequisites</a><ul>
+<li><a class="reference internal" href="#erlang-environment" id="id24">Erlang Environment</a></li>
+<li><a class="reference internal" href="#c-environment" id="id25">C Environment</a></li>
+<li><a class="reference internal" href="#gammu-conventions" id="id26">Gammu Conventions</a></li>
+<li><a class="reference internal" href="#myriad-seaplus-and-mobile" id="id27">Myriad, Seaplus and Mobile</a></li>
+<li><a class="reference internal" href="#testing-ceylan-mobile" id="id28">Testing Ceylan-Mobile</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#troubleshooting-telecom-level-issues" id="id29">Troubleshooting Telecom-level Issues</a></li>
-<li><a class="reference internal" href="#please-react" id="id30">Please React!</a></li>
-<li><a class="reference internal" href="#ending-word" id="id31">Ending Word</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#some-sms-related-general-information" id="id29">Some SMS-related General Information</a></li>
+<li><a class="reference internal" href="#issues-planned-enhancements" id="id30">Issues &amp; Planned Enhancements</a></li>
+<li><a class="reference internal" href="#support" id="id31">Support</a></li>
+<li><a class="reference internal" href="#ceylan-mobile-inner-workings" id="id32">Ceylan-Mobile Inner Workings</a></li>
+<li><a class="reference internal" href="#a-few-information-pointers" id="id33">A Few Information Pointers</a><ul>
+<li><a class="reference internal" href="#about-3g-devices" id="id34">About 3G Devices</a></li>
+<li><a class="reference internal" href="#about-gammu" id="id35">About Gammu</a></li>
+<li><a class="reference internal" href="#about-sms" id="id36">About SMS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#troubleshooting-telecom-level-issues" id="id37">Troubleshooting Telecom-level Issues</a></li>
+<li><a class="reference internal" href="#please-react" id="id38">Please React!</a></li>
+<li><a class="reference internal" href="#ending-word" id="id39">Ending Word</a></li>
 </ul>
 </div>
 <p></p>
 <div class="section" id="overview">
-<h2><a class="toc-backref" href="#id14">Overview</a></h2>
+<h1><a class="toc-backref" href="#id13">Overview</a></h1>
 <p>A typical use-case is when one wants to <strong>send SMS from a gateway</strong> (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, <a class="reference external" href="https://en.wikipedia.org/wiki/Uninterruptible_power_supply">UPS</a> notifications, etc.).</p>
 <p>For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:</p>
 <ul class="simple">
@@ -111,31 +120,29 @@ The next level of information is either to browse the <a class="reference extern
 <p>The project repository is located <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">here</a>.</p>
 </div>
 <div class="section" id="securing-the-prerequisites">
-<h2><a class="toc-backref" href="#id15">Securing the Prerequisites</a></h2>
+<h1><a class="toc-backref" href="#id14">Securing the Prerequisites</a></h1>
 <p>Please read the full document prior to making operative choices, since iterations, trials and errors will probably have to be performed (before, hopefully, succeeding ultimately).</p>
 <div class="section" id="carrier-subscription-getting-a-relevant-sim-card-first">
-<h3><a class="toc-backref" href="#id16">Carrier Subscription: Getting a relevant SIM Card first</a></h3>
+<h2><a class="toc-backref" href="#id15">Carrier Subscription: Getting a relevant SIM Card first</a></h2>
 <p>A 3G device without a companion SIM card would not be of much use.</p>
 <p>Finding a good mobile package is quite country-specific. For example French customers might enjoy rather inexpensive, if not free, <a class="reference external" href="http://mobile.free.fr/fiche-forfait-2-euros.html">options</a>.</p>
 <p>As we want an automated use of this SIM card (through the 3G device selected in the next section), one should ensure that, in the card's configuration, the request for the PIN code has been disabled.</p>
 <p>This can be done by inserting the SIM card in a mobile phone, and, through the settings, disabling once for all said verification. This may also be a good way of checking whether the SIM card works properly before hacking around.</p>
 </div>
 <div class="section" id="relying-on-a-suitable-usb-mobile-phone-or-3g-key">
-<h3><a class="toc-backref" href="#id17">Relying on a Suitable USB Mobile Phone or 3G Key</a></h3>
+<h2><a class="toc-backref" href="#id16">Relying on a Suitable USB Mobile Phone or 3G Key</a></h2>
 <p>Basically, one just has to insert the SIM card, connect the device to the computer and start sending SMS to friends.</p>
 <p>Well, no. Welcome to a surprising mess instead!</p>
 <p>First of all, as we understand it, mobiles are far less appropriate than 3G keys for this exercice (they are not well supported, they tend to enter various sleep modes), but be reassured that your mileage may vary with keys as well.</p>
 <p>In order to select a proper device (phone or key), first of all one should look at the <a class="reference external" href="https://wammu.eu/phones/">Gammu Phone Database</a> (which, despite its name, lists keys as well).</p>
 <p>We tried to favour the <em>acknowledged</em> entries in this database, moreover the ones with multiple success reports.</p>
 <p>For the record, we selected (before the controversy) only Huawei chips (supposedly becoming, or having been, for better or for worse, a de facto standard) of various quite widespread offers, and bought 4 secondhand 3G keys of different models <a class="footnote-reference" href="#id5" id="id4">[2]</a>, which we named that way:</p>
-<blockquote>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">K3G-1</span></tt>: a black and orange generic model (no specific brand apparently), labelled HSDPA, with a Huawei E169 chip</li>
 <li><tt class="docutils literal"><span class="pre">K3G-2</span></tt> : white (with a green LED, invisible unless lit), from a former operator, based on a Huawei E170</li>
 <li><tt class="docutils literal"><span class="pre">K3G-3</span></tt> : white, from another former operator, based on a Huawei E172 (labelled as E1752); can host an additional MicroSD card</li>
 <li><tt class="docutils literal"><span class="pre">K3G-4</span></tt> : white, from same former operator as <tt class="docutils literal"><span class="pre">K3G-2</span></tt>, based on Huawei E180 (firmware <tt class="docutils literal">11.104.16.01.00</tt>), with a rotating USB connection; can also host an additional MicroSD card</li>
 </ul>
-</blockquote>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -157,15 +164,15 @@ The next level of information is either to browse the <a class="reference extern
 <p>Good luck to you!</p>
 </div>
 <div class="section" id="usb-supply-connection">
-<h3><a class="toc-backref" href="#id18">USB Supply &amp; Connection</a></h3>
+<h2><a class="toc-backref" href="#id17">USB Supply &amp; Connection</a></h2>
 <p>Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer port.</p>
 <p>A problem might be that the device could end up being insufficiently powered (ex: weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.</p>
 </div>
 <div class="section" id="operating-system-support-configuration">
-<h3><a class="toc-backref" href="#id19">Operating-System Support &amp; Configuration</a></h3>
+<h2><a class="toc-backref" href="#id18">Operating-System Support &amp; Configuration</a></h2>
 <p>That's the main part. We prefer using GNU/Linux, typically <a class="reference external" href="https://www.archlinux.org/">Arch Linux</a>, taken consistently as a reference here.</p>
 <div class="section" id="kernel-modules">
-<h4>Kernel Modules</h4>
+<h3><a class="toc-backref" href="#id19">Kernel Modules</a></h3>
 <p>As always, maybe new kernel modules will have to be dynamically loaded; so, should the kernel have been updated since last boot, reboot first, otherwise the (newer) modules will not match the currently running, older kernel.</p>
 <p>Before first inserting a 3G device, we advise to record the already loaded kernel modules, in order to detect the additional ones that are needed by said device.</p>
 <p>For example, as root:</p>
@@ -182,7 +189,7 @@ usb_wwan
 </pre>
 </div>
 <div class="section" id="usb-identifiers-mode-switches">
-<h4>USB Identifiers &amp; Mode Switches</h4>
+<h3><a class="toc-backref" href="#id20">USB Identifiers &amp; Mode Switches</a></h3>
 <p>The connected key will then appear as a USB device, with a USB ID in the form of <tt class="docutils literal">vendor_id:product_id</tt>, which can be for example be obtained thanks to <tt class="docutils literal">lsusb</tt>.</p>
 <p>For example, at connection, our <tt class="docutils literal"><span class="pre">K3G-1</span></tt> key will appear as:</p>
 <pre class="literal-block">
@@ -215,7 +222,7 @@ Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem 
 </pre>
 </div>
 <div class="section" id="managing-dev-ttyusb-entries">
-<h4>Managing /dev/ttyUSB* entries</h4>
+<h3><a class="toc-backref" href="#id21">Managing /dev/ttyUSB* entries</a></h3>
 <p>Should the relevant kernel modules be available, at least one entry shall appear as <tt class="docutils literal">/dev/ttyUSB*</tt> when a USB 3G device is connected and correctly recognised by the system.</p>
 <p>For example, <tt class="docutils literal">/dev/ttyUSB0</tt>, <tt class="docutils literal">/dev/ttyUSB1</tt>, <tt class="docutils literal">/dev/ttyUSB2</tt> and <tt class="docutils literal">/dev/ttyUSB3</tt> may appear, sometimes only after a few seconds. Only a subset of them will be useable.</p>
 <p>A tests with Gammu will tell them apart.</p>
@@ -302,7 +309,7 @@ $ chgrp uucp /var/log/gammu-ceylan.log
 <p>This should be sufficient so that <tt class="docutils literal">sheldon</tt> is able to send SMS, not involving <tt class="docutils literal">root</tt> anymore in the process.</p>
 </div>
 <div class="section" id="wrapping-up-telecom-configuration">
-<h4>Wrapping-up Telecom Configuration</h4>
+<h3><a class="toc-backref" href="#id22">Wrapping-up Telecom Configuration</a></h3>
 <p>Now, with that user, is time for a bit of configuration before testing.</p>
 <p>One may use:</p>
 <pre class="code bash literal-block">
@@ -390,20 +397,20 @@ $ gammu getallsms
 </div>
 </div>
 <div class="section" id="software-prerequisites">
-<h3><a class="toc-backref" href="#id20">Software Prerequisites</a></h3>
+<h2><a class="toc-backref" href="#id23">Software Prerequisites</a></h2>
 <p>Ceylan-Mobile relies on <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus</a>, which itself relies on <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad</a>.</p>
 <p>All three of them rely on <a class="reference external" href="http://erlang.org">Erlang</a> (for the user API) and on C (for the library driver), which must therefore be both available.</p>
 <p>We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and building it from sources, thanks to GNU <tt class="docutils literal">make</tt>.</p>
 <div class="section" id="erlang-environment">
-<h4>Erlang Environment</h4>
+<h3><a class="toc-backref" href="#id24">Erlang Environment</a></h3>
 <p>Refer to the corresponding <a class="reference external" href="http://myriad.esperide.org#prerequisites">Myriad prerequisite section</a>  for more precise guidelines, knowing that Ceylan-Mobile does not need modules with conditional support such as <tt class="docutils literal">crypto</tt> or <tt class="docutils literal">wx</tt>.</p>
 </div>
 <div class="section" id="c-environment">
-<h4>C Environment</h4>
+<h3><a class="toc-backref" href="#id25">C Environment</a></h3>
 <p>One may use a recent enough version of GCC (ex: <tt class="docutils literal">pacman <span class="pre">-Sy</span> gcc</tt>).</p>
 </div>
 <div class="section" id="gammu-conventions">
-<h4>Gammu Conventions</h4>
+<h3><a class="toc-backref" href="#id26">Gammu Conventions</a></h3>
 <p>Gammu must be installed and configured.</p>
 <p>Most distributions support Gammu packages; see as a guideline our corresponding <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/.github/workflows/erlang-ci.yml#L40">installation script</a> for continuous integration.</p>
 <p>Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as <tt class="docutils literal"><span class="pre">~/.gammurc</span></tt>, then as <tt class="docutils literal">/etc/gammurc</tt>.</p>
@@ -445,11 +452,11 @@ $ mkdir /tmp/gammu-dummy-device
 </pre>
 </div>
 <div class="section" id="myriad-seaplus-and-mobile">
-<h4>Myriad, Seaplus and Mobile</h4>
+<h3><a class="toc-backref" href="#id27">Myriad, Seaplus and Mobile</a></h3>
 <p>Once proper Erlang and C environments are available and Gammu is setup, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a> and then this <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">Ceylan-Mobile repository</a>. This can be done directly (manually) or thanks to rebar3 (automatically).</p>
 <p>Then one will be able to enjoy using one's mobile from Erlang.</p>
 <div class="section" id="using-cutting-edge-git">
-<h5>Using Cutting-Edge GIT</h5>
+<h4>Using Cutting-Edge GIT</h4>
 <p>Once Erlang is available, a manual install should be just a matter of executing:</p>
 <pre class="code bash literal-block">
 $ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
@@ -462,7 +469,7 @@ $ <span class="nb">cd</span> mobile <span class="o">&amp;&amp;</span> make all
 <p>(for OTP compliance, using short names, such as <tt class="docutils literal">myriad</tt>, <tt class="docutils literal">seaplus</tt> and <tt class="docutils literal">mobile</tt>, for clones rather than long ones, such as <tt class="docutils literal"><span class="pre">Ceylan-Myriad</span></tt>, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt> and <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt>, is recommended)</p>
 </div>
 <div class="section" id="using-rebar3">
-<h5>Using Rebar3</h5>
+<h4>Using Rebar3</h4>
 <p>The usual rebar3 machinery is in place and functional, so the Mobile prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself can be obtained simply thanks to:</p>
 <pre class="code bash literal-block">
 $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git mobile
@@ -474,7 +481,7 @@ $ rebar3 compile
 </div>
 </div>
 <div class="section" id="testing-ceylan-mobile">
-<h4>Testing Ceylan-Mobile</h4>
+<h3><a class="toc-backref" href="#id28">Testing Ceylan-Mobile</a></h3>
 <p>To test the current functional coverage, once the prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself have been secured (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge GIT</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no 3G device):</p>
 <pre class="code bash literal-block">
 $ <span class="nb">cd</span> <span class="nb">test</span>
@@ -523,7 +530,7 @@ $ make mobile-test
 </div>
 </div>
 <div class="section" id="some-sms-related-general-information">
-<h2><a class="toc-backref" href="#id21">Some SMS-related General Information</a></h2>
+<h1><a class="toc-backref" href="#id29">Some SMS-related General Information</a></h1>
 <p>The text to be sent as a SMS must be somehow encoded in messages.</p>
 <p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used, and then only 70 characters will fit in that SMS.</p>
 <p>Should the message be longer than what a single SMS can carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.</p>
@@ -531,7 +538,7 @@ $ make mobile-test
 <p>See also a <a class="reference external" href="https://messente.com/documentation/tools/sms-length-calculator">Free Online SMS Length Calculator</a>.</p>
 </div>
 <div class="section" id="issues-planned-enhancements">
-<h2><a class="toc-backref" href="#id22">Issues &amp; Planned Enhancements</a></h2>
+<h1><a class="toc-backref" href="#id30">Issues &amp; Planned Enhancements</a></h1>
 <p>The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).</p>
 <p>Notably:</p>
 <ul class="simple">
@@ -542,11 +549,11 @@ $ make mobile-test
 </ul>
 </div>
 <div class="section" id="support">
-<h2><a class="toc-backref" href="#id23">Support</a></h2>
+<h1><a class="toc-backref" href="#id31">Support</a></h1>
 <p>Bugs, questions, remarks, patches, requests for enhancements, etc. are to be sent through the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">project interface</a>, or directly at the email address mentioned at the beginning of this document.</p>
 </div>
 <div class="section" id="ceylan-mobile-inner-workings">
-<h2><a class="toc-backref" href="#id24">Ceylan-Mobile Inner Workings</a></h2>
+<h1><a class="toc-backref" href="#id32">Ceylan-Mobile Inner Workings</a></h1>
 <p>Mobile relies on:</p>
 <ul class="simple">
 <li><a class="reference external" href="https://wammu.eu/libgammu/">libGammu</a> (GPLv2), for the actual mobile phone support</li>
@@ -560,9 +567,9 @@ $ make mobile-test
 <p>A source of inspiration has also been <a class="reference external" href="https://github.com/gammu/python-gammu/">python-gammu</a>.</p>
 </div>
 <div class="section" id="a-few-information-pointers">
-<h2><a class="toc-backref" href="#id25">A Few Information Pointers</a></h2>
+<h1><a class="toc-backref" href="#id33">A Few Information Pointers</a></h1>
 <div class="section" id="about-3g-devices">
-<h3><a class="toc-backref" href="#id26">About 3G Devices</a></h3>
+<h2><a class="toc-backref" href="#id34">About 3G Devices</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://wiki.archlinux.org/index.php/USB_3G_Modem">USB 3G Modem</a>, by Arch Linux</li>
 <li><a class="reference external" href="https://wiki.gentoo.org/wiki/USB_ModeSwitch">USB_ModeSwitch</a>, by Gentoo Linux</li>
@@ -571,14 +578,14 @@ $ make mobile-test
 </ul>
 </div>
 <div class="section" id="about-gammu">
-<h3><a class="toc-backref" href="#id27">About Gammu</a></h3>
+<h2><a class="toc-backref" href="#id35">About Gammu</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://wammu.eu/docs/manual/c/api.html">libGammu C API</a></li>
 <li><a class="reference external" href="https://wammu.eu/docs/manual/testing/dummy-driver.html">dummy driver</a></li>
 </ul>
 </div>
 <div class="section" id="about-sms">
-<h3><a class="toc-backref" href="#id28">About SMS</a></h3>
+<h2><a class="toc-backref" href="#id36">About SMS</a></h2>
 <ul class="simple">
 <li><a class="reference external" href="https://en.wikipedia.org/wiki/International_mobile_subscriber_identity">IMSI</a>: identifier of a SIM card, i.e. a 64-bit field designating a user (<em>International Mobile Subscriber Identity</em>)</li>
 <li><a class="reference external" href="https://en.wikipedia.org/wiki/Short_Message_service_center">SMSC</a>: SMS operator gateway (<em>Short Message Service Center</em>)</li>
@@ -588,21 +595,20 @@ $ make mobile-test
 </div>
 </div>
 <div class="section" id="troubleshooting-telecom-level-issues">
-<h2><a class="toc-backref" href="#id29">Troubleshooting Telecom-level Issues</a></h2>
+<h1><a class="toc-backref" href="#id37">Troubleshooting Telecom-level Issues</a></h1>
 <p>Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards. Ultimately some combination may work.</p>
 <p>On GNU/Linux, being root and monitoring the system and Gammu logs (and/or using the <tt class="docutils literal"><span class="pre">--debug-file</span></tt> Gammu command-line option) should certainly help.</p>
 </div>
 <div class="section" id="please-react">
-<h2><a class="toc-backref" href="#id30">Please React!</a></h2>
+<h1><a class="toc-backref" href="#id38">Please React!</a></h1>
 <p>If you have information more detailed or more recent than those presented in this document, if you noticed errors, neglects or points insufficiently discussed, drop us a line! (for that, follow the <a class="reference internal" href="#support">Support</a> guidelines).</p>
 </div>
 <div class="section" id="ending-word">
-<h2><a class="toc-backref" href="#id31">Ending Word</a></h2>
+<h1><a class="toc-backref" href="#id39">Ending Word</a></h1>
 <p>Have fun with Ceylan-Mobile - but do not spam people!</p>
 <p><span class="raw-html"><center><img src="mobile-title.png" id="responsive-image-small"></img></center></span>
 </p>
 <p><span class="raw-html"><a name="mobile_bottom"></a></span></p>
-</div>
 </div>
 </div>
 </body>
