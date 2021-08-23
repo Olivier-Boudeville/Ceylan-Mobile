@@ -124,6 +124,11 @@ run() ->
 		"error rate is ~B%.",
 		[ SignalStrength, SignalStrengthPercent, ErrorRate ] ),
 
+	test_facilities:display( "Overall, textual information about the "
+		"current mobile setting: '~ts'.",
+		[ mobile:get_textual_information() ] ),
+
+
 	case preferences:get( mobile_number ) of
 
 		undefined ->

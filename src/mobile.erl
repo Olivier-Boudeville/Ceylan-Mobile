@@ -46,42 +46,43 @@
 
 -type backend_type() :: 'gammu'.
 
--type backend_version() :: text_utils:ustring().
+-type backend_version() :: basic_utils:version().
+% Ex: {1, 40, 1}.
 
 
--type device_name() :: text_utils:bin_string().
+-type device_name() :: bin_string().
 
--type manufacturer_name() :: text_utils:bin_string().
+-type manufacturer_name() :: bin_string().
 
--type model_name() :: text_utils:bin_string().
+-type model_name() :: bin_string().
 
--type revision_text() :: text_utils:bin_string().
--type date_text() :: text_utils:bin_string().
+-type revision_text() :: bin_string().
+-type date_text() :: bin_string().
 -type revision_number() :: float().
 
--type imei() :: text_utils:bin_string().
+-type imei() :: bin_string().
 
--type hardware_info() :: text_utils:bin_string().
+-type hardware_info() :: bin_string().
 
 
--type imsi_code() :: text_utils:bin_string().
+-type imsi_code() :: bin_string().
 % International Mobile Subscriber Identity code.
 
 
--type signal_strength() :: math_utils:integer_percent().
+-type signal_strength() :: integer_percent().
 % In dBm.
 
--type signal_strength_percent() :: math_utils:integer_percent().
+-type signal_strength_percent() :: integer_percent().
 
 
--type error_rate() :: math_utils:integer_percent().
+-type error_rate() :: integer_percent().
 
 
--type sms_message() :: text_utils:ustring().
+-type sms_message() :: ustring().
 % User-specified SMS message.
 
 
--type bin_sms_message() :: text_utils:bin_string().
+-type bin_sms_message() :: bin_string().
 
 
 -type sms_class() :: non_neg_integer().
@@ -90,11 +91,12 @@
 % See also [http://www.ozekisms.com/index.php?owpn=544].
 
 
--type mobile_number() :: text_utils:ustring().
+-type mobile_number() :: ustring().
 % The mobile number associated to a device (ex: "+1234567890").
 
 
--type bin_mobile_number() :: text_utils:bin_string().
+-type bin_mobile_number() :: bin_string().
+% The mobile number associated to a device, as a binary (ex: <<"+1234567890">>).
 
 
 -type encoding() :: % Default Unicode:
@@ -123,7 +125,7 @@
 
 
 %-type sms_timestamp() :: time_utils:timestamp().
--type sms_timestamp() :: text_utils:bin_string().
+-type sms_timestamp() :: bin_string().
 
 
 % For the received_sms record:
@@ -151,6 +153,11 @@
 -export([ received_sms_to_string/1, get_execution_target/0 ]).
 
 
+% Shorthands:
+
+-type ustring() :: text_utils:ustring().
+-type bin_string() :: text_utils:bin_string().
+-type integer_percent() :: math_utils:integer_percent().
 
 
 % For the Seaplus support (to be included after local exports):
@@ -785,6 +792,33 @@ to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
 				   timestamp=Timestamp }.
 
 
+
+% @doc Returns an overall, textual information about the current mobile setting.
+-spec get_textual_information() -> ustring().
+get_textual_information() ->
+
+	{ BackendType, BackendVersion } = get_backend_information(),
+
+	HardwareInfoBin = get_hardware_information(),
+
+	{ BinRevText, BinDataText, FloatRev } = get_firmware_information(),
+
+	{ SigStrength, SigStrPct, ErrorRate } = get_signal_quality(),
+
+	text_utils:format( "Ceylan-Mobile based on the ~ts version of "
+		"the ~ts backend, running on '~ts' hardware (IMEI: '~ts'). "
+		"Device name is '~ts', manufacturer is '~ts', model is '~ts'. "
+		"Firmware is revision '~ts' (date: '~ts', number: ~f). "
+		"IMSI is '~ts'. "
+		"Signal strength is ~B dBm (~B%), error rate is ~B%",
+		[ text_utils:version_to_string( BackendVersion ), BackendType,
+		  HardwareInfoBin, get_imei_code(),
+		  get_device_name(), get_device_manufacturer(), get_device_model(),
+		  BinRevText, BinDataText, FloatRev,
+		  get_imsi_code(), SigStrength, SigStrPct, ErrorRate ] ).
+
+
+
 % @doc Returns a textual description of the specified received SMS.
 received_sms_to_string( #received_sms{ sender_number=Number,
 									   encoding=Encoding,
@@ -795,6 +829,8 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 		 "whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
 		[ Number, Encoding, Text, MsgRef,
 		  time_utils:timestamp_to_string( Timestamp ) ] ).
+
+
 
 
 % @doc Stops the Mobile service.
