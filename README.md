@@ -1,5 +1,10 @@
 ![Erlang CI](https://github.com/Olivier-Boudeville/Ceylan-Mobile/workflows/Erlang%20CI/badge.svg)
+
 # Ceylan-Mobile
+
+![](/doc/mobile-title.png)
+
+
 Part of the Ceylan project in charge of the control of mobile phones from Erlang.
 
 A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.
