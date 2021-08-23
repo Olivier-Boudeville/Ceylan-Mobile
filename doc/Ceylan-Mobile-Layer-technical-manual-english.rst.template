@@ -75,11 +75,11 @@ The latest version of this documentation is to be found at the `official Mobile 
 Overview
 ========
 
-A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, `UPS <https://en.wikipedia.org/wiki/Uninterruptible_power_supply>`_ notifications, etc.).
+A typical use-case is when one wants to **send SMS from a gateway** (server), for example in order to perform home automation, possibly together with all kinds of fancy personal services (event reminder, `UPS <https://en.wikipedia.org/wiki/Uninterruptible_power_supply>`_ notifications, `sensor tracking <https://us-main.esperide.org/#sensor-tracking>`_, etc.).
 
 For that, in addition to Ceylan-Mobile and its software dependencies, one would need here:
 
-- an **USB-connected 3G device** (typically an older, dedicated phone or, more preferably, a suitable key)
+- an **USB-connected 3G device** (typically your smartphone for a mere test; otherwise an older, dedicated one for a durable use or, more preferably, a suitable 3G key)
 - a **SIM card** enabling the use of the 3G network of a telecom carrier of one's choice
 - a proper **operating-system support** thereof (a GNU/Linux box, most probably)
 
@@ -110,7 +110,7 @@ Carrier Subscription: Getting a relevant SIM Card first
 
 A 3G device without a companion SIM card would not be of much use.
 
-Finding a good mobile package is quite country-specific. For example French customers might enjoy rather inexpensive, if not free, `options <http://mobile.free.fr/fiche-forfait-2-euros.html>`_.
+Finding a good mobile package is quite country-specific. For example French customers might enjoy rather inexpensive, if not free in some cases, `options <http://mobile.free.fr/fiche-forfait-2-euros.html>`_.
 
 As we want an automated use of this SIM card (through the 3G device selected in the next section), one should ensure that, in the card's configuration, the request for the PIN code has been disabled.
 
@@ -147,13 +147,13 @@ To anticipate a bit:
 
 So, from then on, we will mostly consider here the use of ``K3G-2``.
 
-Finally, one should ensure that one's 3G device is not locked to a specific network or carrier. In most cases the device will have to be unlocked, so that it can accept SIM cards issued by any operator (and not just the one devices are generally bundled with).
+Finally, one should ensure that one's 3G device is not locked to a specific network or carrier. In most cases the device will have to be unlocked, so that it can accept SIM cards issued by any operator (and not just the one with which devices are generally bundled).
 
 We were told that our 4 keys were unlocked, yet none of them seemed to properly work on Linux (blocking at various steps, like when fetching their IMEI) until we tried to install them on a Windows box and also to unlock them.
 
-Not sure which operation unblocked them, as most of the attempted operations reportedly failed or could not be properly interpreted in terms of result. This `online calculator <http://www.deblokgsm.com/server/huaweicalc-us.php>`_ for Huawei chips seemed to work (giving a NCK unlocking code and another one for the flash operation), even if it is difficult to assess whether the use of any actual code really succeeded.
+Not sure which operation unblocked them, as most of the attempted operations reportedly failed, or could not be properly interpreted in terms of outcome. This `online calculator <http://www.deblokgsm.com/server/huaweicalc-us.php>`_ for Huawei chips seemed to work (giving a NCK unlocking code and another one for the flash operation), even if it is difficult to assess whether the use of any actual code really succeeded.
 
-We were not so keen on installing third-party, untrusted software on said Windows box (even installing the driver located on their ROM appearing as a mass storage is somewhat unpleasant), but flashing tools are required whenever having to unlock.
+We were not so keen on installing third-party, untrusted software on said Windows box (even installing the driver located on their ROM - appearing as a mass storage - is somewhat unpleasant), but flashing tools are required whenever having to unlock.
 
 For them, `Sandboxie <https://www.sandboxie.com/>`_ or similar may be used in order to isolate, at least to some extent, the various software that one may try in one's quest for a correctly-behaving 3G key. At least for us, quite frequently (even without sandboxing) Windows was not even able to detect that such keys were inserted.
 
@@ -166,7 +166,7 @@ Good luck to you!
 USB Supply & Connection
 -----------------------
 
-Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer port.
+Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer (USB) port.
 
 A problem might be that the device could end up being insufficiently powered (ex: weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.
 
@@ -215,7 +215,7 @@ For example, at connection, our ``K3G-1`` key will appear as::
 
 Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
 
-Here such drivers are of no use, and what we want is to switch the keys to modems.
+Here such drivers are of no use, and what we want is to switch directly the keys to modems.
 
 For that, as root, following package shall be installed first:
 
@@ -241,7 +241,7 @@ to a newer::
 Bye bye mass storage, hello modem!
 
 
-This mode switch can also be done manually, like in:
+This mode switch can also be done manually, like in, this time for ``K3G-2``:
 
 .. code:: bash
 
@@ -260,9 +260,9 @@ Managing /dev/ttyUSB* entries
 
 Should the relevant kernel modules be available, at least one entry shall appear as ``/dev/ttyUSB*`` when a USB 3G device is connected and correctly recognised by the system.
 
-For example, ``/dev/ttyUSB0``, ``/dev/ttyUSB1``, ``/dev/ttyUSB2`` and ``/dev/ttyUSB3`` may appear, sometimes only after a few seconds. Only a subset of them will be useable.
+For example, ``/dev/ttyUSB0``, ``/dev/ttyUSB1``, ``/dev/ttyUSB2`` and ``/dev/ttyUSB3`` may appear, sometimes only after a few seconds. Only a subset of them will be usable.
 
-A tests with Gammu will tell them apart.
+A test with Gammu will tell them apart.
 
 So, first, that tool shall be installed.
 
@@ -270,14 +270,14 @@ One's distribution should provide it, as it is fairly standard:
 
 .. code:: bash
 
-  $ pacman gammu
+  $ pacman -Sy gammu
 
 
-It should notably provide the Gammu library (ex: in ``/usr/lib64/libGammu.so.8.1.40.0``) and the various Gammu header (ex: the ``/usr/include/gammu/gammu/gammu*.h``).
+It should notably provide the Gammu library (ex: in ``/usr/lib64/libGammu.so.8.1.42.0``) and the various Gammu header (ex: the ``/usr/include/gammu/gammu/gammu*.h``).
 
 With this package comes the ``/usr/bin/gammu`` executable (of course relying on said library), which is useful to test one's configuration.
 
-The executable may read its test configuration from ``/etc/gammurc``, whose content may be, for example in order to test whether ``/dev/ttyUSB1`` (the tty we use for ``K3G-2``) is relevant:
+The executable may read its test configuration from ``/etc/gammurc``, whose content may be, for example in order to test whether ``/dev/ttyUSB1`` (the tty that we use for ``K3G-2``) is relevant:
 
 .. code:: ini
 
@@ -334,7 +334,7 @@ Then one should run:
 
    $ udevadm control --reload-rules && udevadm trigger
 
-One the key is inserted again, it should be available with its new, stable name.
+Once the key is inserted again, it should be available with its new, stable name.
 
 It can be checked more in-depth:
 
@@ -397,7 +397,7 @@ One may use:
 to ensure that no PIN code is required before using the 3G device (hence expecting as answer: ``Nothing to enter.``).
 
 
-Various calls can be made in order to convince oneself that the key operate properly:
+Various calls can be made in order to convince oneself that the key operates properly:
 
 .. code:: bash
 
@@ -484,9 +484,9 @@ This can be monitored:
   [...]
   Leaving monitor mode...
 
-Then the same could be attempted with this time a non-privileged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
+Then the same could be attempted with this time a non-priviledged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
 
-Once successful, one will be able to send SMS back and forth between the 3G device and "normal" phones:
+Once successful, one will be able to send SMS back and forth between the 3G device and "normal" smartphones:
 
 .. code:: bash
 
@@ -495,7 +495,7 @@ Once successful, one will be able to send SMS back and forth between the 3G devi
 
 With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
 
-Currently, with Ceylan-Mobile one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_ as a first guideline.
+Currently, with Ceylan-Mobile, one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_ as a first guideline.
 
 
 
@@ -512,14 +512,14 @@ We prefer using GNU/Linux, sticking to the latest stable release of Erlang, and 
 Erlang Environment
 ..................
 
-Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.org#prerequisites>`_  for more precise guidelines, knowing that Ceylan-Mobile does not need modules with conditional support such as ``crypto`` or ``wx``.
+Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.org#prerequisites>`_  for guidelines - knowing that Ceylan-Mobile does not need modules with conditional support such as ``crypto`` or ``wx``.
 
 
 
 C Environment
 .............
 
-One may use a recent enough version of GCC (ex: ``pacman -Sy gcc``).
+One may use a recent-enough version of GCC (ex: ``pacman -Sy gcc``).
 
 
 Gammu Conventions
@@ -529,21 +529,29 @@ Gammu must be installed and configured.
 
 Most distributions support Gammu packages; see as a guideline our corresponding `installation script <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/.github/workflows/erlang-ci.yml#L40>`_ for continuous integration.
 
-Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc``.
+Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc`` (amid `other locations <https://docs.gammu.org//config/index.html#gammurc>`_).
 
 For debugging purposes, using the ``dummy`` driver is quite convenient.
 
-So for example one could have following content for ``/etc/gammurc``:
+So for example one could have following content for ``/etc/gammurc`` [#]_:
 
 .. code:: ini
 
  [gammu]
+ port = /tmp/gammu-dummy-device/
  model = dummy
  connection = none
- device = /tmp/gammu-dummy-device
+ synchronizetime = yes
+ logfile =
+ logformat = nothing
+ use_locking =
+ gammuloc =
 
 
-Create that directory (as the user to make use of Gammu) first:
+.. [#] Typically obtained from ``gammu --detect``; apparently Gammu changed the ``device`` key to the ``port`` one, after version 1.40.
+
+
+Create that directory (as the user that is to make use of Gammu) first:
 
 .. code:: bash
 
@@ -552,7 +560,7 @@ Create that directory (as the user to make use of Gammu) first:
 
 Otherwise you get: ``you don't have the required permission.``.
 
-It will populate this directory with data faking a real phone::
+It will populate this directory with data faking a real smartphone::
 
   /tmp/gammu-dummy-device
   --- alarm
@@ -574,6 +582,23 @@ It will populate this directory with data faking a real phone::
   |__ --- 4
   |__ |__ 5
   |__ todo
+
+
+Then you may have:
+
+.. code:: bash
+
+ $ gammu --identify
+ Device               : /tmp/gammu-dummy-device/
+ Manufacturer         : Gammu
+ Model                : unknown (Dummy)
+ Firmware             : 1.42.0 EN CS (20150101)
+ Hardware             : FOO DUMMY BAR
+ IMEI                 : 999999999999999
+ Original IMEI        : 666666666666666
+ Manufactured         : April
+ Product code         : DUMMY-001
+ SIM IMSI             : 994299429942994
 
 
 
@@ -616,14 +641,14 @@ The usual rebar3 machinery is in place and functional, so the Mobile prerequisit
 
 Then Mobile and its tests shall be ready for a successful execution.
 
-Note that rebar3 is an alternate way of building Mobile, as one may rely directly on our make-based system instead.
+Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead.
 
 
 
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, once the prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself have been secured (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no 3G device):
+To test the current functional coverage, once the prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself have been secured (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no functional 3G device):
 
 .. code:: bash
 
@@ -668,7 +693,7 @@ One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.2716
 
 
 
-.. Note:: Mobile is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Mobile/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_), so in terms of usability, some confidence exists. However such test-beds lack an actual 3G key and often Gammu, so these tests cover mostly the build of Ceylan-Mobile.
+.. Note:: Mobile is built and tested at each commit through `continuous integration <https://github.com/Olivier-Boudeville/Ceylan-Mobile/actions?query=workflow%3A%22Erlang+CI%22>`_, and the same holds for its prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_), so in terms of usability, some confidence exists. However such test-beds lack an actual 3G key (and sometimes Gammu), so these tests cover mostly the build of Ceylan-Mobile.
 
 
 :raw-latex:`\pagebreak`
@@ -686,21 +711,21 @@ Should the message be longer than what a single SMS can carry for the relevant e
 Ceylan-Mobile automatically detects the relevant encoding and type (single/multiple) parts needed; the user just has to specify the text message that shall be sent.
 
 
-See also a `Free Online SMS Length Calculator <https://messente.com/documentation/tools/sms-length-calculator>`_.
+See also an `Online SMS Length Calculator <https://messente.com/documentation/tools/sms-length-calculator>`_.
 
 
 
 Issues & Planned Enhancements
 =============================
 
-The coverage of the Gammu APIs could be increased (not specifically tricky, just time-consuming).
+The coverage of the Gammu APIs could be increased (this would not be specifically tricky; just time-consuming).
 
 Notably:
 
 - a check whether phone needs to enter some PIN could be added
 - a support to accept/deny the receiving of SMS could be done based on the SMSC and/or mobile number of the sender
-- auto-hang up should a call be made to the 3G device (rather than letting the caller leave a message in the voice mail, if any)
-- SMS delivery reports could be requested and checked.
+- auto-hang up may be implemented, should a call be made to the 3G device (rather than letting the caller leave a message in the voice mail, if any)
+- SMS delivery reports could be requested and checked
 
 
 
@@ -720,7 +745,7 @@ Mobile relies on:
 - `libGammu <https://wammu.eu/libgammu/>`_ (GPLv2), for the actual mobile phone support
 - `Ceylan-Seaplus <https://github.com/Olivier-Boudeville/Ceylan-Seaplus>`_ (LGPLv3), for the integration of the previous library to Erlang
 
-Ceylan-Mobile links directly to (lower-level) Gammu library services, instead of using the Gammu SMSD daemon, as it provides similar features, such as driving the mobile-side operations and polling it for incoming events.
+Ceylan-Mobile links directly to (lower-level) Gammu library services, instead of using the Gammu SMSD daemon, as it provides by itself similar features, such as driving the mobile-side operations and polling it for incoming events.
 
 Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration file (no change needed, the same configuration can be used on the command-line and with Ceylan-Mobile).
 
