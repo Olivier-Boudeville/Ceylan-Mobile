@@ -251,11 +251,13 @@
 % the corresponding Seaplus start will be automatically added, at first
 % position, by the Seaplus parse transform.
 %
+-spec start() -> void().
 start() ->
 	start_common().
 
 
 % @doc Starts and links the Mobile service.
+-spec start_link() -> void().
 start_link() ->
 	start_common().
 
@@ -837,6 +839,7 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 %
 % Service-specific stop procedure.
 %
+-spec stop() -> void().
 stop() ->
 	[ process_dictionary:remove_existing( K ) ||
 		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
