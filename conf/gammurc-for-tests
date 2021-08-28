@@ -3,7 +3,8 @@
 model = dummy
 
 #logfile = /tmp/gammu.log
-logfile = /var/log/gammu-ceylan.log
+#logfile = /var/log/gammu-ceylan.log
+logfile = /tmp/gammu-ceylan.log
 
 logformat = textalldate
 
