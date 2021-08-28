@@ -96,7 +96,8 @@
 
 
 -type bin_mobile_number() :: bin_string().
-% The mobile number associated to a device, as a binary (ex: <<"+1234567890">>).
+% The mobile number associated to a device, as a binary
+% (ex: `<<"+1234567890">>').
 
 
 -type encoding() :: % Default Unicode:
