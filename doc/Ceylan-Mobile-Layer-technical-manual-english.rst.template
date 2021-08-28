@@ -548,7 +548,7 @@ So for example one could have following content for ``/etc/gammurc`` [#]_:
  gammuloc =
 
 
-.. [#] Typically obtained from ``gammu --detect``; apparently Gammu changed the ``device`` key to the ``port`` one, after version 1.40.
+.. [#] Typically obtained from ``gammu --detect``; apparently Gammu changed the ``device`` key to the ``port`` one, after version 1.40. See also the `Gammu configuration file <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/conf/gammurc-for-tests>`_ that we use for continuous integration.
 
 
 Create that directory (as the user that is to make use of Gammu) first:

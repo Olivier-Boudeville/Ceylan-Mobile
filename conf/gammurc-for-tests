@@ -1,16 +1,16 @@
 [gammu]
 
+#port = /dev/ttyUSB1
+#port = /dev/ttyUSB-C3G
+port = /tmp/gammu-dummy-device
+
 model = dummy
+
+#connection = at
+connection = none
 
 #logfile = /tmp/gammu.log
 #logfile = /var/log/gammu-ceylan.log
 logfile = /tmp/gammu-ceylan.log
 
 logformat = textalldate
-
-#connection = at
-connection = none
-
-#device = /dev/ttyUSB1
-#device = /dev/ttyUSB-C3G
-device = /tmp/gammu-dummy-device
