@@ -61,21 +61,29 @@
 -type revision_number() :: float().
 
 -type imei() :: bin_string().
+% International Mobile Equipment Identity code.
+%
+% Ex: <<"154483225355085">>.
+
 
 -type hardware_info() :: bin_string().
+% Ex: <<"FOO DUMMY BAR">>, <<"Gammu error: Function not supported by phone.">>.
 
 
 -type imsi_code() :: bin_string().
 % International Mobile Subscriber Identity code.
+% Ex: <<"208150030213526">>.
 
 
 -type signal_strength() :: integer_percent().
-% In dBm.
+% In dBm. Ex: -51 dBm or 42 dBm.
 
 -type signal_strength_percent() :: integer_percent().
+% In dBm. Ex: 100% or 42%.
 
 
 -type error_rate() :: integer_percent().
+% Ex: -1% (!) or 0%.
 
 
 -type sms_message() :: ustring().
@@ -172,6 +180,8 @@
 
 % API functions:
 %
+% Ceylan-Mobile shall be started before any of them is triggered.
+
 % Note that most functions have their implementation generated through Seaplus
 % and thus are unfortunately invisible to edoc; their doc tags are thus
 % intentionally non-standard ('doc:') to avoid that edoc fails.
@@ -181,23 +191,54 @@
 % leave as fully generated through Seaplus.
 
 
+
+% doc: Tells whether Ceylan-Mobile can be used on this computer.
+%
+% Tells notably if the backend is available and is able to find a suitable
+% configuration file; for example does not tell whether an actual device can be
+% used (see has_actual_device/0 for that).
+%
+% Avoids the user code to have to trigger a dummy operation and catch a possible
+% exception in order to know whether the backend is usable.
+%
+-spec is_available() -> boolean().
+
+
 % doc: Returns the name of the (supposedly connected) mobile device.
+%
+% Ex: <<"/dev/ttyUSB-C3G">>, or <<"/tmp/gammu-dummy-device">>.
+%
 -spec get_device_name() -> device_name().
 
 
 % doc: Returns the manufacturer of the (supposedly connected) mobile device.
+%
+% Ex: <<"Ericsson">>, or <<"Gammu">>.
+%
 -spec get_device_manufacturer() -> manufacturer_name().
 
 
 % doc: Returns the model of the (supposedly connected) mobile device.
+%
+% Ex: <<"E19X">>, or <<"Dummy">>.
+%
 -spec get_device_model() -> model_name().
 
 
 % doc: Returns the firmware information from the (supposedly connected) mobile
 % device.
 %
+% Ex: {<<"11.104.20.01.00">>, <<"">>, 11.3042002}, or {<<"1.42.0">>,
+% <<"20150101">>, 1.42}.
+%
 -spec get_firmware_information() ->
 					{ revision_text(), date_text(), revision_number() }.
+
+
+% doc: Tells whether a real (non-virtual, i.e. non-emulated) device is
+% connected.
+%
+-spec has_actual_device() -> boolean().
 
 
 % doc: Returns the IMEI/serial number of the (supposedly connected) mobile
@@ -206,6 +247,11 @@
 -spec get_imei_code() -> imei().
 
 
+% doc: Returns the hardware information reported by (supposedly connected)
+% mobile device.
+%
+% Ex: <<"FOO DUMMY BAR">>, <<"Gammu error: Function not supported by phone.">>.
+%
 -spec get_hardware_information() -> hardware_info().
 
 
@@ -217,9 +263,10 @@
 
 % doc: Reads the current signal quality (strength and error rate).
 %
-% Typical value for signal strength is -51 dBm (100%).
+% Typical value for signal strength is -51 dBm (100%) for an actual device, 42
+% dBm (42%) for an emulated one.
 %
-% Note that the returned error rate might be -1.
+% Note that the returned error rate might be -1% (actual) or 0% (emulated).
 %
 -spec get_signal_quality() ->
 		{ signal_strength(), signal_strength_percent(), error_rate() }.
@@ -244,6 +291,52 @@
 % in the context once for all:
 %
 -define( mobile_encoding_key, "_mobile_encoding_table" ).
+
+
+
+% @doc Tells whether Ceylan-Mobile may be used on this computer; not supposed to
+% crash ever.
+%
+% Tells notably if the backend is available and is able to find a suitable
+% configuration file; for example does not tell whether an actual device can be
+% used (see has_actual_device/0 for that).
+%
+% Avoids the user code to have to trigger a dummy operation and catch a possible
+% exception in order to know whether the backend is usable.
+%
+-spec is_available() -> boolean().
+is_available() ->
+
+	% No better/simpler/more reliable test known that:
+	try get_device_name() of
+
+		_ ->
+			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
+				"Mobile considered to be available." ) ),
+			true
+
+	% Intercepting just the exception class and pattern of interest:
+	catch
+
+		throw:{ driver_crashed, unknown_reason } ->
+
+			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
+				"Mobile considered as not available, as cannot perform a "
+				"Gammu test operation (driver crash)." ) ),
+
+			false;
+
+		% Never crashing:
+		Class:Pattern ->
+
+			trace_utils:error_fmt( "Unexpected exception raised "
+				"when checking the availability of Gammu: "
+				"exception class is ~p, pattern is ~p.", [ Class, Pattern ] ),
+
+			false
+
+	end.
+
 
 
 % @doc Starts the Mobile service.
@@ -367,6 +460,23 @@ get_backend_information() ->
 
 	{ Backend, VersionTuple }.
 
+
+
+% doc: Tells whether a real (non-virtual, i.e. non-emulated) device is
+% connected.
+%
+-spec has_actual_device() -> bool().
+has_actual_device() ->
+
+	% Best criterion:
+	case get_device_manufacturer() of
+
+		<<"Gammu">> ->
+			false;
+
+		_ ->
+			true
+	end.
 
 
 % For the (key) sending of SMS, we override a lot the default Seaplus
@@ -835,12 +945,14 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 
 
 
-
 % @doc Stops the Mobile service.
 %
 % Service-specific stop procedure.
 %
 -spec stop() -> void().
 stop() ->
-	[ process_dictionary:remove_existing( K ) ||
-		K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
+
+	cond_utils:if_defined( mobile_debug_base,
+						   trace_bridge:debug( "Stopping Mobile." ) ),
+	[ process_dictionary:remove_existing( K )
+		|| K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
