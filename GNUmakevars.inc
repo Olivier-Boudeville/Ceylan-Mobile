@@ -49,11 +49,13 @@ endif
 # conditional compilation primitives (see cond_utils for their management):
 
 # Topics covered by flags:
-#  - base: the basic mode of operation of Mobile
-
+#  - base: the basic mode of operation of Mobile (ex: start/stop)
+#  - driver: about any driver-related operation or issue
+#
 # Defining debug flags (at least the most verbose are by default commented-out):
 ifeq ($(ENABLE_DEBUG),true)
-	MOBILE_DEBUG_FLAGS += -Dmobile_debug_base
+	#MOBILE_DEBUG_FLAGS += -Dmobile_debug_base
+	#MOBILE_DEBUG_FLAGS += -Dmobile_debug_driver
 endif
 
 # Defining check flags:
