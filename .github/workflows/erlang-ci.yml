@@ -9,7 +9,9 @@ on:
 jobs:
 
   build:
-
+    # The actual OS is dictated by the image, which is currently a Debian 11
+    # (bullseye):
+    #
     runs-on: ubuntu-latest
 
     # See https://hub.docker.com/_/erlang:
@@ -32,12 +34,15 @@ jobs:
         #add-apt-repository universe
         #echo "## Updating packages (2/2)"
         #apt-get update
+        echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
         echo "## Updating packages"
         apt-get update
         #echo "## Searching for gammu-related packages"
         #apt-cache search gammu
+        # Not anymore in the mainline:
         echo "## Installing libgammu-dev"
-        apt-get install --assume-yes tree pkg-config libgammu-dev
+        apt-get install --assume-yes tree pkg-config
+        apt-get -t bullseye-backports install libgammu-dev
         rebar3 compile
         echo " - building from: $(pwd)"
         echo " - content of parent directory: $(ls .. 2>/dev/null | tr '\n' ' ')"
