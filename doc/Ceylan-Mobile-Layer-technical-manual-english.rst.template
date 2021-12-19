@@ -779,6 +779,7 @@ About Gammu
 - `dummy driver <https://wammu.eu/docs/manual/testing/dummy-driver.html>`_
 
 
+
 About SMS
 ---------
 
@@ -789,8 +790,24 @@ About SMS
 
 
 
-Troubleshooting Telecom-level Issues
-====================================
+Troubleshooting
+===============
+
+
+Initialisation Issues
+---------------------
+
+If the Mobile driver crashes and its logs report::
+
+ Gammu error in the 'find Gammu RC' step:
+ 'Can not open specified file.'
+
+this means that Gammu was not able to find a configuration file (for example in ``in ~/.gammurc``); refer to `this section <#gammu-conventions>`_ for more details.
+
+
+
+Telecom-level Issues
+--------------------
 
 Best is to test various keys on various USB ports of various computers running various operating systems, possibly with various SIM cards. Ultimately some combination may work.
 
