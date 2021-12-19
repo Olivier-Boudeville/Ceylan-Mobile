@@ -26,7 +26,8 @@
 % Creation date: Sunday, March 24, 2019.
 
 
-% Allows to test the Ceylan-Mobile services, regarding SMS classes.
+% @doc Module for the test of the Ceylan-Mobile services regarding <b>SMS
+% classes</b>.
 %
 % See also: http://www.ozekisms.com/index.php?owpn=544
 %
@@ -36,7 +37,9 @@
 -export([ run/0 ]).
 
 
-
+% We use Myriad's 'preferences' module in order to allow the user to define
+% their own settings and not expose them (ex: mobile phone number to use here).
+%
 run() ->
 
 	test_facilities:start( ?MODULE ),
@@ -46,6 +49,10 @@ run() ->
 
 	mobile_test:set_up_mobile_environment(),
 
+	% Not mobile:start_link(), as here we want to survive a crash of the mobile
+	% service (i.e. to be able to handle failures explicitly, as messages
+	% received by this test process):
+	%
 	mobile:start(),
 
 	case preferences:get( mobile_number ) of
