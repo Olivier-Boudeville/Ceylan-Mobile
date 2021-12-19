@@ -27,7 +27,8 @@
 
 
 
-% Allows to test the Ceylan-Mobile services regarding the reading of SMS.
+% @doc Module for the test of the Ceylan-Mobile services regarding the
+% <b>reading of SMS</b>.
 %
 % Note that with the 'dummy' Gammu model, TPMR references might be always 255.
 %
