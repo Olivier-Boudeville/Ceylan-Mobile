@@ -26,9 +26,10 @@
 % Creation date: Sunday, March 24, 2019.
 
 
-% Allows to test the Ceylan-Mobile services.
+% @doc Module for the overall, most complete test of the <b>Ceylan-Mobile
+% services</b>.
 %
-% Some test sentences emanate from dear /usr/bin/fortune
+% Some test sentences emanate from dear /usr/bin/fortune.
 %
 % Note that with the 'dummy' Gammu model, TPMR references might be always 255.
 %
@@ -38,7 +39,7 @@
 -export([ run/0, set_up_mobile_environment/0 ]).
 
 
-% Sets up a relevant environment for the execution of Mobile (and Seaplus).
+% @doc Sets up a relevant environment for the execution of Mobile (and Seaplus).
 %
 % (shared between tests)
 %
@@ -77,9 +78,28 @@ run() ->
 	%
 	mobile:start(),
 
+	case mobile:is_available() of
+
+		true ->
+			test_facilities:display( "Ceylan-Mobile reported as available, "
+				"performing then an actual testing thereof." ),
+			actual_test();
+
+		false ->
+			throw( mobile_not_available )
+
+	end.
+
+
+% Perfoms the actual testing.
+actual_test() ->
+
 	Info = mobile:get_backend_information(),
 
 	test_facilities:display( "Back-end information: ~p.", [ Info ] ),
+
+	test_facilities:display( "Has an actual device: ~ts.",
+							 [ mobile:has_actual_device() ] ),
 
 	test_facilities:display( "Device name: ~ts.",
 							 [ mobile:get_device_name() ] ),
