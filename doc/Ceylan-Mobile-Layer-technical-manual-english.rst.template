@@ -86,7 +86,7 @@ For that, in addition to Ceylan-Mobile and its software dependencies, one would 
 All these points are detailed below.
 
 
-An alternate, less satisfying solution [#]_ could be to use the services of a SMS provider through a web gateway; one may look at `sms_utils.erl <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/sms_utils.erl>`_ for a basic example of it.
+An alternate, less satisfying solution [#]_ could be to use the services of a SMS provider through a web gateway; one may look at `sms_utils.erl <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/sms_utils.erl>`_ for a basic example of it, and `Bellboy <https://github.com/vkatsuba/bellboy>`_ for a more complete, multi-provider solution.
 
 
 .. [#] Not nearly as fun: more constraints (ex: credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...
