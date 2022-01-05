@@ -24,23 +24,28 @@
 
 
 <h3 class="typedecl"><a name="type-backend_version">backend_version()</a></h3>
-<p><tt>backend_version() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
-
+<p><tt>backend_version() = <a href="basic_utils.html#type-version">basic_utils:version()</a></tt></p>
+<p> Ex: {1, 40, 1}.</p>
 
 <h3 class="typedecl"><a name="type-bin_mobile_number">bin_mobile_number()</a></h3>
-<p><tt>bin_mobile_number() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
-
+<p><tt>bin_mobile_number() = <a href="#type-bin_string">bin_string()</a></tt></p>
+<p> The mobile number associated to a device, as a binary
+ (ex: <code>&lt;&lt;"+1234567890"&gt;&gt;</code>).</p>
 
 <h3 class="typedecl"><a name="type-bin_sms_message">bin_sms_message()</a></h3>
-<p><tt>bin_sms_message() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>bin_sms_message() = <a href="#type-bin_string">bin_string()</a></tt></p>
+
+
+<h3 class="typedecl"><a name="type-bin_string">bin_string()</a></h3>
+<p><tt>bin_string() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-date_text">date_text()</a></h3>
-<p><tt>date_text() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>date_text() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-device_name">device_name()</a></h3>
-<p><tt>device_name() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>device_name() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-encoding">encoding()</a></h3>
@@ -48,31 +53,39 @@
 
 
 <h3 class="typedecl"><a name="type-error_rate">error_rate()</a></h3>
-<p><tt>error_rate() = <a href="math_utils.html#type-integer_percent">math_utils:integer_percent()</a></tt></p>
-
+<p><tt>error_rate() = <a href="#type-integer_percent">integer_percent()</a></tt></p>
+<p> Ex: -1% (!) or 0%.</p>
 
 <h3 class="typedecl"><a name="type-hardware_info">hardware_info()</a></h3>
-<p><tt>hardware_info() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
-
+<p><tt>hardware_info() = <a href="#type-bin_string">bin_string()</a></tt></p>
+<p> Ex: <code>&lt;&lt;"FOO DUMMY BAR"&gt;&gt;</code>, <code>&lt;&lt;"Gammu error: Function not supported by
+ phone."&gt;&gt;</code>.</p>
 
 <h3 class="typedecl"><a name="type-imei">imei()</a></h3>
-<p><tt>imei() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>imei() = <a href="#type-bin_string">bin_string()</a></tt></p>
+<p><p> International Mobile Equipment Identity code.</p>
 
+ Ex: <code>&lt;&lt;"154483225355085"&gt;&gt;</code>.</p>
 
 <h3 class="typedecl"><a name="type-imsi_code">imsi_code()</a></h3>
-<p><tt>imsi_code() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
-<p> International Mobile Subscriber Identity code.</p>
+<p><tt>imsi_code() = <a href="#type-bin_string">bin_string()</a></tt></p>
+<p> International Mobile Subscriber Identity code.
+ Ex: <code>&lt;&lt;"208150030213526"&gt;&gt;</code>.</p>
+
+<h3 class="typedecl"><a name="type-integer_percent">integer_percent()</a></h3>
+<p><tt>integer_percent() = <a href="math_utils.html#type-integer_percent">math_utils:integer_percent()</a></tt></p>
+
 
 <h3 class="typedecl"><a name="type-manufacturer_name">manufacturer_name()</a></h3>
-<p><tt>manufacturer_name() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>manufacturer_name() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-mobile_number">mobile_number()</a></h3>
-<p><tt>mobile_number() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
+<p><tt>mobile_number() = <a href="#type-ustring">ustring()</a></tt></p>
 <p> The mobile number associated to a device (ex: "+1234567890").</p>
 
 <h3 class="typedecl"><a name="type-model_name">model_name()</a></h3>
-<p><tt>model_name() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>model_name() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-received_sms">received_sms()</a></h3>
@@ -84,7 +97,7 @@
 
 
 <h3 class="typedecl"><a name="type-revision_text">revision_text()</a></h3>
-<p><tt>revision_text() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>revision_text() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-seaplus_option">seaplus_option()</a></h3>
@@ -92,12 +105,12 @@
 
 
 <h3 class="typedecl"><a name="type-signal_strength">signal_strength()</a></h3>
-<p><tt>signal_strength() = <a href="math_utils.html#type-integer_percent">math_utils:integer_percent()</a></tt></p>
-<p> In dBm.</p>
+<p><tt>signal_strength() = <a href="#type-integer_percent">integer_percent()</a></tt></p>
+<p> In dBm. Ex: -51 dBm or 42 dBm.</p>
 
 <h3 class="typedecl"><a name="type-signal_strength_percent">signal_strength_percent()</a></h3>
-<p><tt>signal_strength_percent() = <a href="math_utils.html#type-integer_percent">math_utils:integer_percent()</a></tt></p>
-
+<p><tt>signal_strength_percent() = <a href="#type-integer_percent">integer_percent()</a></tt></p>
+<p> In dBm. Ex: 100% or 42%.</p>
 
 <h3 class="typedecl"><a name="type-sms_class">sms_class()</a></h3>
 <p><tt>sms_class() = non_neg_integer()</tt></p>
@@ -106,7 +119,7 @@
  See also <a href="http://www.ozekisms.com/index.php?owpn=544" target="_top"><tt>http://www.ozekisms.com/index.php?owpn=544</tt></a>.</p>
 
 <h3 class="typedecl"><a name="type-sms_message">sms_message()</a></h3>
-<p><tt>sms_message() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
+<p><tt>sms_message() = <a href="#type-ustring">ustring()</a></tt></p>
 <p> User-specified SMS message.</p>
 
 <h3 class="typedecl"><a name="type-sms_sending_report">sms_sending_report()</a></h3>
@@ -118,12 +131,16 @@
 <p> Describes the status of a SMS sending.</p>
 
 <h3 class="typedecl"><a name="type-sms_timestamp">sms_timestamp()</a></h3>
-<p><tt>sms_timestamp() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></tt></p>
+<p><tt>sms_timestamp() = <a href="#type-bin_string">bin_string()</a></tt></p>
 
 
 <h3 class="typedecl"><a name="type-sms_tpmr">sms_tpmr()</a></h3>
 <p><tt>sms_tpmr() = <a href="basic_utils.html#type-count">basic_utils:count()</a></tt></p>
 <p> Message reference, as generated by the GSM network.</p>
+
+<h3 class="typedecl"><a name="type-ustring">ustring()</a></h3>
+<p><tt>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></tt></p>
+
 
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#activate_seaplus-1">activate_seaplus/1</a></td><td></td></tr>
