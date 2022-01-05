@@ -26,7 +26,6 @@
 % Creation date: Sunday, March 24, 2019.
 
 
-
 % @doc Module implementing the <b>Ceylan-Mobile services</b>.
 %
 % Operates through a Seaplus-based interface to the Gammu backend library.
@@ -63,16 +62,17 @@
 -type imei() :: bin_string().
 % International Mobile Equipment Identity code.
 %
-% Ex: <<"154483225355085">>.
+% Ex: `<<"154483225355085">>'.
 
 
 -type hardware_info() :: bin_string().
-% Ex: <<"FOO DUMMY BAR">>, <<"Gammu error: Function not supported by phone.">>.
+% Ex: `<<"FOO DUMMY BAR">>', `<<"Gammu error: Function not supported by
+% phone.">>'.
 
 
 -type imsi_code() :: bin_string().
 % International Mobile Subscriber Identity code.
-% Ex: <<"208150030213526">>.
+% Ex: `<<"208150030213526">>'.
 
 
 -type signal_strength() :: integer_percent().
@@ -191,22 +191,9 @@
 % leave as fully generated through Seaplus.
 
 
-
-% doc: Tells whether Ceylan-Mobile can be used on this computer.
-%
-% Tells notably if the backend is available and is able to find a suitable
-% configuration file; for example does not tell whether an actual device can be
-% used (see has_actual_device/0 for that).
-%
-% Avoids the user code to have to trigger a dummy operation and catch a possible
-% exception in order to know whether the backend is usable.
-%
--spec is_available() -> boolean().
-
-
 % doc: Returns the name of the (supposedly connected) mobile device.
 %
-% Ex: <<"/dev/ttyUSB-C3G">>, or <<"/tmp/gammu-dummy-device">>.
+% Ex: `<<"/dev/ttyUSB-C3G">>', or `<<"/tmp/gammu-dummy-device">>'.
 %
 -spec get_device_name() -> device_name().
 
@@ -233,12 +220,6 @@
 %
 -spec get_firmware_information() ->
 					{ revision_text(), date_text(), revision_number() }.
-
-
-% doc: Tells whether a real (non-virtual, i.e. non-emulated) device is
-% connected.
-%
--spec has_actual_device() -> boolean().
 
 
 % doc: Returns the IMEI/serial number of the (supposedly connected) mobile
@@ -465,7 +446,7 @@ get_backend_information() ->
 % doc: Tells whether a real (non-virtual, i.e. non-emulated) device is
 % connected.
 %
--spec has_actual_device() -> bool().
+-spec has_actual_device() -> boolean().
 has_actual_device() ->
 
 	% Best criterion:
