@@ -30,6 +30,8 @@
 %
 % Operates through a Seaplus-based interface to the Gammu backend library.
 %
+% See Ceylan-Seaplus at http://seaplus.esperide.org.
+%
 -module(mobile).
 
 
@@ -366,16 +368,16 @@ create_gsm_charset() ->
 	% https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38:
 
 	set_utils:new(
-		 [ C || C <- lists:seq( $a, $z ) ]
-	  ++ [ C || C <- lists:seq( $A, $Z ) ]
-	  ++ [ C || C <- lists:seq( $0, $9 ) ]
-	  ++ [ $:, $;, $<, $=, $>, $?, $¡, $Ä, $Ö, $Ñ, $Ü, $§, $¿,
-		   $ä, $ö, $ñ, $ü, $à, $@, $£, $$, $¥, $è, $é, $ù, $ì, $ò,
-		   $Ç, $\n, $Ø, $ø, $\r, $Å, $å,
-		   $Δ, $_, $Φ, $Γ, $Λ, $Ω, $Π, $Ψ, $Σ, $Θ, $Ξ,
-		   % Removed as already expected to be escaped: $\\,
-		   $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
-		   $*, $+, $,, $-, $., $/ ] ).
+		[ C || C <- lists:seq( $a, $z ) ]
+	 ++ [ C || C <- lists:seq( $A, $Z ) ]
+	 ++ [ C || C <- lists:seq( $0, $9 ) ]
+	 ++ [ $:, $;, $<, $=, $>, $?, $¡, $Ä, $Ö, $Ñ, $Ü, $§, $¿,
+		  $ä, $ö, $ñ, $ü, $à, $@, $£, $$, $¥, $è, $é, $ù, $ì, $ò,
+		  $Ç, $\n, $Ø, $ø, $\r, $Å, $å,
+		  $Δ, $_, $Φ, $Γ, $Λ, $Ω, $Π, $Ψ, $Σ, $Θ, $Ξ,
+		  % Removed as already expected to be escaped: $\\,
+		  $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
+		  $*, $+, $,, $-, $., $/ ] ).
 
 
 
@@ -536,7 +538,7 @@ send_regular_sms( Message, MobileNumber, Class, Encoding )
 	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
 	%trace_bridge:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
-	%						[ Args ] ),
+	%                        [ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
@@ -598,8 +600,8 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 -spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
 						  encoding() ) -> sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class, Encoding )
-  when is_list( Message ) andalso is_list( MobileNumber )
-	   andalso is_integer( Class ) andalso is_atom( Encoding ) ->
+		when is_list( Message ) andalso is_list( MobileNumber )
+			 andalso is_integer( Class ) andalso is_atom( Encoding ) ->
 
 	% Only available directly in this (overridden) function:
 	PortKey = seaplus:get_service_port_key(),
@@ -614,7 +616,7 @@ send_multipart_sms( Message, MobileNumber, Class, Encoding )
 	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
 	%trace_bridge:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
-	%						[ Args ] ),
+	%                        [ Args ] ),
 
 	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
@@ -920,7 +922,7 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   message_reference=MsgRef,
 									   timestamp=Timestamp } ) ->
 	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
-		 "whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
+		"whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
 		[ Number, Encoding, Text, MsgRef,
 		  time_utils:timestamp_to_string( Timestamp ) ] ).
 
