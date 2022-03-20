@@ -16,14 +16,18 @@ all:
 # Gammu requires a configuration file, and this location was found the most
 # reliable (see https://docs.gammu.org/config/):
 #
-GAMMU_RC_FILE="${HOME}/.gammurc"
+#GAMMU_CFG_DIR="${HOME}"
+GAMMU_CFG_DIR="${HOME}/.config/gammu/config"
+
+GAMMU_CFG_FILE="$(GAMMU_CFG_DIR)/.gammurc"
+
 
 secure-gammu-config-file:
-	@if [ -f "${GAMMU_RC_FILE}" ]; then echo "An already-existing Gammu configuration file exists in '${GAMMU_RC_FILE}', using it instead of our dummy test one." ; else $(MAKE) -s use-gammu-test-config-file ; fi
+	@if [ -f "${GAMMU_CFG_FILE}" ]; then echo "Warning: an already-existing Gammu configuration file exists in '${GAMMU_CFG_FILE}', using it instead of our dummy test one."; else $(MAKE) -s use-gammu-test-config-file; fi
 
 
 use-gammu-test-config-file:
-	@echo "Setting up our dummy Gammu test configuration file in '${GAMMU_RC_FILE}' as none existed."
+	@echo "Setting up our dummy Gammu test configuration file in '${GAMMU_CFG_FILE}' as none existed."
 	@/bin/cp -f $(MOBILE_TOP)/conf/gammurc-for-tests ${HOME}/.gammurc
 
 
@@ -60,7 +64,7 @@ mobile-test: pre-test
 
 # Displays the logs in all cases:
 mobile-test-debug: pre-test
-	@$(MAKE) -s mobile_run $(TEST_ENV) ; cat seaplus-driver.*.log
+	@$(MAKE) -s mobile_run $(TEST_ENV); cat seaplus-driver.*.log
 
 
 # Displays no log:
@@ -76,7 +80,7 @@ mobile-class-test: pre-test
 
 # Displays the logs in all cases:
 mobile-class-test-debug: pre-test
-	@$(MAKE) -s mobile_class_run $(TEST_ENV) ; cat seaplus-driver.*.log
+	@$(MAKE) -s mobile_class_run $(TEST_ENV); cat seaplus-driver.*.log
 
 
 # Displays no log:
@@ -93,7 +97,7 @@ mobile-read-test: pre-test
 
 # Displays the logs in all cases:
 mobile-read-test-debug: pre-test
-	@$(MAKE) -s mobile_read_run $(TEST_ENV) ; cat seaplus-driver.*.log
+	@$(MAKE) -s mobile_read_run $(TEST_ENV); cat seaplus-driver.*.log
 
 
 # Displays no log:
