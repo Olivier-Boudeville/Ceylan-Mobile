@@ -191,10 +191,10 @@ For example, as root:
 
 .. code:: bash
 
-  $ lsmod > ~/lsmod-before.txt
-  # Connect 3G device and wait a bit (ex: LED blinking)
-  $ lsmod > ~/lsmod-after.txt
-  $ diff ~/lsmod-before.txt ~/lsmod-after.txt
+ $ lsmod > ~/lsmod-before.txt
+ # Connect 3G device and wait a bit (ex: LED blinking)
+ $ lsmod > ~/lsmod-after.txt
+ $ diff ~/lsmod-before.txt ~/lsmod-after.txt
 
 In our case, the ``option`` and ``usb_wwan`` modules were loaded, so we ensured that, from now then, they were automatically loaded at boot (to avoid that a later kernel update block their loading), by creating a ``/etc/modules-load.d/for-3g-keys.conf`` file with following content (just one module per line)::
 
@@ -210,7 +210,7 @@ The connected key will then appear as a USB device, with a USB ID in the form of
 
 For example, at connection, our ``K3G-1`` key will appear as::
 
-  Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
+ Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
 
 
 Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
@@ -231,11 +231,11 @@ Then the key should be plugged again; the vendor identifier is not expected to c
 
 For example, once connected, our ``K3G-1`` key is to spontaneously switch (almost immediately) from the previous::
 
-  Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
+ Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
 
 to a newer::
 
-  Bus 003 Device 060: ID 12d1:1446 Huawei Technologies Co., Ltd. HSPA modem
+ Bus 003 Device 060: ID 12d1:1446 Huawei Technologies Co., Ltd. HSPA modem
 
 
 Bye bye mass storage, hello modem!
@@ -245,12 +245,12 @@ This mode switch can also be done manually, like in, this time for ``K3G-2``:
 
 .. code:: bash
 
-  $ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
+ $ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
 
 
 ``lsusb`` would then ultimately report, for ``K3G-2``::
 
-		 Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem / E230/E270/E870 HSDPA/HSUPA Modem
+ Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem / E230/E270/E870 HSDPA/HSUPA Modem
 
 
 
@@ -270,7 +270,7 @@ One's distribution should provide it, as it is fairly standard:
 
 .. code:: bash
 
-  $ pacman -Sy gammu
+ $ pacman -Sy gammu
 
 
 It should notably provide the Gammu library (ex: in ``/usr/lib64/libGammu.so.8.1.42.0``) and the various Gammu header (ex: the ``/usr/include/gammu/gammu/gammu*.h``).
@@ -299,11 +299,11 @@ Note that each operation is bound to last for a few (around 3-4) seconds before 
 
 Hopefully one will not end up with following information returned::
 
-  Can not access SIM card.
+ Can not access SIM card.
 
 or even worse::
 
-  No response in specified timeout. Probably phone not connected.
+ No response in specified timeout. Probably phone not connected.
 
 
 but, after maybe some trials and errors (start by testing various ``/dev/ttyUSB*`` devices and ``connection`` settings), with something like (IDs edited for obvious reasons)::
@@ -324,8 +324,8 @@ A problem will be afterwards that the numbers involved in the tty pseudofiles ar
 
 So a better approach will be to use ``udev`` in order to give them a stable name, such as ``/dev/ttyUSB-my-3G-key``, thanks to a rule typically written in ``/etc/udev/rules.d/98-usb-my-3G-key.rules``, whose content would be::
 
-  SUBSYSTEM=="tty", ATTRS{idVendor}=="12d1", ATTRS{idProduct}=="1446", \
-	 SYMLINK+="ttyUSB-my-3G-key"
+ SUBSYSTEM=="tty", ATTRS{idVendor}=="12d1", ATTRS{idProduct}=="1446", \
+	SYMLINK+="ttyUSB-my-3G-key"
 
 
 Then one should run:
@@ -353,9 +353,9 @@ One may ensure thanks to ``fuser`` that no component (Network Manager or alike) 
 
 .. code:: bash
 
-  $ fuser -va /dev/ttyUSB-my-3G-key
-					 USER        PID ACCESS COMMAND
-  /dev/ttyUSB1:
+ $ fuser -va /dev/ttyUSB-my-3G-key
+				 USER        PID ACCESS COMMAND
+ /dev/ttyUSB1:
 
 (as intended, no controller process in the way here)
 
@@ -365,13 +365,13 @@ To interact with such a ``/dev/ttyUSB*`` file, the user (let's name him ``sheldo
 
 .. code:: bash
 
-  $ gpasswd -a sheldon uucp
+ $ gpasswd -a sheldon uucp
 
 And, as ``sheldon``:
 
 .. code:: bash
 
-  $ newgrp uucp
+ $ newgrp uucp
 
 We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root:
 
@@ -413,7 +413,7 @@ The `SMSC <https://en.wikipedia.org/wiki/Short_Message_service_center>`_ number 
 
 .. code:: bash
 
-  $ gammu setsmsc 1 "+33695000XYZ"
+ $ gammu setsmsc 1 "+33695000XYZ"
 
 Should this operation fail, it may be a sign that the 3G device is still locked.
 
@@ -422,12 +422,12 @@ This can be checked:
 
 .. code:: bash
 
-  $ gammu getsmsc
-  Location             : 1
-  Number               : "+33695000XYZ"
-  Default number       : ""
-  Format               : Text
-  Validity             : Maximum time
+ $ gammu getsmsc
+ Location             : 1
+ Number               : "+33695000XYZ"
+ Default number       : ""
+ Format               : Text
+ Validity             : Maximum time
 
 
 
@@ -435,9 +435,9 @@ Then a SMS can be sent, assuming ``TARGET_NUMBER`` has been set to some sensible
 
 .. code:: bash
 
-  $ gammu sendsms TEXT ${TARGET_NUMBER} -text "Hello world!"
-  If you want break, press Ctrl+C...
-  Sending SMS 1/1....waiting for network answer..OK, message reference=50
+ $ gammu sendsms TEXT ${TARGET_NUMBER} -text "Hello world!"
+ If you want break, press Ctrl+C...
+ Sending SMS 1/1....waiting for network answer..OK, message reference=50
 
 As the SMSC has just been set previously, one should not get ``Failed to get SMSC number from phone``.
 
@@ -445,44 +445,44 @@ This can be monitored:
 
 .. code:: bash
 
-  $ gammu monitor 1
-  Press Ctrl+C to break...
-  Entering monitor mode...
+ $ gammu monitor 1
+ Press Ctrl+C to break...
+ Entering monitor mode...
 
-  Enabling info about incoming SMS    : No error.
-  SMS message received
-  [...]
-  We already have one pending, ignoring this one!
-  SMS message received
-  Enabling info about incoming CB     : Security error. Maybe no PIN?
-  Enabling info about calls           : No error.
-  Enabling info about USSD            : No error.
-  SIM phonebook        :   0 used, 250 free
-  Dialled numbers      :  10 used,   0 free
-  Received numbers     :   0 used,  10 free
-  Missed numbers       :   0 used,  10 free
-  Own numbers          :   1 used,   4 free
-  Phone phonebook      :   0 used, 100 free
-  Battery level        : 0 percent
-  Charge state         : battery connected and is being charged
-  Signal strength      : -51 dBm
-  Network level        : 100 percent
-  SIM SMS status       : 9 used, 0 unread, 50 locations
-  Phone SMS status     : 0 used, 0 unread, 255 locations
-  Network state        : home network
-  Network              : 208 15 (XXX Mobile, France), LAC F8F, CID XYZ
-  Packet network state : home network
-  Packet network       : 208 15 (XXX Mobile, France), LAC F8F, CID UVW
-  GPRS                 : attached
-  Location 4, folder "Inbox", SIM memory, Inbox folder
-  SMS message
-  SMSC number          : "+33695000XYZ"
-  Sent                 : Sat Dec 22 21:22:14 2018 +0100
-  Coding               : Default GSM alphabet (no compression)
-  Remote number        : "+XXXXXXX"
-  Status               : UnRead
-  [...]
-  Leaving monitor mode...
+ Enabling info about incoming SMS    : No error.
+ SMS message received
+ [...]
+ We already have one pending, ignoring this one!
+ SMS message received
+ Enabling info about incoming CB     : Security error. Maybe no PIN?
+ Enabling info about calls           : No error.
+ Enabling info about USSD            : No error.
+ SIM phonebook        :   0 used, 250 free
+ Dialled numbers      :  10 used,   0 free
+ Received numbers     :   0 used,  10 free
+ Missed numbers       :   0 used,  10 free
+ Own numbers          :   1 used,   4 free
+ Phone phonebook      :   0 used, 100 free
+ Battery level        : 0 percent
+ Charge state         : battery connected and is being charged
+ Signal strength      : -51 dBm
+ Network level        : 100 percent
+ SIM SMS status       : 9 used, 0 unread, 50 locations
+ Phone SMS status     : 0 used, 0 unread, 255 locations
+ Network state        : home network
+ Network              : 208 15 (XXX Mobile, France), LAC F8F, CID XYZ
+ Packet network state : home network
+ Packet network       : 208 15 (XXX Mobile, France), LAC F8F, CID UVW
+ GPRS                 : attached
+ Location 4, folder "Inbox", SIM memory, Inbox folder
+ SMS message
+ SMSC number          : "+33695000XYZ"
+ Sent                 : Sat Dec 22 21:22:14 2018 +0100
+ Coding               : Default GSM alphabet (no compression)
+ Remote number        : "+XXXXXXX"
+ Status               : UnRead
+ [...]
+ Leaving monitor mode...
 
 Then the same could be attempted with this time a non-priviledged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
 
@@ -529,7 +529,7 @@ Gammu must be installed and configured.
 
 Most distributions support Gammu packages; see as a guideline our corresponding `installation script <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/.github/workflows/erlang-ci.yml#L40>`_ for continuous integration.
 
-Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc`` (amid `other locations <https://docs.gammu.org//config/index.html#gammurc>`_).
+Once installed and run, the Gammu configuration file will be searched, on POSIX systems, first as ``~/.gammurc``, then as ``/etc/gammurc`` (amid `other locations <https://docs.gammu.org//config/index.html#gammurc>`_; we tend to prefer ``~/.config/gammu/config``).
 
 For debugging purposes, using the ``dummy`` driver is quite convenient.
 
@@ -562,26 +562,26 @@ Otherwise you get: ``you don't have the required permission.``.
 
 It will populate this directory with data faking a real smartphone::
 
-  /tmp/gammu-dummy-device
-  --- alarm
-  --- calendar
-  --- fs
-  |__ |-- incoming
-  --- note
-  --- operations.log
-  --- pbk
-  |__ --- DC
-  |__ --- MC
-  |__ --- ME
-  |__ --- RC
-  |__ |__ SM
-  --- sms
-  |__ --- 1
-  |__ --- 2
-  |__ --- 3
-  |__ --- 4
-  |__ |__ 5
-  |__ todo
+ /tmp/gammu-dummy-device
+ --- alarm
+ --- calendar
+ --- fs
+ |__ |-- incoming
+ --- note
+ --- operations.log
+ --- pbk
+ |__ --- DC
+ |__ --- MC
+ |__ --- ME
+ |__ --- RC
+ |__ |__ SM
+ --- sms
+ |__ --- 1
+ |__ --- 2
+ |__ --- 3
+ |__ --- 4
+ |__ |__ 5
+ |__ todo
 
 
 Then you may have:
@@ -635,9 +635,9 @@ The usual rebar3 machinery is in place and functional, so the Mobile prerequisit
 
 .. code:: bash
 
-  $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git mobile
-  $ cd mobile
-  $ rebar3 compile
+ $ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git mobile
+ $ cd mobile
+ $ rebar3 compile
 
 Then Mobile and its tests shall be ready for a successful execution.
 
@@ -672,24 +672,24 @@ One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.2716
 
 .. code:: console-session
 
-  [debug] Starting Seaplus session...
-  [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
-  [trace] At start-up: currently allocated blocks: 0; length of freelist: 0.
-  [trace] Driver started.
-  [debug] Starting Gammu.
-  [debug] Executing get_backend_information/0.
-  [debug] Executing get_device_manufacturer/0.
-  [debug] Executing get_device_model/0.
-  [debug] Executing get_firmware_information/0.
-  [debug] Executing get_imei_code/0.
-  [debug] Executing get_hardware_information/0.
-  [debug] Executing get_imsi_code/0.
-  [debug] Executing get_signal_quality/0.
-  [...]
-  [debug] Stopping Gammu.
-  [debug] Stopping the Seaplus C driver.
-  [trace] At stop: currently allocated blocks: 0; length of freelist: 0.
-  [debug] Stopping Seaplus session.
+ [debug] Starting Seaplus session...
+ [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
+ [trace] At start-up: currently allocated blocks: 0; length of freelist: 0.
+ [trace] Driver started.
+ [debug] Starting Gammu.
+ [debug] Executing get_backend_information/0.
+ [debug] Executing get_device_manufacturer/0.
+ [debug] Executing get_device_model/0.
+ [debug] Executing get_firmware_information/0.
+ [debug] Executing get_imei_code/0.
+ [debug] Executing get_hardware_information/0.
+ [debug] Executing get_imsi_code/0.
+ [debug] Executing get_signal_quality/0.
+ [...]
+ [debug] Stopping Gammu.
+ [debug] Stopping the Seaplus C driver.
+ [trace] At stop: currently allocated blocks: 0; length of freelist: 0.
+ [debug] Stopping Seaplus session.
 
 
 
