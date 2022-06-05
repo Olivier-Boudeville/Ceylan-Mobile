@@ -26,4 +26,7 @@ src/mobile.app.src
 # Generated:
 conf/rebar.config
 
+src/mobile_seaplus_api_mapping.h
+src/mobile_seaplus_driver
+
 doc/mathjax
