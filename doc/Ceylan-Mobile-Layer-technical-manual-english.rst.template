@@ -25,7 +25,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 
 
 :raw-html:`<center><img src="mobile-title.png" id="responsive-image-small"></img>`
-:raw-latex:`\centering \includegraphics[scale=0.70]{mobile-title.png}`
+:raw-latex:`\begin{center} \includegraphics[scale=0.70]{mobile-title.png} \end{center}`
 
 
 
