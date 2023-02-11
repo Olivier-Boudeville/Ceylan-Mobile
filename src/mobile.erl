@@ -176,6 +176,7 @@
 -type integer_percent() :: math_utils:integer_percent().
 
 
+
 % For the Seaplus support (to be included after local exports):
 -include_lib("seaplus/include/seaplus.hrl").
 
@@ -559,7 +560,7 @@ send_multipart_sms( Message, MobileNumber ) ->
 %
 % Returns whether it succeeded, and the message TPRM reference.
 %
--spec send_multipart_sms( sms_message(), mobile_number(), encoding() ) ->
+-spec send_multipart_sms( sms_message(), mobile_number(), sms_class() ) ->
 								sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class ) ->
 
@@ -877,13 +878,13 @@ read_all_sms( DeleteOnReading ) ->
 %
 % (helper)
 %
-to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
+to_sms( { BinSenderNumber, EncodingValue, MessageReference, BinTimestamp,
 		  BinText } ) ->
 	#received_sms{ sender_number=BinSenderNumber,
 				   encoding=enum_to_encoding( EncodingValue ),
 				   text=BinText,
 				   message_reference=MessageReference,
-				   timestamp=Timestamp }.
+				   timestamp=BinTimestamp }.
 
 
 
@@ -918,12 +919,12 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   encoding=Encoding,
 									   text=Text,
 									   message_reference=MsgRef,
-									   timestamp=Timestamp } ) ->
+									   timestamp=BinTimestamp } ) ->
 	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
 		"whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
 		[ Number, Encoding, Text, MsgRef,
-		  time_utils:timestamp_to_string( Timestamp ) ] ).
-
+		  %time_utils:timestamp_to_string( Timestamp ) ] ).
+		  BinTimestamp ] ).
 
 
 % @doc Stops the Mobile service.

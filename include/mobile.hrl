@@ -26,7 +26,6 @@
 % Creation date: Sunday, March 24, 2019.
 
 
-
 % Stores information about a received SMS.
 -record( received_sms, {
 
