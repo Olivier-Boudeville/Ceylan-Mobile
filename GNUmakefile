@@ -5,7 +5,9 @@ MOBILE_TOP = .
 		register-version-in-header register-mobile list-beam-dirs        \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
-		prepare-release clean-release clean-archive info-paths
+		prepare-release stats                                            \
+		clean-release clean-archive                                      \
+		info-paths-loca linfo-versions
 
 
 MODULES_DIRS = src doc test
@@ -99,6 +101,10 @@ prepare-release: clean clean-release
 	-@cd .. && find $(MOBILE_RELEASE_BASE) -type f -a -name '*.beam' -exec /bin/rm -f '{}' ';' 2>/dev/null
 
 
+stats:
+	@$(MAKE_CODE_STATS) $(MYRIAD_TOP)
+
+
 clean: clean-release clean-archive
 
 
@@ -111,11 +117,9 @@ clean-archive:
 	-@cd .. && /bin/rm -f $(MOBILE_RELEASES)
 
 
-stats:
-	@$(MAKE_CODE_STATS) $(MYRIAD_TOP)
+info-paths: info-paths-local
 
-
-info-paths:
+info-paths-local:
 	@echo "BEAM_PATH_OPT = $(BEAM_PATH_OPT)"
 
 
