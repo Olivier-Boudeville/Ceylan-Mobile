@@ -89,7 +89,7 @@ All these points are detailed below.
 An alternate, less satisfying solution [#]_ could be to use the services of a SMS provider through a web gateway; one may look at `sms_utils.erl <https://github.com/Olivier-Boudeville/Ceylan-Myriad/blob/master/src/utils/sms_utils.erl>`_ for a basic example of it, and `Bellboy <https://github.com/vkatsuba/bellboy>`_ for a more complete, multi-provider solution.
 
 
-.. [#] Not nearly as fun: more constraints (ex: credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...
+.. [#] Not nearly as fun: more constraints (e.g. credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...
 
 
 The solution presented here relies on the `Gammu <https://wammu.eu/gammu/>`_ library for the actual control of the 3G device, and on `Ceylan-Seaplus <http://seaplus.esperide.org/>`_ to make it available to Erlang.
@@ -168,7 +168,7 @@ USB Supply & Connection
 
 Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer (USB) port.
 
-A problem might be that the device could end up being insufficiently powered (ex: weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.
+A problem might be that the device could end up being insufficiently powered (e.g. weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.
 
 
 
@@ -192,7 +192,7 @@ For example, as root:
 .. code:: bash
 
  $ lsmod > ~/lsmod-before.txt
- # Connect 3G device and wait a bit (ex: LED blinking)
+ # Connect 3G device and wait a bit (e.g. LED blinking)
  $ lsmod > ~/lsmod-after.txt
  $ diff ~/lsmod-before.txt ~/lsmod-after.txt
 
@@ -213,7 +213,7 @@ For example, at connection, our ``K3G-1`` key will appear as::
  Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
 
 
-Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
+Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (e.g. as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.
 
 Here such drivers are of no use, and what we want is to switch directly the keys to modems.
 
@@ -273,7 +273,7 @@ One's distribution should provide it, as it is fairly standard:
  $ pacman -Sy gammu
 
 
-It should notably provide the Gammu library (ex: in ``/usr/lib64/libGammu.so.8.1.42.0``) and the various Gammu header (ex: the ``/usr/include/gammu/gammu/gammu*.h``).
+It should notably provide the Gammu library (e.g. in ``/usr/lib64/libGammu.so.8.1.42.0``) and the various Gammu header (e.g. the ``/usr/include/gammu/gammu/gammu*.h``).
 
 With this package comes the ``/usr/bin/gammu`` executable (of course relying on said library), which is useful to test one's configuration.
 
@@ -484,7 +484,7 @@ This can be monitored:
  [...]
  Leaving monitor mode...
 
-Then the same could be attempted with this time a non-priviledged user (ex: the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
+Then the same could be attempted with this time a non-priviledged user (e.g. the previous ``sheldon`` one). If the Gammu ``sendsms`` command fails with ``"Can not open specified file"``, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the ``uucp`` group above).
 
 Once successful, one will be able to send SMS back and forth between the 3G device and "normal" smartphones:
 
@@ -493,7 +493,7 @@ Once successful, one will be able to send SMS back and forth between the 3G devi
  $ gammu getallsms
 
 
-With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
+With this first support, one will be able to fight encodings (e.g. for special characters), SMS parts (e.g. for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.
 
 Currently, with Ceylan-Mobile, one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See `this example <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_ as a first guideline.
 
@@ -519,7 +519,7 @@ Refer to the corresponding `Myriad prerequisite section <http://myriad.esperide.
 C Environment
 .............
 
-One may use a recent-enough version of GCC (ex: ``pacman -Sy gcc``).
+One may use a recent-enough version of GCC (e.g. ``pacman -Sy gcc``).
 
 
 Gammu Conventions
@@ -668,7 +668,7 @@ To test the current functional coverage, once the prerequisites (`Myriad <https:
   Signal quality: signal strength is 42 dBm (42%), error rate is 0%.
   [...]
 
-One may also have a look at the resulting Seaplus log (ex: ``seaplus-driver.27168.log``; timestamps removed for terseness):
+One may also have a look at the resulting Seaplus log (e.g. ``seaplus-driver.27168.log``; timestamps removed for terseness):
 
 .. code:: console-session
 
@@ -751,7 +751,7 @@ Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration 
 
 Internally, Gammu uses state machines.
 
-Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.; inspiration could be found in ``gammu/smsd/core.c`` (ex: ``SMSD_ReadDeleteSMS/1``).
+Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.; inspiration could be found in ``gammu/smsd/core.c`` (e.g. ``SMSD_ReadDeleteSMS/1``).
 
 Please feel free to enrich Ceylan-Mobile!
 
