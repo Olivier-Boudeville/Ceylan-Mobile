@@ -32,7 +32,7 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, March 3, 2019</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, January 1, 2023</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, March 19, 2023</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.8</p>
@@ -117,7 +117,7 @@ The next level of information is either to browse the <a class="reference extern
 <table class="docutils footnote" frame="void" id="footnote-1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#footnote-reference-1">[1]</a></td><td>Not nearly as fun: more constraints (ex: credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#footnote-reference-1">[1]</a></td><td>Not nearly as fun: more constraints (e.g. credit expiration), probably more expensive, and of course the SMS sending system cannot be used to notify for example that your Internet connection was lost, possibly cut off by burglars...</td></tr>
 </tbody>
 </table>
 <p>The solution presented here relies on the <a class="reference external" href="https://wammu.eu/gammu/">Gammu</a> library for the actual control of the 3G device, and on <a class="reference external" href="http://seaplus.esperide.org/">Ceylan-Seaplus</a> to make it available to Erlang.</p>
@@ -170,7 +170,7 @@ The next level of information is either to browse the <a class="reference extern
 <div class="section" id="usb-supply-connection">
 <h2><a class="toc-backref" href="#toc-entry-5">USB Supply &amp; Connection</a></h2>
 <p>Once one managed to correctly put the SIM card in the right format (normal, micro or nano) in said device, a proper USB cable shall be used to interlink, say, the residential server and the 3G phone, whereas a 3G key could be directly connected to a computer (USB) port.</p>
-<p>A problem might be that the device could end up being insufficiently powered (ex: weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.</p>
+<p>A problem might be that the device could end up being insufficiently powered (e.g. weaker USB port, longer USB cable). Some people use a separately-powered USB hub, to compensate for computer USB ports that would not be powerful enough. We never experienced that problem, though.</p>
 </div>
 <div class="section" id="operating-system-support-configuration">
 <h2><a class="toc-backref" href="#toc-entry-6">Operating-System Support &amp; Configuration</a></h2>
@@ -181,10 +181,10 @@ The next level of information is either to browse the <a class="reference extern
 <p>Before first inserting a 3G device, we advise to record the already loaded kernel modules, in order to detect the additional ones that are needed by said device.</p>
 <p>For example, as root:</p>
 <pre class="code bash literal-block">
-$ lsmod &gt; ~/lsmod-before.txt
-<span class="c1"># Connect 3G device and wait a bit (ex: LED blinking)
-</span>$ lsmod &gt; ~/lsmod-after.txt
-$ diff ~/lsmod-before.txt ~/lsmod-after.txt
+$<span class="w"> </span>lsmod<span class="w"> </span>&gt;<span class="w"> </span>~/lsmod-before.txt<span class="w">
+</span><span class="c1"># Connect 3G device and wait a bit (e.g. LED blinking)
+</span>$<span class="w"> </span>lsmod<span class="w"> </span>&gt;<span class="w"> </span>~/lsmod-after.txt<span class="w">
+</span>$<span class="w"> </span>diff<span class="w"> </span>~/lsmod-before.txt<span class="w"> </span>~/lsmod-after.txt
 </pre>
 <p>In our case, the <tt class="docutils literal">option</tt> and <tt class="docutils literal">usb_wwan</tt> modules were loaded, so we ensured that, from now then, they were automatically loaded at boot (to avoid that a later kernel update block their loading), by creating a <tt class="docutils literal"><span class="pre">/etc/modules-load.d/for-3g-keys.conf</span></tt> file with following content (just one module per line):</p>
 <pre class="literal-block">
@@ -199,11 +199,11 @@ usb_wwan
 <pre class="literal-block">
 Bus 003 Device 096: ID 12d1:141b Huawei Technologies Co., Ltd.
 </pre>
-<p>Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (ex: as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.</p>
+<p>Unfortunately, this does not correspond to a (3G) modem, but to a mass storage: most keys will be detected as such (e.g. as CD-ROM players), as they comprise a built-in ROM (if not an additional MicroSD slot) where typically the vendor (Windows-only) drivers are located. These drivers, once installed, will switch the operating mode of their key, from mass storage to modem.</p>
 <p>Here such drivers are of no use, and what we want is to switch directly the keys to modems.</p>
 <p>For that, as root, following package shall be installed first:</p>
 <pre class="code bash literal-block">
-$ pacman -Sy usb_modeswitch
+$<span class="w"> </span>pacman<span class="w"> </span>-Sy<span class="w"> </span>usb_modeswitch
 </pre>
 <p>It should install a udev rule file (<tt class="docutils literal"><span class="pre">/usr/lib/udev/rules.d/40-usb_modeswitch.rules</span></tt>) suitable for most 3G devices (otherwise you will have to enrich it).</p>
 <p>Then the key should be plugged again; the vendor identifier is not expected to change, but the product identifier should, so that the key is now considered as a modem. <tt class="docutils literal">journatctl <span class="pre">-xe</span></tt> should allow to check.</p>
@@ -218,7 +218,7 @@ Bus 003 Device 060: ID 12d1:1446 Huawei Technologies Co., Ltd. HSPA modem
 <p>Bye bye mass storage, hello modem!</p>
 <p>This mode switch can also be done manually, like in, this time for <tt class="docutils literal"><span class="pre">K3G-2</span></tt>:</p>
 <pre class="code bash literal-block">
-$ sudo usb_modeswitch --verbose -J -v 0x12d1 -p 0x1446
+$<span class="w"> </span>sudo<span class="w"> </span>usb_modeswitch<span class="w"> </span>--verbose<span class="w"> </span>-J<span class="w"> </span>-v<span class="w"> </span>0x12d1<span class="w"> </span>-p<span class="w"> </span>0x1446
 </pre>
 <p><tt class="docutils literal">lsusb</tt> would then ultimately report, for <tt class="docutils literal"><span class="pre">K3G-2</span></tt>:</p>
 <pre class="literal-block">
@@ -233,9 +233,9 @@ Bus 002 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 HSDPA Modem 
 <p>So, first, that tool shall be installed.</p>
 <p>One's distribution should provide it, as it is fairly standard:</p>
 <pre class="code bash literal-block">
-$ pacman -Sy gammu
+$<span class="w"> </span>pacman<span class="w"> </span>-Sy<span class="w"> </span>gammu
 </pre>
-<p>It should notably provide the Gammu library (ex: in <tt class="docutils literal">/usr/lib64/libGammu.so.8.1.42.0</tt>) and the various Gammu header (ex: the <tt class="docutils literal"><span class="pre">/usr/include/gammu/gammu/gammu*.h</span></tt>).</p>
+<p>It should notably provide the Gammu library (e.g. in <tt class="docutils literal">/usr/lib64/libGammu.so.8.1.42.0</tt>) and the various Gammu header (e.g. the <tt class="docutils literal"><span class="pre">/usr/include/gammu/gammu/gammu*.h</span></tt>).</p>
 <p>With this package comes the <tt class="docutils literal">/usr/bin/gammu</tt> executable (of course relying on said library), which is useful to test one's configuration.</p>
 <p>The executable may read its test configuration from <tt class="docutils literal">/etc/gammurc</tt>, whose content may be, for example in order to test whether <tt class="docutils literal">/dev/ttyUSB1</tt> (the tty that we use for <tt class="docutils literal"><span class="pre">K3G-2</span></tt>) is relevant:</p>
 <pre class="code ini literal-block">
@@ -247,7 +247,7 @@ $ pacman -Sy gammu
 </pre>
 <p>To check whether one's 3G device is supported by the system, one may use:</p>
 <pre class="code bash literal-block">
-$ gammu --identify
+$<span class="w"> </span>gammu<span class="w"> </span>--identify
 </pre>
 <p>Note that each operation is bound to last for a few (around 3-4) seconds before returning.</p>
 <p>Hopefully one will not end up with following information returned:</p>
@@ -276,39 +276,39 @@ SUBSYSTEM==&quot;tty&quot;, ATTRS{idVendor}==&quot;12d1&quot;, ATTRS{idProduct}=
 </pre>
 <p>Then one should run:</p>
 <pre class="code bash literal-block">
-$ udevadm control --reload-rules <span class="o">&amp;&amp;</span> udevadm trigger
+$<span class="w"> </span>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>udevadm<span class="w"> </span>trigger
 </pre>
 <p>Once the key is inserted again, it should be available with its new, stable name.</p>
 <p>It can be checked more in-depth:</p>
 <pre class="code bash literal-block">
-$ udevadm info --query<span class="o">=</span>all --name<span class="o">=</span>ttyUSB-my-3G-key
- P: /devices/pci0000:00/0000:00:14.0/usb2/2-3/2-3:1.1/ttyUSB1/tty/ttyUSB1
- N: ttyUSB1
- L: <span class="m">0</span>
- S: ttyUSB-my-3G-key
- S: serial/by-path/pci-0000:00:14.0-usb-0:3:1.1-port0
- S: serial/by-id/usb-HUAWEI_Technologies_HUAWEI_Mobile-if01-port0
- <span class="o">[</span>...<span class="o">]</span>
+$<span class="w"> </span>udevadm<span class="w"> </span>info<span class="w"> </span>--query<span class="o">=</span>all<span class="w"> </span>--name<span class="o">=</span>ttyUSB-my-3G-key<span class="w">
+ </span>P:<span class="w"> </span>/devices/pci0000:00/0000:00:14.0/usb2/2-3/2-3:1.1/ttyUSB1/tty/ttyUSB1<span class="w">
+ </span>N:<span class="w"> </span>ttyUSB1<span class="w">
+ </span>L:<span class="w"> </span><span class="m">0</span><span class="w">
+ </span>S:<span class="w"> </span>ttyUSB-my-3G-key<span class="w">
+ </span>S:<span class="w"> </span>serial/by-path/pci-0000:00:14.0-usb-0:3:1.1-port0<span class="w">
+ </span>S:<span class="w"> </span>serial/by-id/usb-HUAWEI_Technologies_HUAWEI_Mobile-if01-port0<span class="w">
+ </span><span class="o">[</span>...<span class="o">]</span>
 </pre>
 <p>One may ensure thanks to <tt class="docutils literal">fuser</tt> that no component (Network Manager or alike) took control of it:</p>
 <pre class="code bash literal-block">
-$ fuser -va /dev/ttyUSB-my-3G-key
-                USER        PID ACCESS COMMAND
-/dev/ttyUSB1:
+$<span class="w"> </span>fuser<span class="w"> </span>-va<span class="w"> </span>/dev/ttyUSB-my-3G-key<span class="w">
+                </span>USER<span class="w">        </span>PID<span class="w"> </span>ACCESS<span class="w"> </span>COMMAND<span class="w">
+</span>/dev/ttyUSB1:
 </pre>
 <p>(as intended, no controller process in the way here)</p>
 <p>To interact with such a <tt class="docutils literal">/dev/ttyUSB*</tt> file, the user (let's name him <tt class="docutils literal">sheldon</tt>) must be in the <tt class="docutils literal">uucp</tt> group; so, as root:</p>
 <pre class="code bash literal-block">
-$ gpasswd -a sheldon uucp
+$<span class="w"> </span>gpasswd<span class="w"> </span>-a<span class="w"> </span>sheldon<span class="w"> </span>uucp
 </pre>
 <p>And, as <tt class="docutils literal">sheldon</tt>:</p>
 <pre class="code bash literal-block">
-$ newgrp uucp
+$<span class="w"> </span>newgrp<span class="w"> </span>uucp
 </pre>
 <p>We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root:</p>
 <pre class="code bash literal-block">
-$ touch /var/log/gammu-ceylan.log
-$ chgrp uucp /var/log/gammu-ceylan.log
+$<span class="w"> </span>touch<span class="w"> </span>/var/log/gammu-ceylan.log<span class="w">
+</span>$<span class="w"> </span>chgrp<span class="w"> </span>uucp<span class="w"> </span>/var/log/gammu-ceylan.log
 </pre>
 <p>This should be sufficient so that <tt class="docutils literal">sheldon</tt> is able to send SMS, not involving <tt class="docutils literal">root</tt> anymore in the process.</p>
 </div>
@@ -317,86 +317,86 @@ $ chgrp uucp /var/log/gammu-ceylan.log
 <p>Now, with that user, is time for a bit of configuration before testing.</p>
 <p>One may use:</p>
 <pre class="code bash literal-block">
-$ gammu getsecuritystatus
+$<span class="w"> </span>gammu<span class="w"> </span>getsecuritystatus
 </pre>
 <p>to ensure that no PIN code is required before using the 3G device (hence expecting as answer: <tt class="docutils literal">Nothing to enter.</tt>).</p>
 <p>Various calls can be made in order to convince oneself that the key operates properly:</p>
 <pre class="code bash literal-block">
-$ gammu battery
-Battery level        : <span class="m">0</span> percent
-Charge state         : battery connected and is being charged
+$<span class="w"> </span>gammu<span class="w"> </span>battery<span class="w">
+</span>Battery<span class="w"> </span>level<span class="w">        </span>:<span class="w"> </span><span class="m">0</span><span class="w"> </span>percent<span class="w">
+</span>Charge<span class="w"> </span>state<span class="w">         </span>:<span class="w"> </span>battery<span class="w"> </span>connected<span class="w"> </span>and<span class="w"> </span>is<span class="w"> </span>being<span class="w"> </span>charged<span class="w">
 
-$ gammu getallsms
-<span class="m">0</span> SMS parts <span class="k">in</span> <span class="m">0</span> SMS sequences
+</span>$<span class="w"> </span>gammu<span class="w"> </span>getallsms<span class="w">
+</span><span class="m">0</span><span class="w"> </span>SMS<span class="w"> </span>parts<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">0</span><span class="w"> </span>SMS<span class="w"> </span>sequences
 </pre>
 <p>The <a class="reference external" href="https://en.wikipedia.org/wiki/Short_Message_service_center">SMSC</a> number of the carrier having issued one's SIM card must be set before any actual SMS sending:</p>
 <pre class="code bash literal-block">
-$ gammu setsmsc <span class="m">1</span> <span class="s2">&quot;+33695000XYZ&quot;</span>
+$<span class="w"> </span>gammu<span class="w"> </span>setsmsc<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="s2">&quot;+33695000XYZ&quot;</span>
 </pre>
 <p>Should this operation fail, it may be a sign that the 3G device is still locked.</p>
 <p>This can be checked:</p>
 <pre class="code bash literal-block">
-$ gammu getsmsc
-Location             : <span class="m">1</span>
-Number               : <span class="s2">&quot;+33695000XYZ&quot;</span>
-Default number       : <span class="s2">&quot;&quot;</span>
-Format               : Text
-Validity             : Maximum <span class="nb">time</span>
+$<span class="w"> </span>gammu<span class="w"> </span>getsmsc<span class="w">
+</span>Location<span class="w">             </span>:<span class="w"> </span><span class="m">1</span><span class="w">
+</span>Number<span class="w">               </span>:<span class="w"> </span><span class="s2">&quot;+33695000XYZ&quot;</span><span class="w">
+</span>Default<span class="w"> </span>number<span class="w">       </span>:<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w">
+</span>Format<span class="w">               </span>:<span class="w"> </span>Text<span class="w">
+</span>Validity<span class="w">             </span>:<span class="w"> </span>Maximum<span class="w"> </span><span class="nb">time</span>
 </pre>
 <p>Then a SMS can be sent, assuming <tt class="docutils literal">TARGET_NUMBER</tt> has been set to some sensible number (like one's mobile), and root is used at first to overcome any permission issue:</p>
 <pre class="code bash literal-block">
-$ gammu sendsms TEXT <span class="si">${</span><span class="nv">TARGET_NUMBER</span><span class="si">}</span> -text <span class="s2">&quot;Hello world!&quot;</span>
-If you want break, press Ctrl+C...
-Sending SMS <span class="m">1</span>/1....waiting <span class="k">for</span> network answer..OK, message <span class="nv">reference</span><span class="o">=</span><span class="m">50</span>
+$<span class="w"> </span>gammu<span class="w"> </span>sendsms<span class="w"> </span>TEXT<span class="w"> </span><span class="si">${</span><span class="nv">TARGET_NUMBER</span><span class="si">}</span><span class="w"> </span>-text<span class="w"> </span><span class="s2">&quot;Hello world!&quot;</span><span class="w">
+</span>If<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>break,<span class="w"> </span>press<span class="w"> </span>Ctrl+C...<span class="w">
+</span>Sending<span class="w"> </span>SMS<span class="w"> </span><span class="m">1</span>/1....waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>network<span class="w"> </span>answer..OK,<span class="w"> </span>message<span class="w"> </span><span class="nv">reference</span><span class="o">=</span><span class="m">50</span>
 </pre>
 <p>As the SMSC has just been set previously, one should not get <tt class="docutils literal">Failed to get SMSC number from phone</tt>.</p>
 <p>This can be monitored:</p>
 <pre class="code bash literal-block">
-$ gammu monitor <span class="m">1</span>
-Press Ctrl+C to break...
-Entering monitor mode...
+$<span class="w"> </span>gammu<span class="w"> </span>monitor<span class="w"> </span><span class="m">1</span><span class="w">
+</span>Press<span class="w"> </span>Ctrl+C<span class="w"> </span>to<span class="w"> </span>break...<span class="w">
+</span>Entering<span class="w"> </span>monitor<span class="w"> </span>mode...<span class="w">
 
-Enabling info about incoming SMS    : No error.
-SMS message received
-<span class="o">[</span>...<span class="o">]</span>
-We already have one pending, ignoring this one!
-SMS message received
-Enabling info about incoming CB     : Security error. Maybe no PIN?
-Enabling info about calls           : No error.
-Enabling info about USSD            : No error.
-SIM phonebook        :   <span class="m">0</span> used, <span class="m">250</span> free
-Dialled numbers      :  <span class="m">10</span> used,   <span class="m">0</span> free
-Received numbers     :   <span class="m">0</span> used,  <span class="m">10</span> free
-Missed numbers       :   <span class="m">0</span> used,  <span class="m">10</span> free
-Own numbers          :   <span class="m">1</span> used,   <span class="m">4</span> free
-Phone phonebook      :   <span class="m">0</span> used, <span class="m">100</span> free
-Battery level        : <span class="m">0</span> percent
-Charge state         : battery connected and is being charged
-Signal strength      : -51 dBm
-Network level        : <span class="m">100</span> percent
-SIM SMS status       : <span class="m">9</span> used, <span class="m">0</span> unread, <span class="m">50</span> locations
-Phone SMS status     : <span class="m">0</span> used, <span class="m">0</span> unread, <span class="m">255</span> locations
-Network state        : home network
-Network              : <span class="m">208</span> <span class="m">15</span> <span class="o">(</span>XXX Mobile, France<span class="o">)</span>, LAC F8F, CID XYZ
-Packet network state : home network
-Packet network       : <span class="m">208</span> <span class="m">15</span> <span class="o">(</span>XXX Mobile, France<span class="o">)</span>, LAC F8F, CID UVW
-GPRS                 : attached
-Location <span class="m">4</span>, folder <span class="s2">&quot;Inbox&quot;</span>, SIM memory, Inbox folder
-SMS message
-SMSC number          : <span class="s2">&quot;+33695000XYZ&quot;</span>
-Sent                 : Sat Dec <span class="m">22</span> <span class="m">21</span>:22:14 <span class="m">2018</span> +0100
-Coding               : Default GSM alphabet <span class="o">(</span>no compression<span class="o">)</span>
-Remote number        : <span class="s2">&quot;+XXXXXXX&quot;</span>
-Status               : UnRead
-<span class="o">[</span>...<span class="o">]</span>
-Leaving monitor mode...
+</span>Enabling<span class="w"> </span>info<span class="w"> </span>about<span class="w"> </span>incoming<span class="w"> </span>SMS<span class="w">    </span>:<span class="w"> </span>No<span class="w"> </span>error.<span class="w">
+</span>SMS<span class="w"> </span>message<span class="w"> </span>received<span class="w">
+</span><span class="o">[</span>...<span class="o">]</span><span class="w">
+</span>We<span class="w"> </span>already<span class="w"> </span>have<span class="w"> </span>one<span class="w"> </span>pending,<span class="w"> </span>ignoring<span class="w"> </span>this<span class="w"> </span>one!<span class="w">
+</span>SMS<span class="w"> </span>message<span class="w"> </span>received<span class="w">
+</span>Enabling<span class="w"> </span>info<span class="w"> </span>about<span class="w"> </span>incoming<span class="w"> </span>CB<span class="w">     </span>:<span class="w"> </span>Security<span class="w"> </span>error.<span class="w"> </span>Maybe<span class="w"> </span>no<span class="w"> </span>PIN?<span class="w">
+</span>Enabling<span class="w"> </span>info<span class="w"> </span>about<span class="w"> </span>calls<span class="w">           </span>:<span class="w"> </span>No<span class="w"> </span>error.<span class="w">
+</span>Enabling<span class="w"> </span>info<span class="w"> </span>about<span class="w"> </span>USSD<span class="w">            </span>:<span class="w"> </span>No<span class="w"> </span>error.<span class="w">
+</span>SIM<span class="w"> </span>phonebook<span class="w">        </span>:<span class="w">   </span><span class="m">0</span><span class="w"> </span>used,<span class="w"> </span><span class="m">250</span><span class="w"> </span>free<span class="w">
+</span>Dialled<span class="w"> </span>numbers<span class="w">      </span>:<span class="w">  </span><span class="m">10</span><span class="w"> </span>used,<span class="w">   </span><span class="m">0</span><span class="w"> </span>free<span class="w">
+</span>Received<span class="w"> </span>numbers<span class="w">     </span>:<span class="w">   </span><span class="m">0</span><span class="w"> </span>used,<span class="w">  </span><span class="m">10</span><span class="w"> </span>free<span class="w">
+</span>Missed<span class="w"> </span>numbers<span class="w">       </span>:<span class="w">   </span><span class="m">0</span><span class="w"> </span>used,<span class="w">  </span><span class="m">10</span><span class="w"> </span>free<span class="w">
+</span>Own<span class="w"> </span>numbers<span class="w">          </span>:<span class="w">   </span><span class="m">1</span><span class="w"> </span>used,<span class="w">   </span><span class="m">4</span><span class="w"> </span>free<span class="w">
+</span>Phone<span class="w"> </span>phonebook<span class="w">      </span>:<span class="w">   </span><span class="m">0</span><span class="w"> </span>used,<span class="w"> </span><span class="m">100</span><span class="w"> </span>free<span class="w">
+</span>Battery<span class="w"> </span>level<span class="w">        </span>:<span class="w"> </span><span class="m">0</span><span class="w"> </span>percent<span class="w">
+</span>Charge<span class="w"> </span>state<span class="w">         </span>:<span class="w"> </span>battery<span class="w"> </span>connected<span class="w"> </span>and<span class="w"> </span>is<span class="w"> </span>being<span class="w"> </span>charged<span class="w">
+</span>Signal<span class="w"> </span>strength<span class="w">      </span>:<span class="w"> </span>-51<span class="w"> </span>dBm<span class="w">
+</span>Network<span class="w"> </span>level<span class="w">        </span>:<span class="w"> </span><span class="m">100</span><span class="w"> </span>percent<span class="w">
+</span>SIM<span class="w"> </span>SMS<span class="w"> </span>status<span class="w">       </span>:<span class="w"> </span><span class="m">9</span><span class="w"> </span>used,<span class="w"> </span><span class="m">0</span><span class="w"> </span>unread,<span class="w"> </span><span class="m">50</span><span class="w"> </span>locations<span class="w">
+</span>Phone<span class="w"> </span>SMS<span class="w"> </span>status<span class="w">     </span>:<span class="w"> </span><span class="m">0</span><span class="w"> </span>used,<span class="w"> </span><span class="m">0</span><span class="w"> </span>unread,<span class="w"> </span><span class="m">255</span><span class="w"> </span>locations<span class="w">
+</span>Network<span class="w"> </span>state<span class="w">        </span>:<span class="w"> </span>home<span class="w"> </span>network<span class="w">
+</span>Network<span class="w">              </span>:<span class="w"> </span><span class="m">208</span><span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="o">(</span>XXX<span class="w"> </span>Mobile,<span class="w"> </span>France<span class="o">)</span>,<span class="w"> </span>LAC<span class="w"> </span>F8F,<span class="w"> </span>CID<span class="w"> </span>XYZ<span class="w">
+</span>Packet<span class="w"> </span>network<span class="w"> </span>state<span class="w"> </span>:<span class="w"> </span>home<span class="w"> </span>network<span class="w">
+</span>Packet<span class="w"> </span>network<span class="w">       </span>:<span class="w"> </span><span class="m">208</span><span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="o">(</span>XXX<span class="w"> </span>Mobile,<span class="w"> </span>France<span class="o">)</span>,<span class="w"> </span>LAC<span class="w"> </span>F8F,<span class="w"> </span>CID<span class="w"> </span>UVW<span class="w">
+</span>GPRS<span class="w">                 </span>:<span class="w"> </span>attached<span class="w">
+</span>Location<span class="w"> </span><span class="m">4</span>,<span class="w"> </span>folder<span class="w"> </span><span class="s2">&quot;Inbox&quot;</span>,<span class="w"> </span>SIM<span class="w"> </span>memory,<span class="w"> </span>Inbox<span class="w"> </span>folder<span class="w">
+</span>SMS<span class="w"> </span>message<span class="w">
+</span>SMSC<span class="w"> </span>number<span class="w">          </span>:<span class="w"> </span><span class="s2">&quot;+33695000XYZ&quot;</span><span class="w">
+</span>Sent<span class="w">                 </span>:<span class="w"> </span>Sat<span class="w"> </span>Dec<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="m">21</span>:22:14<span class="w"> </span><span class="m">2018</span><span class="w"> </span>+0100<span class="w">
+</span>Coding<span class="w">               </span>:<span class="w"> </span>Default<span class="w"> </span>GSM<span class="w"> </span>alphabet<span class="w"> </span><span class="o">(</span>no<span class="w"> </span>compression<span class="o">)</span><span class="w">
+</span>Remote<span class="w"> </span>number<span class="w">        </span>:<span class="w"> </span><span class="s2">&quot;+XXXXXXX&quot;</span><span class="w">
+</span>Status<span class="w">               </span>:<span class="w"> </span>UnRead<span class="w">
+</span><span class="o">[</span>...<span class="o">]</span><span class="w">
+</span>Leaving<span class="w"> </span>monitor<span class="w"> </span>mode...
 </pre>
-<p>Then the same could be attempted with this time a non-priviledged user (ex: the previous <tt class="docutils literal">sheldon</tt> one). If the Gammu <tt class="docutils literal">sendsms</tt> command fails with <tt class="docutils literal">&quot;Can not open specified file&quot;</tt>, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the <tt class="docutils literal">uucp</tt> group above).</p>
+<p>Then the same could be attempted with this time a non-priviledged user (e.g. the previous <tt class="docutils literal">sheldon</tt> one). If the Gammu <tt class="docutils literal">sendsms</tt> command fails with <tt class="docutils literal">&quot;Can not open specified file&quot;</tt>, probably that the permissions onto the log file whose path is specified in the Gammu configuration file have not been appropriately updated (see the <tt class="docutils literal">uucp</tt> group above).</p>
 <p>Once successful, one will be able to send SMS back and forth between the 3G device and &quot;normal&quot; smartphones:</p>
 <pre class="code bash literal-block">
-$ gammu getallsms
+$<span class="w"> </span>gammu<span class="w"> </span>getallsms
 </pre>
-<p>With this first support, one will be able to fight encodings (ex: for special characters), SMS parts (ex: for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
+<p>With this first support, one will be able to fight encodings (e.g. for special characters), SMS parts (e.g. for messages too large for a single SMS) and sequences. MMS should provide a lot of fun too.</p>
 <p>Currently, with Ceylan-Mobile, one is able to fetch various information from the device, and to send SMS (regular or multipart ones, with GSM 7bit encoding or with UCS-2 one, of various SMS classes), knowing that all settings (except the message itself and the recipient number) can be transparently managed by Ceylan-Mobile. See <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">this example</a> as a first guideline.</p>
 </div>
 </div>
@@ -411,7 +411,7 @@ $ gammu getallsms
 </div>
 <div class="section" id="c-environment">
 <h3><a class="toc-backref" href="#toc-entry-13">C Environment</a></h3>
-<p>One may use a recent-enough version of GCC (ex: <tt class="docutils literal">pacman <span class="pre">-Sy</span> gcc</tt>).</p>
+<p>One may use a recent-enough version of GCC (e.g. <tt class="docutils literal">pacman <span class="pre">-Sy</span> gcc</tt>).</p>
 </div>
 <div class="section" id="gammu-conventions">
 <h3><a class="toc-backref" href="#toc-entry-14">Gammu Conventions</a></h3>
@@ -439,7 +439,7 @@ $ gammu getallsms
 </table>
 <p>Create that directory (as the user that is to make use of Gammu) first:</p>
 <pre class="code bash literal-block">
-$ mkdir /tmp/gammu-dummy-device
+$<span class="w"> </span>mkdir<span class="w"> </span>/tmp/gammu-dummy-device
 </pre>
 <p>Otherwise you get: <tt class="docutils literal">you don't have the required permission.</tt>.</p>
 <p>It will populate this directory with data faking a real smartphone:</p>
@@ -467,17 +467,17 @@ $ mkdir /tmp/gammu-dummy-device
 </pre>
 <p>Then you may have:</p>
 <pre class="code bash literal-block">
-$ gammu --identify
-Device               : /tmp/gammu-dummy-device/
-Manufacturer         : Gammu
-Model                : unknown <span class="o">(</span>Dummy<span class="o">)</span>
-Firmware             : <span class="m">1</span>.42.0 EN CS <span class="o">(</span><span class="m">20150101</span><span class="o">)</span>
-Hardware             : FOO DUMMY BAR
-IMEI                 : <span class="m">999999999999999</span>
-Original IMEI        : <span class="m">666666666666666</span>
-Manufactured         : April
-Product code         : DUMMY-001
-SIM IMSI             : <span class="m">994299429942994</span>
+$<span class="w"> </span>gammu<span class="w"> </span>--identify<span class="w">
+</span>Device<span class="w">               </span>:<span class="w"> </span>/tmp/gammu-dummy-device/<span class="w">
+</span>Manufacturer<span class="w">         </span>:<span class="w"> </span>Gammu<span class="w">
+</span>Model<span class="w">                </span>:<span class="w"> </span>unknown<span class="w"> </span><span class="o">(</span>Dummy<span class="o">)</span><span class="w">
+</span>Firmware<span class="w">             </span>:<span class="w"> </span><span class="m">1</span>.42.0<span class="w"> </span>EN<span class="w"> </span>CS<span class="w"> </span><span class="o">(</span><span class="m">20150101</span><span class="o">)</span><span class="w">
+</span>Hardware<span class="w">             </span>:<span class="w"> </span>FOO<span class="w"> </span>DUMMY<span class="w"> </span>BAR<span class="w">
+</span>IMEI<span class="w">                 </span>:<span class="w"> </span><span class="m">999999999999999</span><span class="w">
+</span>Original<span class="w"> </span>IMEI<span class="w">        </span>:<span class="w"> </span><span class="m">666666666666666</span><span class="w">
+</span>Manufactured<span class="w">         </span>:<span class="w"> </span>April<span class="w">
+</span>Product<span class="w"> </span>code<span class="w">         </span>:<span class="w"> </span>DUMMY-001<span class="w">
+</span>SIM<span class="w"> </span>IMSI<span class="w">             </span>:<span class="w"> </span><span class="m">994299429942994</span>
 </pre>
 </div>
 <div class="section" id="myriad-seaplus-and-mobile">
@@ -488,12 +488,12 @@ SIM IMSI             : <span class="m">994299429942994</span>
 <h4>Using Cutting-Edge GIT</h4>
 <p>Once Erlang is available, a manual install should be just a matter of executing:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Myriad myriad
-$ <span class="nb">cd</span> myriad <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Seaplus seaplus
-$ <span class="nb">cd</span> seaplus <span class="o">&amp;&amp;</span> make all <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile mobile
-$ <span class="nb">cd</span> mobile <span class="o">&amp;&amp;</span> make all
+$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Myriad<span class="w"> </span>myriad<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>myriad<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>all<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..<span class="w">
+</span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Seaplus<span class="w"> </span>seaplus<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>seaplus<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>all<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..<span class="w">
+</span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Mobile<span class="w"> </span>mobile<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>mobile<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>all
 </pre>
 <p>(for OTP compliance, using short names, such as <tt class="docutils literal">myriad</tt>, <tt class="docutils literal">seaplus</tt> and <tt class="docutils literal">mobile</tt>, for clones rather than long ones, such as <tt class="docutils literal"><span class="pre">Ceylan-Myriad</span></tt>, <tt class="docutils literal"><span class="pre">Ceylan-Seaplus</span></tt> and <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt>, is recommended)</p>
 </div>
@@ -501,9 +501,9 @@ $ <span class="nb">cd</span> mobile <span class="o">&amp;&amp;</span> make all
 <h4>Using Rebar3</h4>
 <p>The usual rebar3 machinery is in place and functional, so the Mobile prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself can be obtained simply thanks to:</p>
 <pre class="code bash literal-block">
-$ git clone https://github.com/Olivier-Boudeville/Ceylan-Mobile.git mobile
-$ <span class="nb">cd</span> mobile
-$ rebar3 compile
+$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Mobile.git<span class="w"> </span>mobile<span class="w">
+</span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>mobile<span class="w">
+</span>$<span class="w"> </span>rebar3<span class="w"> </span>compile
 </pre>
 <p>Then Mobile and its tests shall be ready for a successful execution.</p>
 <p>Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead.</p>
@@ -513,23 +513,23 @@ $ rebar3 compile
 <h3><a class="toc-backref" href="#toc-entry-16">Testing Ceylan-Mobile</a></h3>
 <p>To test the current functional coverage, once the prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself have been secured (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge GIT</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no functional 3G device):</p>
 <pre class="code bash literal-block">
-$ <span class="nb">cd</span> <span class="nb">test</span>
-$ make mobile-test
-       Running unitary <span class="nb">test</span> mobile_run <span class="o">(</span>second form<span class="o">)</span> from mobile_test mobile.beam
- --&gt; Testing module mobile_test.
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nb">test</span><span class="w">
+</span>$<span class="w"> </span>make<span class="w"> </span>mobile-test<span class="w">
+       </span>Running<span class="w"> </span>unitary<span class="w"> </span><span class="nb">test</span><span class="w"> </span>mobile_run<span class="w"> </span><span class="o">(</span>second<span class="w"> </span>form<span class="o">)</span><span class="w"> </span>from<span class="w"> </span>mobile_test<span class="w"> </span>mobile.beam<span class="w">
+ </span>--&gt;<span class="w"> </span>Testing<span class="w"> </span>module<span class="w"> </span>mobile_test.<span class="w">
 
- Testing the Ceylan-Mobile service.
- Back-end information: <span class="o">{</span>gammu,<span class="o">{</span><span class="m">1</span>,40,0<span class="o">}}</span>.
- Device manufacturer: Gammu.
- Device model: Dummy.
- Firmware information: revision is <span class="s1">'1.40.0'</span>, date is <span class="s1">'20150101'</span> and revision number is <span class="m">1</span>.4.
- IMEI code: <span class="s1">'999999999999999'</span>.
- Hardware information: <span class="s1">'FOO DUMMY BAR'</span>.
- IMSI code: <span class="s1">'994299429942994'</span>.
- Signal quality: signal strength is <span class="m">42</span> dBm <span class="o">(</span><span class="m">42</span>%<span class="o">)</span>, error rate is <span class="m">0</span>%.
- <span class="o">[</span>...<span class="o">]</span>
+ </span>Testing<span class="w"> </span>the<span class="w"> </span>Ceylan-Mobile<span class="w"> </span>service.<span class="w">
+ </span>Back-end<span class="w"> </span>information:<span class="w"> </span><span class="o">{</span>gammu,<span class="o">{</span><span class="m">1</span>,40,0<span class="o">}}</span>.<span class="w">
+ </span>Device<span class="w"> </span>manufacturer:<span class="w"> </span>Gammu.<span class="w">
+ </span>Device<span class="w"> </span>model:<span class="w"> </span>Dummy.<span class="w">
+ </span>Firmware<span class="w"> </span>information:<span class="w"> </span>revision<span class="w"> </span>is<span class="w"> </span><span class="s1">'1.40.0'</span>,<span class="w"> </span>date<span class="w"> </span>is<span class="w"> </span><span class="s1">'20150101'</span><span class="w"> </span>and<span class="w"> </span>revision<span class="w"> </span>number<span class="w"> </span>is<span class="w"> </span><span class="m">1</span>.4.<span class="w">
+ </span>IMEI<span class="w"> </span>code:<span class="w"> </span><span class="s1">'999999999999999'</span>.<span class="w">
+ </span>Hardware<span class="w"> </span>information:<span class="w"> </span><span class="s1">'FOO DUMMY BAR'</span>.<span class="w">
+ </span>IMSI<span class="w"> </span>code:<span class="w"> </span><span class="s1">'994299429942994'</span>.<span class="w">
+ </span>Signal<span class="w"> </span>quality:<span class="w"> </span>signal<span class="w"> </span>strength<span class="w"> </span>is<span class="w"> </span><span class="m">42</span><span class="w"> </span>dBm<span class="w"> </span><span class="o">(</span><span class="m">42</span>%<span class="o">)</span>,<span class="w"> </span>error<span class="w"> </span>rate<span class="w"> </span>is<span class="w"> </span><span class="m">0</span>%.<span class="w">
+ </span><span class="o">[</span>...<span class="o">]</span>
 </pre>
-<p>One may also have a look at the resulting Seaplus log (ex: <tt class="docutils literal"><span class="pre">seaplus-driver.27168.log</span></tt>; timestamps removed for terseness):</p>
+<p>One may also have a look at the resulting Seaplus log (e.g. <tt class="docutils literal"><span class="pre">seaplus-driver.27168.log</span></tt>; timestamps removed for terseness):</p>
 <pre class="code console-session literal-block">
 [debug] Starting Seaplus session...
 [debug] Starting the Seaplus C driver, with a buffer of 32768 bytes.
@@ -591,7 +591,7 @@ $ make mobile-test
 <p>Ceylan-Mobile links directly to (lower-level) Gammu library services, instead of using the Gammu SMSD daemon, as it provides by itself similar features, such as driving the mobile-side operations and polling it for incoming events.</p>
 <p>Ceylan-Mobile respects the way Gammu searches for, and reads, its configuration file (no change needed, the same configuration can be used on the command-line and with Ceylan-Mobile).</p>
 <p>Internally, Gammu uses state machines.</p>
-<p>Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.; inspiration could be found in <tt class="docutils literal">gammu/smsd/core.c</tt> (ex: <tt class="docutils literal">SMSD_ReadDeleteSMS/1</tt>).</p>
+<p>Not specifically used/supported: WAP, FM stations, GPRS access points, MMS, SyncML, phonebooks, calendars, alarms, TO-DO lists, notes, profiles, chats, voice mailboxes, vCards, security (PIN, PIN2, PUK, PUK2), ringtones, JAD files, voice call management, cell broadcast, USSD, callbacks, backups, etc.; inspiration could be found in <tt class="docutils literal">gammu/smsd/core.c</tt> (e.g. <tt class="docutils literal">SMSD_ReadDeleteSMS/1</tt>).</p>
 <p>Please feel free to enrich Ceylan-Mobile!</p>
 <p>A source of inspiration has also been <a class="reference external" href="https://github.com/gammu/python-gammu/">python-gammu</a>.</p>
 </div>
