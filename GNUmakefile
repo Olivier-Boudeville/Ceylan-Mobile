@@ -60,7 +60,7 @@ add-prerequisite-plts: link-plt
 
 # As upper layers may rely on the 'mobile' naming:
 link-plt:
-	@/bin/ln -s --force $(PLT_FILE) $(MOBILE_PLT_FILE)
+	@if [ ! "$(PLT_FILE)" = "$(MOBILE_PLT_FILE)" ]; then /bin/ln -s --force $(PLT_FILE) $(MOBILE_PLT_FILE); fi
 
 
 # Note: the source archives are not produced in this directory, but in its
