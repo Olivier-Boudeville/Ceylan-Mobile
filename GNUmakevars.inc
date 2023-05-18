@@ -49,7 +49,7 @@ endif
 # conditional compilation primitives (see cond_utils for their management):
 
 # Topics covered by flags:
-#  - base: the basic mode of operation of Mobile (ex: start/stop)
+#  - base: the basic mode of operation of Mobile (e.g. start/stop)
 #  - driver: about any driver-related operation or issue
 #
 # Defining debug flags (at least the most verbose are by default commented-out):
@@ -70,7 +70,7 @@ ERLANG_COMPILER_OPT_BASE += $(MOBILE_DEBUG_FLAGS)               \
 
 
 
-# Useful to target for example the root of the current layer (ex: to locate the
+# Useful to target for example the root of the current layer (e.g. to locate the
 # relevant, layer-local '_build' directory):
 #
 ifndef LAYER_TOP
@@ -101,7 +101,7 @@ endif
 # The uniquely-defined version of this layer, for all uses (including rebar and
 # hex):
 #
-MOBILE_VERSION := 1.0.8
+MOBILE_VERSION := 1.0.9
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
@@ -150,7 +150,7 @@ MOBILE_INC = -I$(MOBILE_SRC)
 MOBILE_BEAM_DIRS := $(MOBILE_BEAM)
 
 
-# When building Mobile in an OTP context from its usual (GIT) root (ex: with
+# When building Mobile in an OTP context from its usual (GIT) root (e.g. with
 # 'make rebar3-application'), the BEAMs of Ceylan dependencies are to be found
 # in the OTP build tree - rather than in a supposedly fully-built usual root for
 # them:
@@ -206,7 +206,7 @@ GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 # If wanting to use the system-wide library:
 GAMMU_LIBS := $(shell pkg-config --libs gammu)
 
-# If wanting to use any custom (ex: debug) build:
+# If wanting to use any custom (e.g. debug) build:
 #GAMMU_LIBS := -L$(HOME)/Software/libgammu/lib -lGammu
 
 
@@ -285,7 +285,7 @@ ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_STANDARD_MODULES = \
 				$(ERLANG_COMPILER_PARSE_TRANSFORM_OPT_FOR_SEAPLUS)
 
 
-# Conditionally defined so that upper layer may update these settings (ex:
+# Conditionally defined so that upper layer may update these settings (e.g.
 # adding pz directories):
 #
 ifndef ERLANG_COMPILER_OPT_FOR_STANDARD_MODULES
@@ -306,13 +306,13 @@ endif
 # Checking section.
 
 # For later reuse in the next layer of the software stack:
-MOBILE_PLT_FILE := $(MOBILE_TOP)/mobile.plt
+MOBILE_PLT_FILE := $(MOBILE_TOP)/Ceylan-Mobile.plt
 
 
 # This is the merged PLT of the level just below in the software stack.
 # For 'Mobile', it is the PLT of 'Seaplus':
-ifndef PREDECESSOR_PLT
-	PREDECESSOR_PLT = $(SEAPLUS_PLT_FILE)
+ifndef PREDECESSOR_PLT_FILE
+	PREDECESSOR_PLT_FILE = $(SEAPLUS_PLT_FILE)
 endif
 
 
@@ -339,8 +339,8 @@ endif
 # them and if all the packages mentioned here are themselves dependencies (in
 # which case they are all sitting together in the _checkouts child directory).
 #
-# Note also we rely on the names of build roots (ex: myriad) as opposed to
-# project/repository names (ex: Ceylan-Myriad):
+# Note also we rely on the names of build roots (e.g. myriad) as opposed to
+# project/repository names (e.g. Ceylan-Myriad):
 #
 # First priority is an existing checkout directory:
 ifneq ($(wildcard $(MOBILE_TOP)/_checkouts/seaplus/.),)
@@ -361,4 +361,8 @@ endif
 
 ifndef PREDECESSOR_LAYER_TOPS
 	PREDECESSOR_LAYER_TOPS := $(SEAPLUS_TOP)
+endif
+
+ifndef BASE_PLT_FILES
+	BASE_PLT_FILES = $(PREDECESSOR_PLT_FILE)
 endif
