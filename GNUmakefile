@@ -1,7 +1,7 @@
 MOBILE_TOP = .
 
 
-.PHONY: help help-intro help-mobile all check-gammu                      \
+.PHONY: help help-mobile all check-gammu                                 \
 		register-version-in-header register-mobile list-beam-dirs        \
 		add-prerequisite-plts link-plt                                   \
 		send-release release release-zip release-bz2 release-xz          \
@@ -25,11 +25,6 @@ MOBILE_RELEASES = $(MOBILE_RELEASE_ARCHIVE_BZ2) \
 # First target for default:
 help: help-intro help-mobile
 
-
-help-intro:
-	@echo " Following main make targets are available for package $(PACKAGE_NAME):"
-
-
 help-mobile:
 	@cd $(MYRIAD_TOP) && $(MAKE) -s help-myriad
 
@@ -37,7 +32,7 @@ help-mobile:
 all: check-gammu
 
 check-gammu:
-	@if pkg-config gammu; then echo "  Checking that Gammu is available: found."; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (ex: 'pacman -Sy gammu' on Arch Linux)." 1>&2; exit 12; fi
+	@if pkg-config gammu; then echo "  Checking that Gammu is available: found."; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (e.g. 'pacman -Sy gammu' on Arch Linux)." 1>&2; exit 12; fi
 
 
 register-version-in-header:
