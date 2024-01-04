@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<title>Welcome to the Ceylan-Mobile documentation</title>
+<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
 <meta content="Mobile, cellular, phone, 3G, SMS, MMS, Erlang" name="keywords" />
+<title>Welcome to the Ceylan-Mobile documentation</title>
 <link rel="stylesheet" href="pygments-default.css" type="text/css" />
 <link rel="stylesheet" href="mobile.css" type="text/css" />
 <link href="mobile-icon.png" rel="icon">
@@ -23,7 +23,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2019-2023 Olivier Boudeville</p>
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2019-2024 Olivier Boudeville</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Contact:</th><td class="field-body"><p class="first">about (dash) mobile (at) esperide (dot) com</p>
@@ -32,10 +32,10 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, March 3, 2019</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, March 19, 2023</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Thursday, January 4, 2024</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.8</p>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.11</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Status:</th><td class="field-body"><p class="first">Stable</p>
@@ -346,14 +346,14 @@ $<span class="w"> </span>gammu<span class="w"> </span>getsmsc<span class="w">
 <p>Then a SMS can be sent, assuming <tt class="docutils literal">TARGET_NUMBER</tt> has been set to some sensible number (like one's mobile), and root is used at first to overcome any permission issue:</p>
 <pre class="code bash literal-block">
 $<span class="w"> </span>gammu<span class="w"> </span>sendsms<span class="w"> </span>TEXT<span class="w"> </span><span class="si">${</span><span class="nv">TARGET_NUMBER</span><span class="si">}</span><span class="w"> </span>-text<span class="w"> </span><span class="s2">&quot;Hello world!&quot;</span><span class="w">
-</span>If<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>break,<span class="w"> </span>press<span class="w"> </span>Ctrl+C...<span class="w">
+</span>If<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span><span class="k">break</span>,<span class="w"> </span>press<span class="w"> </span>Ctrl+C...<span class="w">
 </span>Sending<span class="w"> </span>SMS<span class="w"> </span><span class="m">1</span>/1....waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>network<span class="w"> </span>answer..OK,<span class="w"> </span>message<span class="w"> </span><span class="nv">reference</span><span class="o">=</span><span class="m">50</span>
 </pre>
 <p>As the SMSC has just been set previously, one should not get <tt class="docutils literal">Failed to get SMSC number from phone</tt>.</p>
 <p>This can be monitored:</p>
 <pre class="code bash literal-block">
 $<span class="w"> </span>gammu<span class="w"> </span>monitor<span class="w"> </span><span class="m">1</span><span class="w">
-</span>Press<span class="w"> </span>Ctrl+C<span class="w"> </span>to<span class="w"> </span>break...<span class="w">
+</span>Press<span class="w"> </span>Ctrl+C<span class="w"> </span>to<span class="w"> </span><span class="k">break</span>...<span class="w">
 </span>Entering<span class="w"> </span>monitor<span class="w"> </span>mode...<span class="w">
 
 </span>Enabling<span class="w"> </span>info<span class="w"> </span>about<span class="w"> </span>incoming<span class="w"> </span>SMS<span class="w">    </span>:<span class="w"> </span>No<span class="w"> </span>error.<span class="w">
