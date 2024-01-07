@@ -10,7 +10,7 @@
 % ./ebin/mobile.app
 % ./src/mobile.app.src -> ../ebin/mobile.app
 %
-% For more information see the Ceylan-Myriad 'rebar3-create-app-file' make
+% For more information see the Ceylan-Myriad 'create-app-file' make
 % target and its associated comments.
 
 
@@ -21,7 +21,7 @@
 
 {application, mobile,
  [{description, "Ceylan-Mobile, controlling mobile phones and 3G keys from Erlang, as an OTP library application here (see http://mobile.esperide.org)"},
-  {vsn, "1.0.11"},
+  {vsn, "1.0.12"},
 
   % No process registered:
   {registered, []},

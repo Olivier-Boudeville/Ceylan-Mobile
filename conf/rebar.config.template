@@ -34,7 +34,7 @@
 % hex-compile-hook-script.sh, to compensate for the GNUmake* root files that the
 % package archive will not include at their location)
 %
-%{deps, [ {seaplus, "SEAPLUS_VERSION_FOR_REBAR"} ] }.
+%{deps, [ {seaplus, "SEAPLUS_VERSION_FOR_OTP"} ] }.
 
 
 % Include directories found in INC:
@@ -69,7 +69,7 @@
 %
 {relx, [
 
-  {release, {mobile_release, "VERSION_FOR_REBAR"},
+  {release, {mobile_release, "VERSION_FOR_OTP"},
 			% myriad and seaplus thus implied:
 			[sasl, mobile]},
 
