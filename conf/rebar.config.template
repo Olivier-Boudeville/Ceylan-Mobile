@@ -21,7 +21,7 @@
 % Depends on the Ceylan-Myriad and Ceylan-Seaplus OTP library applications
 % (Erlang implied):
 
-% As a GIT-based dependency:
+% As a Git-based dependency:
 {deps, [ {myriad, {git, "https://github.com/Olivier-Boudeville/Ceylan-Myriad.git",
 					{branch, "master"}}},
 		 {seaplus, {git, "https://github.com/Olivier-Boudeville/Ceylan-Seaplus.git",
@@ -38,7 +38,7 @@
 
 
 % Include directories found in INC:
-{erl_opts, [ {d,myriad_debug_mode}, {d,mobile_debug_mode}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, INCS_FOR_REBAR, {seaplus_root,"_build/default/lib/seaplus"} ]}.
+{erl_opts, [ {mobile_version,"VERSION_FOR_OTP"}, {d,myriad_debug_mode}, {d,mobile_debug_mode}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, INCS_FOR_REBAR, {seaplus_root,"_build/default/lib/seaplus"} ]}.
 
 
 % Bootstrapped modules (from BOOTSTRAP_MODULES):
@@ -55,7 +55,9 @@
 %{pre_hooks,  [ {compile, "make -s rebar3-compile-pre-hook"} ]}.
 %{post_hooks, [ {compile, "make -s rebar3-compile-post-hook"} ]}.
 
+
 {pre_hooks,  [ {compile, "make rebar3-bulletproof-compile-pre-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
+
 {post_hooks, [ {compile, "make rebar3-bulletproof-compile-post-hook REBAR_HOOK_EXTRA_OPTS='--hiding-for-rebar --verbose'"} ]}.
 
 
@@ -94,7 +96,7 @@
 	% Like for the default profile, except for removed {d,myriad_debug_mode} and
 	% {d,mobile_debug_mode}, and added {d,exec_target_is_production}:
 	%
-	{erl_opts, [ {d,exec_target_is_production}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, INCS_FOR_REBAR, {seaplus_root, "_build/default/lib/seaplus"}]},
+	{erl_opts, [ {mobile_version,"VERSION_FOR_OTP"}, {d,exec_target_is_production}, debug_info, {debug_info_key,"DEBUG_KEY_FOR_REBAR"}, report_warnings, warn_export_all, warn_export_vars, warn_shadow_vars, warn_obsolete_guards, warn_unused_import, warnings_as_errors, INCS_FOR_REBAR, {seaplus_root, "_build/default/lib/seaplus"}]},
 
 	% For the build makefiles:
 	{env, [ { 'REBAR_PROFILE', "prod" } ] },
