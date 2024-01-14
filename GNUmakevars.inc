@@ -64,7 +64,8 @@ ifeq ($(EXECUTION_TARGET),development)
 endif
 
 
-ERLANG_COMPILER_OPT_BASE += $(MOBILE_DEBUG_FLAGS)               \
+ERLANG_COMPILER_OPT_BASE += -Dmobile_version=\"$(MOBILE_VERSION)\" \
+							$(MOBILE_DEBUG_FLAGS)                  \
 							$(MOBILE_CHECK_FLAGS)
 
 
@@ -98,8 +99,8 @@ ifndef PROJECT_NAME_FOR_OTP
 endif
 
 
-# The uniquely-defined version of this layer, for all uses (including rebar and
-# hex):
+# The uniquely-defined version of this layer, for all uses (including rebar, hex
+# and the code itself, see mobile:get_mobile_version{_string,}/0):
 #
 MOBILE_VERSION := 1.0.12
 

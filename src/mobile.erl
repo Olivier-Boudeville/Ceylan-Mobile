@@ -162,13 +162,17 @@
 			   sms_sending_report/0, received_sms/0 ]).
 
 
+% Version-related functions.
+-export([ get_mobile_version/0, get_mobile_version_string/0 ]).
+
 % Exported helpers:
--export([ received_sms_to_string/1, get_execution_target/0 ]).
+-export([ received_sms_to_string/1 ]).
 
 
 % Shorthands:
 
 -type count() :: basic_utils:count().
+-type three_digit_version() :: basic_utils:three_digit_version().
 
 -type ustring() :: text_utils:ustring().
 -type bin_string() :: text_utils:bin_string().
@@ -259,9 +263,25 @@
 % Note that the returned error rate might be -1% (actual) or 0% (emulated).
 %
 -spec get_signal_quality() ->
-		{ signal_strength(), signal_strength_percent(), error_rate() }.
+	{ signal_strength(), signal_strength_percent(), error_rate() }.
 
 
+
+
+
+% Version-related functions.
+
+% @doc Returns the version of the Mobile library being used.
+-spec get_mobile_version() -> three_digit_version().
+get_mobile_version() ->
+	basic_utils:parse_version( get_mobile_version_string() ).
+
+
+% @doc Returns the version of the Mobile library being used, as a string.
+-spec get_mobile_version_string() -> ustring().
+get_mobile_version_string() ->
+	% As defined (uniquely) in GNUmakevars.inc:
+	?mobile_version.
 
 
 

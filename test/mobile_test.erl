@@ -70,6 +70,10 @@ run() ->
 
 	test_facilities:display( "Testing the Ceylan-Mobile service." ),
 
+	test_facilities:display( "The version of this currently tested Mobile "
+		"library is ~ts (i.e. ~w).", [ mobile:get_mobile_version_string(),
+									   mobile:get_mobile_version() ] ),
+
 	set_up_mobile_environment(),
 
 	% Not mobile:start_link(), as here we want to survive a crash of the mobile
@@ -247,7 +251,7 @@ actual_sending_test( MobileNumber ) ->
 	% of this single SMS shall be quite small: stopping after "this is a long":
 	%
 	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
-								   MobileNumber, Class, unicode_uncompressed ),
+		MobileNumber, Class, unicode_uncompressed ),
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
 		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
@@ -312,7 +316,7 @@ actual_sending_test( MobileNumber ) ->
 	%						 [ GSMMultiUncompMsg ] ),
 
 	GSMMultiUncompSMSReport = mobile:send_multipart_sms( GSMMultiUncompMsg,
-										MobileNumber, Class, gsm_uncompressed ),
+		MobileNumber, Class, gsm_uncompressed ),
 
 	test_facilities:display( "~nSent multipart SMS (message: '~ts') "
 		"for the test of GSM uncompressed encoding, whose report is: ~w.",
@@ -349,7 +353,7 @@ actual_sending_test( MobileNumber ) ->
 
 
 	%test_facilities:display( "Sending now the same message in full automatic "
-	%						 "mode (regarding encoding and parts)..." ),
+	%                         "mode (regarding encoding and parts)..." ),
 
 	FullSMSReport = mobile:send_sms( AutoMultiMsg, MobileNumber ),
 
