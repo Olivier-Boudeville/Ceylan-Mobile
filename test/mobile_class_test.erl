@@ -25,16 +25,17 @@
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
 % Creation date: Sunday, March 24, 2019.
 
-
-% @doc Module for the test of the Ceylan-Mobile services regarding <b>SMS
-% classes</b>.
-%
-% See also: http://www.ozekisms.com/index.php?owpn=544
-%
 -module(mobile_class_test).
+
+-moduledoc """
+Module for the test of the Ceylan-Mobile services regarding **SMS classes**.
+
+See also: <http://www.ozekisms.com/index.php?owpn=544>.
+""".
 
 
 -export([ run/0 ]).
+
 
 
 % We use Myriad's 'preferences' module in order to allow the user to define

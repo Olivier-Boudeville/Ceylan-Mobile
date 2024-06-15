@@ -25,24 +25,25 @@
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
 % Creation date: Sunday, March 24, 2019.
 
-
-% @doc Module for the overall, most complete test of the <b>Ceylan-Mobile
-% services</b>.
-%
-% Some test sentences emanate from dear /usr/bin/fortune.
-%
-% Note that with the 'dummy' Gammu model, TPMR references might be always 255.
-%
 -module(mobile_test).
+
+-moduledoc """
+Module for the overall, most complete test of the **Ceylan-Mobile services**.
+
+Some test sentences emanate from dear /usr/bin/fortune.
+
+Note that with the 'dummy' Gammu model, TPMR references might be always 255.
+""".
 
 
 -export([ run/0, set_up_mobile_environment/0 ]).
 
 
-% @doc Sets up a relevant environment for the execution of Mobile (and Seaplus).
-%
-% (shared between tests)
-%
+-doc """
+Sets up a relevant environment for the execution of Mobile (and Seaplus).
+
+(shared between tests)
+""".
 set_up_mobile_environment() ->
 
 	test_facilities:display( "Setting up a Mobile-compliant environment." ),

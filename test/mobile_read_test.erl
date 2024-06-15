@@ -25,14 +25,14 @@
 % Author: Olivier Boudeville [olivier (dot) boudeville (at) esperide (dot) com]
 % Creation date: Sunday, March 24, 2019.
 
-
-
-% @doc Module for the test of the Ceylan-Mobile services regarding the
-% <b>reading of SMS</b>.
-%
-% Note that with the 'dummy' Gammu model, TPMR references might be always 255.
-%
 -module(mobile_read_test).
+
+-moduledoc """
+Module for the test of the Ceylan-Mobile services regarding the **reading of
+SMS**.
+
+Note that with the 'dummy' Gammu model, TPMR references might be always 255.
+""".
 
 
 -export([ run/0 ]).

@@ -21,7 +21,7 @@
 
 {application, mobile,
  [{description, "Ceylan-Mobile, controlling mobile phones and 3G keys from Erlang, as an OTP library application here (see http://mobile.esperide.org)"},
-  {vsn, "1.0.12"},
+  {vsn, "1.0.13"},
 
   % No process registered:
   {registered, []},
