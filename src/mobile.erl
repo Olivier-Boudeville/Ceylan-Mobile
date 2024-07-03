@@ -124,10 +124,18 @@ See also <http://www.ozekisms.com/index.php?owpn=544>.
 
 
 
+-doc "Any phone number (mobile or not).".
+-type phone_number() :: ustring().
+
+-doc "Any phone number (mobile or not), as a binary.".
+-type bin_phone_number() :: bin_string().
+
+
+
 -doc """
 The mobile number associated to a device (e.g. "+1234567890").
 """.
--type mobile_number() :: ustring().
+-type mobile_number() :: phone_number().
 
 
 
@@ -135,7 +143,7 @@ The mobile number associated to a device (e.g. "+1234567890").
 The mobile number associated to a device, as a binary
 (e.g. `<<"+1234567890">>`).
 """.
--type bin_mobile_number() :: bin_string().
+-type bin_mobile_number() :: bin_phone_number().
 
 
 
@@ -192,7 +200,11 @@ The mobile number associated to a device, as a binary
 			   signal_strength/0, signal_strength_percent/0,
 			   error_rate/0,
 			   sms_message/0, sms_class/0,
-			   mobile_number/0, encoding/0,
+
+			   phone_number/0, bin_phone_number/0,
+			   mobile_number/0, bin_mobile_number/0,
+
+			   encoding/0,
 			   sms_sending_status/0, sms_tpmr/0,
 			   sms_sending_report/0, received_sms/0 ]).
 
