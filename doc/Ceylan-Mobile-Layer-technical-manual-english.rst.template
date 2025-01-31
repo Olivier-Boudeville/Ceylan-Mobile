@@ -38,7 +38,7 @@ Mobile: Controlling Mobile Phones and 3G Keys from Erlang
 :Dedication: Users and maintainers of the ``Mobile`` library.
 :Abstract:
 	The role of the `Mobile <http://mobile.esperide.org/>`_ library is to control mobile phones from Erlang.
-	A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.
+	A typical use case is to send (and possibly receive) SMS from Erlang thanks to a connected 3G USB key.
 
 	We present here a short overview of these services, to introduce them to newcomers.
 	The next level of information is either to browse the `Mobile API documentation <api-doc/index.html>`_ or simply to read the corresponding `source files <https://github.com/Olivier-Boudeville/Ceylan-Mobile>`_, which are intensely commented and generally straightforward.
@@ -373,7 +373,7 @@ And, as ``sheldon``:
 
  $ newgrp uucp
 
-We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root:
+We re-use that group so that this non-privileged user can also write in the Gammu log file that we specified; as root:
 
 .. code:: bash
 
@@ -610,7 +610,8 @@ Once proper Erlang and C environments are available and Gammu is setup, the `Cey
 
 Then one will be able to enjoy using one's mobile from Erlang.
 
-Using Cutting-Edge GIT
+
+Using Cutting-Edge Git
 **********************
 
 Once Erlang is available, a manual install should be just a matter of executing:
@@ -641,14 +642,14 @@ The usual rebar3 machinery is in place and functional, so the Mobile prerequisit
 
 Then Mobile and its tests shall be ready for a successful execution.
 
-Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead.
+Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead (that we prefer dearly).
 
 
 
 Testing Ceylan-Mobile
 .....................
 
-To test the current functional coverage, once the prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself have been secured (for that refer to either `Using Cutting-Edge GIT`_ or `Using Rebar3`_), one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no functional 3G device):
+To test the current functional coverage, once the prerequisites (`Myriad <https://myriad.esperide.org>`_ and `Seaplus <https://seaplus.esperide.org>`_) and Mobile itself have been secured (for that refer to either `Using Cutting-Edge Git`_ or `Using Rebar3`_), one may run `mobile_test.erl <https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl>`_; from the root of the ``Ceylan-Mobile`` clone (once built, and assuming here using the ``dummy`` Gammu driver - so that the test can be run even if having no functional 3G device):
 
 .. code:: bash
 
@@ -704,7 +705,7 @@ Some SMS-related General Information
 
 The text to be sent as a SMS must be somehow encoded in messages.
 
-Either the default, very limited `alphabet of 7bit encoding <https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38>`_ can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the ``|^€{}[]\`` characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode `UCS-2 <https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding>`_ encoding will have to be used, and then only 70 characters will fit in that SMS.
+Either the default, very limited `alphabet of 7bit encoding <https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38>`_ can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the ``|^€{}[]\`` characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode `UCS-2 <https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding>`_ encoding will have to be used - and then only 70 characters will fit in that SMS.
 
 Should the message be longer than what a single SMS can carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.
 
@@ -797,7 +798,7 @@ Troubleshooting
 Initialisation Issues
 ---------------------
 
-If the Mobile driver crashes and its logs report::
+If the Mobile driver crashes, and its logs report::
 
  Gammu error in the 'find Gammu RC' step:
  'Can not open specified file.'
