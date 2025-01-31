@@ -44,7 +44,7 @@ run() ->
 	test_facilities:start( ?MODULE ),
 
 	test_facilities:display(
-	  "Testing the Ceylan-Mobile service regarding the reading of SMS." ),
+		"Testing the Ceylan-Mobile service regarding the reading of SMS." ),
 
 	mobile_test:set_up_mobile_environment(),
 
