@@ -28,7 +28,10 @@
 -module(mobile).
 
 -moduledoc """
-Module implementing the **Ceylan-Mobile services**.
+Module implementing the **Ceylan-Mobile services**, in charge of controlling
+mobile devices (smartphones, dongles), 2G/3G, possibly 4G or more recent.
+
+Refer to send_sms/2 for the most useful, integrated sending function.
 
 Operates through a Seaplus-based interface to the Gammu backend library.
 
@@ -116,7 +119,7 @@ For example `<<"208150030213526">>`.
 
 
 -doc """
-Most SMS are of class 1 (the default, should no class by specified).
+Most SMSs are of class 1 (the default, should no class be specified).
 
 See also <http://www.ozekisms.com/index.php?owpn=544>.
 """.
@@ -124,23 +127,24 @@ See also <http://www.ozekisms.com/index.php?owpn=544>.
 
 
 
--doc "Any phone number (mobile or not).".
+-doc "Any phone number (mobile or not), as a plain string.".
 -type phone_number() :: ustring().
 
--doc "Any phone number (mobile or not), as a binary.".
+-doc "Any phone number (mobile or not), as a binary string.".
 -type bin_phone_number() :: bin_string().
 
 
 
 -doc """
-The mobile number associated to a device (e.g. "+1234567890").
+The mobile number associated to a device, as a plain string
+(e.g. "+1234567890").
 """.
 -type mobile_number() :: phone_number().
 
 
 
 -doc """
-The mobile number associated to a device, as a binary
+The mobile number associated to a device, as a binary string
 (e.g. `<<"+1234567890">>`).
 """.
 -type bin_mobile_number() :: bin_phone_number().
@@ -279,7 +283,7 @@ The mobile number associated to a device, as a binary
 % <<"20150101">>, 1.42}`.
 %
 -spec get_firmware_information() ->
-					{ revision_text(), date_text(), revision_number() }.
+	{ revision_text(), date_text(), revision_number() }.
 
 
 % doc: Returns the IMEI/serial number of the (supposedly connected) mobile
@@ -305,7 +309,7 @@ The mobile number associated to a device, as a binary
 
 % doc: Reads the current signal quality (strength and error rate).
 %
-% Typical value for signal strength is -51 dBm (100%) for an actual device, 42
+% Typical value for signal strength is -51 dBm (100%) for an actual device, -42
 % dBm (42%) for an emulated one.
 %
 % Note that the returned error rate might be -1% (actual) or 0% (emulated).
@@ -373,7 +377,7 @@ is_available() ->
 
 		_ ->
 			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
-				"Mobile considered to be available." ) ),
+				"Ceylan-Mobile considered to be available." ) ),
 			true
 
 	% Intercepting just the exception class and pattern of interest:
@@ -382,8 +386,8 @@ is_available() ->
 		throw:{ driver_crashed, unknown_reason } ->
 
 			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
-				"Mobile considered as not available, as cannot perform a "
-				"Gammu test operation (driver crash)." ) ),
+				"Ceylan-Mobile considered as not available, as it "
+				"cannot perform a Gammu test operation (driver crash)." ) ),
 
 			false;
 
@@ -464,6 +468,7 @@ create_gsm_charset() ->
 
 -doc "Returns a suitable bijective table.".
 create_encoding_table() ->
+	% A build-time const_bijective_table would be overkill:
 	bijective_table:new( [ { unicode_uncompressed, 1 },
 						   { unicode_compressed, 2 },
 						   { gsm_uncompressed, 3 },
@@ -505,8 +510,8 @@ get_hardware_information() ->
 Returns the name and version of the backend used.
 
 We override this function for convenience: the C-side just returns the Gammu
-version as a string (e.g. "1.40.0") and we use Myriad to easily convert it into
-{1,40,0}.
+version as a string (e.g. "1.40.0"), we prefer return a more proper tuple
+(e.g. {1,40,0}).
 """.
 -spec get_backend_information() -> { backend_type(), backend_version() }.
 get_backend_information() ->
@@ -544,7 +549,7 @@ has_actual_device() ->
 Sends specified, regular (that is non-multipart) SMS (of class 1), using an
 automatically-detected encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number() ) ->
 								sms_sending_report().
@@ -557,7 +562,7 @@ send_regular_sms( Message, MobileNumber ) ->
 Sends a regular (non-multipart) SMS, using specified class and an
 automatically-detected encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number(), sms_class() ) ->
 								sms_sending_report().
@@ -594,7 +599,7 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 -doc """
 Sends a regular (non-multipart) SMS, using specified class and encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
 						encoding() ) -> sms_sending_report().
@@ -625,7 +630,7 @@ send_regular_sms( Message, MobileNumber, Class, Encoding )
 Sends a multipart SMS, using default class 1 and an automatically-detected
 encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number() ) ->
 								sms_sending_report().
@@ -638,7 +643,7 @@ send_multipart_sms( Message, MobileNumber ) ->
 Sends a multipart SMS, using specified class and an automatically-detected
 encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number(), sms_class() ) ->
 								sms_sending_report().
@@ -675,7 +680,7 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 -doc """
 Sends specified SMS, using specified class and encoding.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
 						  encoding() ) -> sms_sending_report().
@@ -706,7 +711,7 @@ send_multipart_sms( Message, MobileNumber, Class, Encoding )
 Sends specified SMS (of class 1), determining automatically the best encoding to
 use, and whether a regular SMS or a multipart one is needed.
 
-Returns whether it succeeded, and the message TPRM reference.
+Returns whether it succeeded, and the message TPMR reference.
 
 The most advanced SMS-sending primitive, switching automatically to the right
 lower-level one, for the default class 1.
@@ -767,7 +772,7 @@ scan_characters( _Message=[], GSMUCharCount, _UCS2UCharCount,
 		CurrentEncoding=gsm_uncompressed, GSMUMessage, _UCS2UMessage,
 		_GSMCharSet ) ->
 
-	% Can only be decide once all characters have been examined (as even the
+	% Can only be decided once all characters have been examined (as even the
 	% last one may be a Unicode one):
 	%
 	SMSMultiplicity = case GSMUCharCount > 160 of
@@ -852,8 +857,8 @@ scan_characters( _Message=[ _C | H ], _ZeroGSMUCharCount, UCS2UCharCount,
 
 
 -doc """
-Tells whether specified character may be encoded in the default GSM non-espaced
-alphabet:
+Tells whether the specified character may be encoded in the default GSM
+non-espaced alphabet.
 
 We were initially considering to rely on a well-crafted list, however a set is
 by far more appropriate here.
@@ -915,8 +920,8 @@ enum_to_encoding( Value ) ->
 
 
 -doc """
-Reads all SMS already received (if any), and, if true is specified, deletes them
-as soon as they are read.
+Reads all SMSs already received (if any), and, if DeleteOnReading=true is
+specified, deletes them as soon as they are read.
 
 Does not block.
 
