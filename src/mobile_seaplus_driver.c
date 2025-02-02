@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2023 Olivier Boudeville
+ * Copyright (C) 2018-2025 Olivier Boudeville
  *
  * This file is part of the Ceylan-Mobile library.
  *
@@ -91,7 +91,7 @@
 typedef int sms_tpmr ;
 
 
-// Matches mobile:encoding_to_enum/1:
+// Matches the encoding_table() in mobile_encoding_key:
 enum encoding { unicode_uncompressed=1,
 				unicode_compressed,
 				gsm_uncompressed,
@@ -210,7 +210,7 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
   sms_tpmr ref, void * user_data )
 {
 
-  LOG_DEBUG( "Entering sending callback." ) ;
+  LOG_DEBUG( "Entering SMS-sending callback." ) ;
 
   /* Not expected to ever happen, as the (Erlang) caller is blocked, waiting for
    * an answer not sent yet.
@@ -284,7 +284,7 @@ int main( int argc, char *argv[] )
 {
 
   /* Notably useful to perform a first check that all library dependencies are
-   * satisfied:
+   * satisfied, and thus that the port executable can be launched at all:
    *
    */
   if ( argc != 1 )
@@ -295,7 +295,6 @@ int main( int argc, char *argv[] )
 	  "Exiting now.\n" ) ;
 
 	return EXIT_SUCCESS ;
-
   }
 
   // Provided by the Seaplus library:
@@ -343,14 +342,14 @@ int main( int argc, char *argv[] )
    * Here it is not always the case as, for example when sending a SMS, the
    * operation will be known to be completed only in an asynchronous manner,
    * i.e. only from an interrupt handler - which is thus the only part of the
-   * program able to send back an answer.
+   * program able to send back any answer.
    *
    * As a result, the initiating command will trigger the sending but not write
-   * anything back, thus it should not finalize that command (the interrupt
+   * anything back, thus it should not finalize that command (as the interrupt
    * handler will take care of that).
    *
    */
-   bool answer_sent ;
+  bool answer_sent ;
 
 
   /* Reads a full command from (receive) buffer, based on its initial length:
@@ -369,8 +368,8 @@ int main( int argc, char *argv[] )
 	// Current index in the input buffer (for decoding purpose):
 	buffer_index index = 0 ;
 
-	/* Will be set to the corresponding Seaplus-defined function identifier (ex:
-	 * whose value is FOO_1_ID):
+	/* Will be set to the corresponding Seaplus-defined function identifier
+	 * (e.g. whose value is FOO_1_ID):
 	 *
 	 */
 	fun_id current_fun_id ;
@@ -687,7 +686,7 @@ int main( int argc, char *argv[] )
 
 	case READ_ALL_SMS_1_ID:
 
-		/* -spec -spec read_all_sms( boolean() ) -> [ received_sms() ].
+		/* -spec -spec read_all_sms( boolean() ) -> [mobile:received_sms()].
 		 *
 		 */
 
@@ -811,7 +810,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
   INI_Section * iniConfig ;
 
-  // Autodetect the configuration file (ex: ~/.gammurc):
+  // Autodetect the configuration file (e.g. ~/.gammurc):
   GSM_Error error = GSM_FindGammuRC( &iniConfig, NULL ) ;
   check_gammu_error( error, "find Gammu RC", gammu_fsm ) ;
 
@@ -1182,8 +1181,8 @@ enum encoding get_mobile_encoding( GSM_Coding_Type e )
 
 /* Reads all SMS already received (if any).
  *
- * Returns a list of {BinSenderNumber, EncodingValue, BinText,
- *                    MessageReference, Timestamp} entries.
+ * Returns a list of received_sms_tuple() terms (so not exactly a
+ * [mobile:received_sms()]).
  *
  * Does not block.
  *
@@ -1202,7 +1201,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
    *
    * Once relying on GSM_GetNextSMS (declared in gammu/include/gammu-message.h,
    * defined in gammu/libgammu/api.c; rather than GSM_GetSMS), two inspirations
-   * could be used in order to decode messages:
+   * may be used in order to decode messages:
    *
    * - gammu/docs/examples/sms-read.c, using, here, DecodeUnicodeString
    *
@@ -1210,6 +1209,8 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
    *    hence preferred here
    *
    */
+
+  // First, read the (single) input parameter:
 
   bool delete_on_reading ;
 
@@ -1235,20 +1236,23 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   }
 
 
-  GSM_MultiSMSMessage receivedSMS ;
+  // Second, execute the SMS reading logic, generating the result list:
+
+  GSM_MultiSMSMessage received_sms ;
 
   GSM_Error read_error = ERR_NONE ;
 
+
   // Needed by GSM_GetNextSMS/3:
-  bool isFirst = true ;
+  bool is_first = true ;
 
   // Pointer to a static string:
   char * decoded_string ;
 
 
-  /* Here we do not know from the start the size of the SMS list to return, so
-   * instead of creating [ SMS1, SMS2, SMS3 ] we create it from cons':
-   * [ SMS1 | [ SMS2 | [ SMS3 | [] ] ] ].
+  /* Here we do not know from the start the size of the list of SMS tuples to
+   * return, so instead of creating [SMS1, SMS2, SMS3] we create it from cons':
+   * [SMS1 | [SMS2 | [SMS3 | []]]].
    *
    */
 
@@ -1257,65 +1261,82 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 	LOG_DEBUG( "Trying to read a new SMS from device..." ) ;
 
-	read_error = GSM_GetNextSMS( gammu_fsm, &receivedSMS, isFirst ) ;
 
+	read_error = GSM_GetNextSMS( gammu_fsm, &received_sms, is_first ) ;
+
+	// Terminates the consing:
 	if ( read_error == ERR_EMPTY )
 	{
 
 	  LOG_DEBUG( "Empty read, no more SMS to read." ) ;
 
+	  /* No need to special-case the empty read SMS list: this function finishes
+	   * by writing an empty list.
+	   *
+	   */
+
 	  break;
 
 	}
 
-	LOG_DEBUG( "Reading a new SMS." ) ;
-
-	// Size is 2, as we are cons'ing, like in [ X, [ Y, [] ] ]:
-	write_list_header_result( &output_sm_buf, 2 ) ;
-
 	check_gammu_error( read_error, "read SMS", gammu_fsm ) ;
 
-	isFirst = false ;
 
-
-	/* For each SMS, the Erlang counterpart expects:
+	/* So now we know a 5-tuple (for this SMS) will have to be written.
 	 *
-	 * {BinSenderNumber, EncodingValue, MessageReference, Timestamp, BinText}
+	 * List arity (i.e. actual elements before the cons tail) will be 1, as we
+	 * are cons'ing, like in: [SMS1, [SMS2, []]] (refer to
+	 * https://www.erlang.org/docs/25/man/ei#ei_encode_list_header to better
+	 * understand)
+	 *
+	 */
+	write_list_header_result( &output_sm_buf, 1 ) ;
+
+	is_first = false ;
+
+	LOG_DEBUG( "Reading a new SMS." ) ;
+
+
+	/* For each SMS, the Erlang counterpart expects a received_sms_tuple() term,
+	 * i.e. a {BinSenderNumber, EncodingValue, MessageReference, Timestamp,
+	 * BinText} 5-tuple.
 	 *
 	 * Fields of interest currently not returned here: SMS, PDU, Class.
 	 *
 	 * BinText is better aggregated (from the various SMS parts involved)
-	 * directly here, in the C part, and written last; the other tuple elements
-	 * are expected to be the same in all SMS parts, therefore we write them
-	 * once, from the first SMS part.
+	 * directly here, in the C part, and written last in the created tuple; as
+	 * the other tuple elements are expected to be the same in all SMS parts, we
+	 * write them once, from the first SMS part.
 	 *
 	 */
 	size_t copy_index = 0 ;
-
 
 	write_tuple_header_result( &output_sm_buf, 5 ) ;
 
 	/* Interpreting now the overall message for each SMS, per SMS part
 	 * (concatenating split texts).
 	 *
-	 * Note, that, apparently, even when sending longer SMS, each of them is not
-	 * interpreted as a single, multipart SMS but as multiple SMS, each with one
-	 * part (i.e. receivedSMS.Number == 1 and the parts are actually considered
-	 * as separate SMS); however we do our best to aggregate them if ever
-	 * necessary.
+	 * Note, that, apparently (in our tests), even when sending longer SMSs,
+	 * each of them is not interpreted as a single, multipart SMS but as
+	 * multiple SMSs, each with one part (i.e. received_sms.Number == 1 and the
+	 * parts are actually considered as separate SMSs); however we do our best
+	 * to aggregate them, if ever necessary.
 	 *
 	 */
-	for ( sms_count i = 0; i < receivedSMS.Number; i++ )
+	for ( sms_count i = 0; i < received_sms.Number; i++ )
 	{
 
-	  LOG_DEBUG( "Reading SMS part %i/%i...", i+1, receivedSMS.Number ) ;
+	  LOG_DEBUG( "Reading SMS part %i/%i...", i+1, received_sms.Number ) ;
 
-	  /* Except the payload (text/data), we expect the metadata of the various
-	   * SMS parts to be equal (ex: for SMS classes) or roughly the same (ex:
-	   * for sending timestamp), so we record them only once, for the first SMS
-	   * part (the only one known to exist in all cases):
+	  /* Except the actual payload (text/data), we expect the metadata of the
+	   * various SMS parts to be equal (e.g. for SMS classes) or roughly the
+	   * same (e.g. for sending timestamp), so we record them only once, for the
+	   * first SMS part (the only one known to exist in all cases):
 	   *
 	   */
+
+	  // First tuple element, BinSenderNumber :: bin_phone_number():
+
 	  if ( i == 0 )
 	  {
 
@@ -1328,52 +1349,55 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		 *
 		 */
 
-		// First, BinSenderNumber:
+		decoded_string = DecodeUnicodeString( received_sms.SMS[i].Number ) ;
 
-		decoded_string = DecodeUnicodeString( receivedSMS.SMS[i].Number ) ;
-
+		// Number of bytes (not characters):
 		size_t decoded_len = strlen( decoded_string ) ;
 
 		LOG_DEBUG( "  - sender number (%i bytes): '%s'", decoded_len,
 		  decoded_string ) ;
 
-		// As length is already known:
+		/* As length is already known; not incremented as the null terminator
+		 * shall not end up in the resulting binary:
+		 *
+		 */
 		write_binary_result( &output_sm_buf, decoded_string, decoded_len ) ;
 
 	  }
 
 
-	  // Then EncodingValue (needed afterwards for all parts, hence the scope):
-
-	  GSM_Coding_Type encoding = receivedSMS.SMS[i].Coding ;
+	  /* Second tuple element, EncodingValue :: encoding_enum() (needed
+	   * afterwards for all parts, hence the scope):
+	   *
+	   */
+	  GSM_Coding_Type encoding = received_sms.SMS[i].Coding ;
 
 	  LOG_DEBUG( "  - encoding: %i", encoding ) ;
 
-
-	  if (  i == 0 )
+	  if ( i == 0 )
 	  {
+
 		write_int_result( &output_sm_buf, get_mobile_encoding( encoding ) ) ;
 
 
-		// Information not sent back:
-		LOG_DEBUG( "  - class: %i", receivedSMS.SMS[i].Class + 1 ) ;
+		// Information not sent back (little interest):
+		LOG_DEBUG( "  - class: %i", received_sms.SMS[i].Class + 1 ) ;
 
-		LOG_DEBUG( "  - PDU type: %i", receivedSMS.SMS[i].PDU ) ;
+		LOG_DEBUG( "  - PDU type: %i", received_sms.SMS[i].PDU ) ;
 
 
-		// Then MessageReference:
+		// Then third tuple element, MessageReference :: sms_tpmr():
 
-		sms_tpmr msg_ref = receivedSMS.SMS[i].MessageReference ;
+		sms_tpmr msg_ref = received_sms.SMS[i].MessageReference ;
 
 		LOG_DEBUG( "  - message reference: %i", msg_ref ) ;
 
 		write_int_result( &output_sm_buf, msg_ref ) ;
 
 
-
-		/* Then Timestamp; we directly convert the struct into its
-		 * time_utils:timestamp/0 counterpart, which is {date(), time()},
-		 * namely: { {Year, Month, Day}, {Hour, Minute, Second} }.
+		/* Then Timestamp :: sms_timestamp(); we directly convert the struct
+		 * into its time_utils:timestamp/0 counterpart, which is {date(),
+		 * time()}, namely: {{Year, Month, Day}, {Hour, Minute, Second}}.
 		 *
 		 * (Timezone not used here)
 		 *
@@ -1387,31 +1411,38 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		// For date(), hence {Year, Month, Day}:
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Year ) ;
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Month ) ;
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Day ) ;
+		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Year ) ;
+		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Month ) ;
+		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Day ) ;
 
 		// For time(), hence {Hour, Minute, Second}:
 		write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Hour ) ;
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Minute ) ;
-		write_int_result( &output_sm_buf, receivedSMS.SMS[i].DateTime.Second ) ;
+		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Hour ) ;
 
-		// All tuple elements but BinText written.
+		write_int_result( &output_sm_buf,
+		  received_sms.SMS[i].DateTime.Minute ) ;
+
+		write_int_result( &output_sm_buf,
+		  received_sms.SMS[i].DateTime.Second ) ;
+
+		/* All tuple elements written, but the BinText :: bin_string(), which
+		 * shall be first aggregated across the SMS parts involved.
+		 *
+		 */
 
 	  }
 
-	  /* Section gone through for all SMS parts, aggregating BinText across them
-	   * all:
+	  /* Section evakuated for each of the SMS parts, aggregating BinText across
+	   * them all:
 	   *
 	   */
 
 	  if ( encoding != SMS_Coding_8bit
-		&& receivedSMS.SMS[i].UDH.Type != UDH_UserUDH )
+		&& received_sms.SMS[i].UDH.Type != UDH_UserUDH )
 	  {
 
-		decoded_string = DecodeUnicodeString( receivedSMS.SMS[i].Text ) ;
+		decoded_string = DecodeUnicodeString( received_sms.SMS[i].Text ) ;
 
 		size_t decoded_len = strlen( decoded_string ) ;
 
@@ -1435,7 +1466,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		if ( encoding == SMS_Coding_8bit )
 		  LOG_DEBUG( "  - no text read (8-bit encoded)" ) ;
 
-		if ( receivedSMS.SMS[i].UDH.Type == UDH_UserUDH )
+		if ( received_sms.SMS[i].UDH.Type == UDH_UserUDH )
 		  LOG_DEBUG( "  - no text read (UDH type: user)" ) ;
 
 	  }
@@ -1449,10 +1480,10 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	  if ( delete_on_reading )
 	  {
 
-		LOG_DEBUG( "Deleting SMS." ) ;
+		LOG_DEBUG( "Deleting SMS part." ) ;
 
 		GSM_Error gammu_error =
-		  GSM_DeleteSMS( gammu_fsm, &receivedSMS.SMS[ i ] ) ;
+		  GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
 
 		check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
 
@@ -1461,20 +1492,20 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	}
 
 	/* Here we went through all SMS parts, their texts have been aggregated in
-	 * BinText, so we write it and this 5-tuple is over.
+	 * BinText, so we write it, and this 5-tuple is over.
 	 *
 	 */
 
-	// Null-terminated:
+	// Null-terminated overall string:
 	string_buffer[ copy_index ] = 0 ;
 
 	write_string_with_length_result( &output_sm_buf, string_buffer,
 	  copy_index ) ;
 
 
-  }
+  } // while
 
-  // Closing the last cons:
+  // Closing finally the last cons:
   write_empty_list_result( &output_sm_buf ) ;
 
 }
