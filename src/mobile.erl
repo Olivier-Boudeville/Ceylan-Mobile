@@ -985,13 +985,17 @@ Converts a transmitted subset of GSM_SMSMessage into a received_sms record.
 
 (helper)
 """.
-to_sms( { BinSenderNumber, EncodingValue, MessageReference, BinTimestamp,
+to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
 		  BinText } ) ->
+
+	%trace_utils:debug_fmt( "BinText = '~ts', i.e.: ~w.",
+	%                       [ BinText, BinText ] ),
+
 	#received_sms{ sender_number=BinSenderNumber,
 				   encoding=enum_to_encoding( EncodingValue ),
 				   text=BinText,
 				   message_reference=MessageReference,
-				   timestamp=BinTimestamp }.
+				   timestamp=Timestamp }.
 
 
 
@@ -1024,14 +1028,14 @@ get_textual_information() ->
 
 
 -doc "Returns a textual description of the specified received SMS.".
-received_sms_to_string( #received_sms{ sender_number=Number,
+received_sms_to_string( #received_sms{ sender_number=BinSenderNumber,
 									   encoding=Encoding,
-									   text=Text,
+									   text=BinText,
 									   message_reference=MsgRef,
 									   timestamp=Timestamp } ) ->
 	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
 		" whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
-		[ Number, Encoding, Text, MsgRef,
+		[ BinSenderNumber, Encoding, BinText, MsgRef,
 		  time_utils:timestamp_to_string( Timestamp ) ] ).
 
 
