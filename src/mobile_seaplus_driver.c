@@ -971,9 +971,15 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
 	raise_gammu_error( gammu_fsm,
 	  "SMS recipient mobile number could not be obtained." ) ;
 
-  unsigned int buf_size = ( strlen( message ) + 1 ) * 2 ;
+  size_t msg_size = strlen( message ) ;
 
-  // To store message as Unicode (unsigned char rather than byte):
+  /* Size apparently sufficient, 2 bytes per Unicode codepoint (see
+   * https://wammu.eu/docs/devel/internals/coding_8c_source.html):
+   *
+   */
+  unsigned int buf_size = ( msg_size + 1 ) * 2 ;
+
+  // To store message as Unicode; unsigned char rather than byte:
   unsigned char * msg_buffer = (unsigned char *) malloc( buf_size ) ;
 
   if ( msg_buffer == NULL )
@@ -1014,7 +1020,7 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong ;
 
   // Encode message text:
-  EncodeUnicode( msg_buffer, message, strlen( message ) ) ;
+  EncodeUnicode( msg_buffer, message, msg_size ) ;
 
   SMSInfo.Entries[0].Buffer = msg_buffer ;
 
