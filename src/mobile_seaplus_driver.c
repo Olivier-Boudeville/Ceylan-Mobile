@@ -1185,7 +1185,7 @@ enum encoding get_mobile_encoding( GSM_Coding_Type e )
 
 
 
-/* Reads all SMS already received (if any).
+/* Reads all the SMS already received (if any).
  *
  * Returns a list of received_sms_tuple() terms (so not exactly a
  * [mobile:received_sms()]).
@@ -1203,7 +1203,6 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
    *   GSM_SMSMessage
    *
    * - GSM_SMSMessage: GSM_Coding_Type is the usual enum
-   *
    *
    * Once relying on GSM_GetNextSMS (declared in gammu/include/gammu-message.h,
    * defined in gammu/libgammu/api.c; rather than GSM_GetSMS), two inspirations
@@ -1322,11 +1321,11 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	/* Interpreting now the overall message for each SMS, per SMS part
 	 * (concatenating split texts).
 	 *
-	 * Note, that, apparently (in our tests), even when sending longer SMSs,
-	 * each of them is not interpreted as a single, multipart SMS but as
-	 * multiple SMSs, each with one part (i.e. received_sms.Number == 1 and the
-	 * parts are actually considered as separate SMSs); however we do our best
-	 * to aggregate them, if ever necessary.
+	 * Note, that, apparently (in our tests), even when sending longer SMS, each
+	 * of them is not interpreted as a single, multipart SMS but as multiple
+	 * SMS, each with one part (i.e. received_sms.Number == 1 and the parts are
+	 * actually considered as separate SMS); however we do our best to aggregate
+	 * them, if ever necessary.
 	 *
 	 */
 	for ( sms_count i = 0; i < received_sms.Number; i++ )
@@ -1439,7 +1438,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 	  }
 
-	  /* Section evakuated for each of the SMS parts, aggregating BinText across
+	  /* Section evaluated for each of the SMS parts, aggregating BinText across
 	   * them all:
 	   *
 	   */
@@ -1448,7 +1447,9 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		&& received_sms.SMS[i].UDH.Type != UDH_UserUDH )
 	  {
 
+		// Does not seem to induce any difference:
 		decoded_string = DecodeUnicodeString( received_sms.SMS[i].Text ) ;
+		//DecodeUnicode( received_sms.SMS[i].Text, decoded_string ) ;
 
 		size_t decoded_len = strlen( decoded_string ) ;
 
@@ -1505,9 +1506,14 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	// Null-terminated overall string:
 	string_buffer[ copy_index ] = 0 ;
 
+	/* Does not preserve less usual characters such as "è", "€", etc.:
 	write_string_with_length_result( &output_sm_buf, string_buffer,
 	  copy_index ) ;
+	*/
 
+	// Proper UTF-8:
+	write_binary_result( &output_sm_buf, string_buffer,
+	  copy_index ) ;
 
   } // while
 
