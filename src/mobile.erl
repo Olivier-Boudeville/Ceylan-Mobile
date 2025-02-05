@@ -155,14 +155,15 @@ The mobile number associated to a device, as a binary string
 -type encoding() ::
 
 	% Default Unicode:
-	'unicode_uncompressed'
+	'unicode_uncompressed' % Perfect encoding expected
 
-  | 'unicode_compressed'
+  | 'unicode_compressed' % Not supported by most recipients anyway?
 
 	% Default GSM alphabet:
-  | 'gsm_uncompressed'
+  | 'gsm_uncompressed' % Some characters are correctly encoded (e.g. aéàù),
+					   % some not (e.g. âêîôû become aeiou)
 
-  | 'gsm_compressed'
+  | 'gsm_compressed' % Not supported by most recipients anyway?
 
   | 'eight_bit'.
 
@@ -1027,12 +1028,11 @@ received_sms_to_string( #received_sms{ sender_number=Number,
 									   encoding=Encoding,
 									   text=Text,
 									   message_reference=MsgRef,
-									   timestamp=BinTimestamp } ) ->
+									   timestamp=Timestamp } ) ->
 	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
-		"whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
+		" whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
 		[ Number, Encoding, Text, MsgRef,
-		  %time_utils:timestamp_to_string( Timestamp ) ] ).
-		  BinTimestamp ] ).
+		  time_utils:timestamp_to_string( Timestamp ) ] ).
 
 
 
