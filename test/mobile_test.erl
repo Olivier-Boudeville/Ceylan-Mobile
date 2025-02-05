@@ -30,6 +30,9 @@
 -moduledoc """
 Module for the overall, most complete test of the **Ceylan-Mobile services**.
 
+Note that a series of SMS will be sent by this test to any registered mobile
+phone.
+
 Some test sentences emanate from dear /usr/bin/fortune.
 
 Note that with the 'dummy' Gammu model, TPMR references might be always 255.
@@ -94,6 +97,7 @@ run() ->
 			throw( mobile_not_available )
 
 	end.
+
 
 
 % Perfoms the actual testing.
@@ -178,9 +182,9 @@ actual_sending_test( MobileNumber ) ->
 	Class = 1,
 
 	test_facilities:display( "~n~nThe next sending tests will target the "
-		"following recipient mobile number: '~ts', first with a few "
-		"single-part SMS, of various lengths, of class ~B, and needing "
-		"various encodings.", [ MobileNumber, Class ] ),
+		"following recipient mobile number, found in the preferences: '~ts', "
+		"first with a few single-part SMS, of various lengths, of class ~B, "
+		"and needing various encodings.", [ MobileNumber, Class ] ),
 
 
 	% Single (non-multipart) SMS testing:
@@ -189,6 +193,7 @@ actual_sending_test( MobileNumber ) ->
 	FirstMessage = "Hello world!",
 
 	FirstSMSReport = mobile:send_regular_sms( FirstMessage, MobileNumber ),
+	%FirstSMSReport = deactivated,
 
 	test_facilities:display( "~nSent first (single-part) SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
@@ -196,7 +201,8 @@ actual_sending_test( MobileNumber ) ->
 
 
 	% With (uncompressed) GSM encoding, the single received SMS should stop just
-	% after the second 'Tom':
+	% after the second 'Tom' (found actually stopping just after
+	% 'http://mobile'):
 	%
 	SecondMessage = text_utils:format(
 		"Goodbye! This is a longer SMS to test their support. "
@@ -210,6 +216,7 @@ actual_sending_test( MobileNumber ) ->
 		"-- J. R. R. Tolkien", [] ),
 
 	SecondSMSReport = mobile:send_regular_sms( SecondMessage, MobileNumber ),
+	%SecondSMSReport = deactivated,
 
 	test_facilities:display( "~nSent second (single-part) SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
@@ -229,13 +236,14 @@ actual_sending_test( MobileNumber ) ->
 									  [ "GSM uncompressed" ] ),
 
 	%test_facilities:display( "Will be sending now following message: '~ts'.",
-	%						 [ GSMUncompMsg ] ),
+	%                         [ GSMUncompMsg ] ),
 
 	% With this encoding, "âêîôû" is expected to be sent as "aeiou", and the
 	% received SMS is expected to stop after 'one, inv':
 	%
 	GSMUncompSMSReport = mobile:send_regular_sms( GSMUncompMsg, MobileNumber,
 												  Class, gsm_uncompressed ),
+	%GSMUncompSMSReport = deactivated,
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
 		"for the test of GSM uncompressed encoding, whose report is: ~w.",
@@ -249,10 +257,11 @@ actual_sending_test( MobileNumber ) ->
 	%test_facilities:display( "Sending now: '~ts'.", [ UnicodeUncompMsg ] ),
 
 	% With Unicode, "âêîôû" is expected to be received just fine, but the length
-	% of this single SMS shall be quite small: stopping after "this is a long":
+	% of this single SMS shall be quite small, stopping after "this is a long":
 	%
 	UnicodeUncompSMSReport = mobile:send_regular_sms( UnicodeUncompMsg,
 		MobileNumber, Class, unicode_uncompressed ),
+	%UnicodeUncompSMSReport = deactivated,
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
 		"for the test of Unicode uncompressed encoding, whose report is: ~w.",
@@ -265,6 +274,7 @@ actual_sending_test( MobileNumber ) ->
 	%test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
 
 	AutoSMSReport = mobile:send_regular_sms( AutoMsg, MobileNumber ),
+	%AutoSMSReport = deactivated,
 
 	test_facilities:display( "~nSent (single-part) SMS (message: '~ts') "
 		"for the test of (automatic) encoding, whose report is: ~w.",
@@ -280,6 +290,7 @@ actual_sending_test( MobileNumber ) ->
 
 	FirstMultiSMSReport = mobile:send_multipart_sms( FirstMessage,
 													 MobileNumber ),
+	%FirstMultiSMSReport = deactivated,
 
 	test_facilities:display( "~nSent first multipart SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
@@ -287,6 +298,7 @@ actual_sending_test( MobileNumber ) ->
 
 	SecondMultiSMSReport = mobile:send_multipart_sms( SecondMessage,
 													  MobileNumber ),
+	%SecondMultiSMSReport = deactivated,
 
 	test_facilities:display( "~nSent second multipart SMS (message: '~ts') "
 		"with default settings, whose report is: ~w.",
@@ -313,8 +325,8 @@ actual_sending_test( MobileNumber ) ->
 	GSMMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
 										   [ "GSM uncompressed" ] ),
 
-	%test_facilities:display( "Will be sending now following message: '~ts'.",
-	%						 [ GSMMultiUncompMsg ] ),
+	test_facilities:display( "Will be sending now following message: '~ts'.",
+							 [ GSMMultiUncompMsg ] ),
 
 	GSMMultiUncompSMSReport = mobile:send_multipart_sms( GSMMultiUncompMsg,
 		MobileNumber, Class, gsm_uncompressed ),
@@ -328,8 +340,8 @@ actual_sending_test( MobileNumber ) ->
 	UnicodeMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
 											   [ "Unicode uncompressed" ] ),
 
-	%test_facilities:display( "Sending now: '~ts'.",
-	%    [ UnicodeMultiUncompMsg ] ),
+	test_facilities:display( "Sending now: '~ts'.",
+							 [ UnicodeMultiUncompMsg ] ),
 
 	UnicodeMultiUncompSMSReport = mobile:send_multipart_sms(
 		UnicodeMultiUncompMsg, MobileNumber, Class, unicode_uncompressed ),
@@ -343,7 +355,7 @@ actual_sending_test( MobileNumber ) ->
 	AutoMultiMsg = text_utils:format( EncodingMultiTestFormatMsg,
 									  [ "automatic mode" ] ),
 
-	%test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
+	test_facilities:display( "Sending now: '~ts'.", [ AutoMsg ] ),
 
 	AutoMultiSMSReport = mobile:send_multipart_sms( AutoMultiMsg,
 													MobileNumber ),
