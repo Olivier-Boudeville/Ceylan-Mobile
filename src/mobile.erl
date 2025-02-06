@@ -119,11 +119,13 @@ For example `<<"208150030213526">>`.
 
 
 -doc """
-Most SMSs are of class 1 (the default, should no class be specified).
+Most SMS are of class 1 ("normal", the default, should no class be specified).
 
 See also <http://www.ozekisms.com/index.php?owpn=544>.
 """.
--type sms_class() :: non_neg_integer().
+-type sms_class() :: 0 % Flash
+				   | 1 % Norm
+				   | non_neg_integer().
 
 
 
@@ -191,7 +193,12 @@ The mobile number associated to a device, as a binary string
 
 
 
--doc "Describes a received SMS.".
+-doc """
+Describes a received SMS.
+
+More precisely corresponds to a multi-SMS message, each of these SMS having its
+parts automatically aggregated.
+""".
 -type received_sms() :: #received_sms{}.
 
 
@@ -939,7 +946,7 @@ enum_to_encoding( EncodingEnum ) ->
 
 
 -doc """
-Reads all SMSs already received (if any), and, if DeleteOnReading=true is
+Reads all SMS already received (if any), and, if DeleteOnReading=true is
 specified, deletes them as soon as they are read.
 
 Does not block.
