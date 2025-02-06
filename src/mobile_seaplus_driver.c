@@ -54,7 +54,7 @@
 // For signal:
 #include <signal.h>
 
-// For memset:
+// For strlen:
 #include <string.h>
 
 // For va_start and friends:
@@ -864,7 +864,9 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
 
 
 
-/* Sends a regular (single-part) SMS with specified class and encoding.
+/* Sends a regular (single-part) SMS with the specified class and encoding.
+ *
+ * See also https://docs.gammu.org/c/examples.html#sending-sms-message
  *
  */
 void send_regular_sms( input_buffer read_buf, buffer_index * index,
@@ -877,8 +879,10 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
 	raise_gammu_error( gammu_fsm,
 	  "SMS message could not be obtained (regular)." ) ;
 
-  // Clean-up the struct:
-  memset( &sms, 0, sizeof( sms ) ) ;
+  /* Clean-up the struct; presumably better than
+   * 'memset(&sms, 0, sizeof(sms);':
+   */
+  GSM_SetDefaultSMSData( &sms ) ;
 
   EncodeUnicode( sms.Text, message, strlen( message ) ) ;
 
@@ -951,7 +955,9 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
 
 
 
-/* Sends a multipart SMS with specified class and encoding.
+/* Sends a multipart SMS with the specified class and encoding.
+ *
+ * See also https://docs.gammu.org/c/examples.html#sending-long-sms-message
  *
  */
 void send_multipart_sms( input_buffer read_buf, buffer_index * index,
@@ -1192,6 +1198,8 @@ enum encoding get_mobile_encoding( GSM_Coding_Type e )
  *
  * Does not block.
  *
+ * See also https://docs.gammu.org/c/examples.html#reading-sms-message
+ *
  */
 void read_all_sms( input_buffer read_buf, buffer_index * index,
   GSM_StateMachine * gammu_fsm )
@@ -1254,19 +1262,27 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   // Pointer to a static string:
   char * decoded_string ;
 
-
-  /* Here we do not know from the start the size of the list of SMS tuples to
-   * return, so instead of creating [SMS1, SMS2, SMS3] we create it from cons':
-   * [SMS1 | [SMS2 | [SMS3 | []]]].
-   *
-   */
+  // They must be outside the next main loop, as texts may spread over messages:
+  bool must_initiate_tuple = true ;
+  size_t copy_index = 0 ;
 
   while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
   {
 
-	LOG_DEBUG( "Trying to read a new SMS from device..." ) ;
+	LOG_DEBUG( "Trying to read a new multi-SMS message from device..." ) ;
 
-
+	/* Actually we are looping here over (multi-SMS) messages, themselves having
+	 * potentially multiple SMS, themselves having potentially multiple parts;
+	 * however then there is no double nesting: we just iterate, for a given
+	 * message, on SMS, each corresponding either to an autonomous SMS, or to a
+	 * part of a multipart one.
+	 *
+	 * So we are message-level here.
+	 *
+	 * In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
+	 * gammu/smsd/core.c.
+	 *
+	 */
 	read_error = GSM_GetNextSMS( gammu_fsm, &received_sms, is_first ) ;
 
 	// Terminates the consing:
@@ -1280,58 +1296,87 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	   *
 	   */
 
+	  // Try to overcome any partial reading:
+	  if (copy_index > 0)
+	  {
+
+		LOG_DEBUG( "Empty read, SMS tuple closed; final text: '%s'.",
+		  string_buffer ) ;
+
+		// Proper UTF-8 obtained for all characters:
+		write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
+
+	  }
+
 	  break;
 
 	}
 
-	check_gammu_error( read_error, "read SMS", gammu_fsm ) ;
+	check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
 
-
-	/* So now we know a 5-tuple (for this SMS) will have to be written.
-	 *
-	 * List arity (i.e. actual elements before the cons tail) will be 1, as we
-	 * are cons'ing, like in: [SMS1, [SMS2, []]] (refer to
-	 * https://www.erlang.org/docs/25/man/ei#ei_encode_list_header to better
-	 * understand)
-	 *
-	 */
-	write_list_header_result( &output_sm_buf, 1 ) ;
-
+	// Regarding messages (not per-message SMS):
 	is_first = false ;
 
-	LOG_DEBUG( "Reading a new SMS." ) ;
+	LOG_DEBUG( "Reading a new multi-SMS message." ) ;
 
 
-	/* For each SMS, the Erlang counterpart expects a received_sms_tuple() term,
-	 * i.e. a {BinSenderNumber, EncodingValue, MessageReference, Timestamp,
-	 * BinText} 5-tuple.
+	/* Interpreting now each SMS of that message; if it is a SMS part, we
+	 * concatenate the text of the overall SMS.
 	 *
-	 * Fields of interest currently not returned here: SMS, PDU, Class.
-	 *
-	 * BinText is better aggregated (from the various SMS parts involved)
-	 * directly here, in the C part, and written last in the created tuple; as
-	 * the other tuple elements are expected to be the same in all SMS parts, we
-	 * write them once, from the first SMS part.
+	 * Note, that, apparently (in our tests), even when sending longer SMS,
+	 * messages have only one SMS (1/1, i.e. received_sms.Number == 1) - but
+	 * then each SMS may correspond to a part (as if the next number had no
+	 * meaning).
 	 *
 	 */
-	size_t copy_index = 0 ;
 
-	write_tuple_header_result( &output_sm_buf, 5 ) ;
+	if (must_initiate_tuple)
+	{
 
-	/* Interpreting now the overall message for each SMS, per SMS part
-	 * (concatenating split texts).
-	 *
-	 * Note, that, apparently (in our tests), even when sending longer SMS, each
-	 * of them is not interpreted as a single, multipart SMS but as multiple
-	 * SMS, each with one part (i.e. received_sms.Number == 1 and the parts are
-	 * actually considered as separate SMS); however we do our best to aggregate
-	 * them, if ever necessary.
-	 *
-	 */
+	  /* Here we do not know from the start the size of the list of SMS tuples
+	   * ("messages") to return, so instead of creating [R_SMS1, R_SMS2, R_SMS3]
+	   * we create it from cons': [R_SMS1 | [R_SMS2 | [R_SMS3 | []]]].
+	   *
+	   * (refer to https://www.erlang.org/docs/25/man/ei#ei_encode_list_header
+	   * for a better understanding)
+	   *
+	   * So we are cons'ing a single element, said tuple:
+	   */
+	  write_list_header_result( &output_sm_buf, 1 ) ;
+
+	  /* In all cases (autonomous, single SMS or multipart one), a SMS term will
+	   * be returned. So now a 5-tuple will have to be written for this SMS.
+	   *
+	   * For each multi-SMS message, the Erlang counterpart expects a
+	   * received_sms_tuple() term, i.e. a {BinSenderNumber, EncodingValue,
+	   * MessageReference, Timestamp, BinText} 5-tuple (so: not one tuple per
+	   * SMS/part message).
+	   *
+	   * Fields of interest currently not returned here: SMS, PDU, Class.
+	   *
+	   * BinText is better aggregated (from the various SMS-as-a-part involved,
+	   * if any) directly here, in the C part, and written last in the created
+	   * tuple; as the other tuple elements are expected to be the same in all
+	   * SMS-as-a-part, we write them once, from the first SMS part.
+	   *
+	   */
+	  write_tuple_header_result( &output_sm_buf, 5 ) ;
+
+	  /* Starts by writing the beginning of a 5-tuple, whether single or
+	   * multipart SMS message:
+	   *
+	   */
+
+	}
+
+
 	for ( sms_count i = 0; i < received_sms.Number; i++ )
 	{
 
-	  LOG_DEBUG( "Reading SMS part %i/%i...", i+1, received_sms.Number ) ;
+	  // Most probably 1/1; anyway we aggregate:
+	  LOG_DEBUG( "Reading SMS %i/%i for that message...", i+1,
+		received_sms.Number ) ;
+
 
 	  /* Except the actual payload (text/data), we expect the metadata of the
 	   * various SMS parts to be equal (e.g. for SMS classes) or roughly the
@@ -1340,10 +1385,15 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	   *
 	   */
 
-	  // First tuple element, BinSenderNumber :: bin_phone_number():
+	  // Has to be fetched in all cases:
+	  GSM_Coding_Type encoding = received_sms.SMS[i].Coding ;
 
-	  if ( i == 0 )
+	  if (must_initiate_tuple)
 	  {
+
+		LOG_DEBUG( "Initiating SMS tuple." ) ;
+
+		// First tuple element, BinSenderNumber :: bin_phone_number():
 
 		// See, in gammu/include/gammu-message.h, GSM_SMSMessage:
 
@@ -1368,34 +1418,29 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		 */
 		write_binary_result( &output_sm_buf, decoded_string, decoded_len ) ;
 
-	  }
+		/* Second tuple element, EncodingValue :: encoding_enum() (needed
+		 * afterwards for all parts, hence the scope):
+		 *
+		 */
 
 
-	  /* Second tuple element, EncodingValue :: encoding_enum() (needed
-	   * afterwards for all parts, hence the scope):
-	   *
-	   */
-	  GSM_Coding_Type encoding = received_sms.SMS[i].Coding ;
-
-	  LOG_DEBUG( "  - encoding: %i", encoding ) ;
-
-	  if ( i == 0 )
-	  {
+		// Generally 1 (unicode_uncompressed) or 3 (gsm_uncompressed):
+		LOG_DEBUG( "  - encoding: %i", encoding ) ;
 
 		write_int_result( &output_sm_buf, get_mobile_encoding( encoding ) ) ;
 
 
 		// Information not sent back (little interest):
-		LOG_DEBUG( "  - class: %i", received_sms.SMS[i].Class + 1 ) ;
+		LOG_DEBUG( "  - class: %i", received_sms.SMS[i].Class + 1 ) ; // 0
 
-		LOG_DEBUG( "  - PDU type: %i", received_sms.SMS[i].PDU ) ;
-
+		LOG_DEBUG( "  - PDU type: %i", received_sms.SMS[i].PDU ) ; // 1
 
 		// Then third tuple element, MessageReference :: sms_tpmr():
 
 		sms_tpmr msg_ref = received_sms.SMS[i].MessageReference ;
 
-		LOG_DEBUG( "  - message reference: %i", msg_ref ) ;
+		// Always 0 in our tests:
+		LOG_DEBUG( "  - message reference: %i", msg_ref ) ; // 0
 
 		write_int_result( &output_sm_buf, msg_ref ) ;
 
@@ -1436,13 +1481,14 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		 *
 		 */
 
-	  }
+	  } // if (must_initiate_tuple)
 
-	  /* Section evaluated for each of the SMS parts, aggregating BinText across
-	   * them all:
+	  /* Section evaluated for each of the SMS, aggregating BinText across them
+	   * all:
 	   *
 	   */
 
+	  // Generally true:
 	  if ( encoding != SMS_Coding_8bit
 		&& received_sms.SMS[i].UDH.Type != UDH_UserUDH )
 	  {
@@ -1453,7 +1499,8 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 		size_t decoded_len = strlen( decoded_string ) ;
 
-		LOG_DEBUG( "  - text (%i bytes): '%s'", decoded_len, decoded_string ) ;
+		LOG_DEBUG( "  - adding text (%i bytes): '%s'", decoded_len,
+		  decoded_string ) ;
 
 		size_t new_copy_index = copy_index + decoded_len ;
 
@@ -1468,7 +1515,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	  else
 	  {
 
-		// Both could be true:
+		// Both could be true; no writing done:
 
 		if ( encoding == SMS_Coding_8bit )
 		  LOG_DEBUG( "  - no text read (8-bit encoded)" ) ;
@@ -1478,11 +1525,69 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 	  }
 
-
-	  /* In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
-	   * gammu/smsd/core.c.
+	  /* Now we have to determine whether this is the final SMS of the target
+	   * message:
 	   *
 	   */
+
+	  // UDH (User Data Header):
+	  GSM_UDHHeader udh = received_sms.SMS[i].UDH ;
+
+	  int part_number = udh.PartNumber ;
+	  int final_part_number = udh.AllParts ;
+
+	  LOG_DEBUG( "  - part number %i/%i", part_number, final_part_number ) ;
+
+	  /* For a single-part SMS, having only: -1/0.
+	   * For a multipart one, having for example: 1/3, 2/3, 3/3
+	   *
+	   */
+	  bool final_part = (part_number == -1 && final_part_number == 0)
+		|| (part_number == final_part_number ) ;
+
+	  if (final_part)
+	  {
+
+		/* Here we went through all SMS parts, their texts have been aggregated
+		 * in BinText, so we write it, and this 5-tuple is over.
+		 *
+		 */
+
+		// Null-terminated overall string:
+		//string_buffer[ copy_index ] = 0 ;
+
+		/* Does not preserve less usual characters such as "è", "€", etc.:
+		write_string_with_length_result( &output_sm_buf, string_buffer,
+		  copy_index ) ;
+		*/
+
+		string_buffer[ copy_index ] = 0 ;
+		LOG_DEBUG( "SMS tuple closed; final text: '%s'.", string_buffer ) ;
+
+		// Proper UTF-8 obtained for all characters:
+		write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
+
+
+		// Prepare for the next message:
+		must_initiate_tuple = true ;
+		copy_index = 0 ;
+
+		// If ever reached n/n, but there was at least one more SMS:
+		break;
+
+	  }
+	  else
+	  {
+
+		string_buffer[ copy_index ] = 0 ;
+
+		// Probably with garbage (no null terminator):
+		LOG_DEBUG( "Still building the SMS text (now %i bytes), which is '%s'.",
+		  copy_index, string_buffer ) ;
+
+		must_initiate_tuple = false;
+
+	  }
 
 	  if ( delete_on_reading )
 	  {
@@ -1496,31 +1601,17 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 	  }
 
-	}
+	} // for ( sms_count i = 0; i < received_sms.Number; i++ )
 
-	/* Here we went through all SMS parts, their texts have been aggregated in
-	 * BinText, so we write it, and this 5-tuple is over.
-	 *
-	 */
 
-	// Null-terminated overall string:
-	string_buffer[ copy_index ] = 0 ;
+  } // while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
 
-	/* Does not preserve less usual characters such as "è", "€", etc.:
-	write_string_with_length_result( &output_sm_buf, string_buffer,
-	  copy_index ) ;
-	*/
-
-	// Proper UTF-8:
-	write_binary_result( &output_sm_buf, string_buffer,
-	  copy_index ) ;
-
-  } // while
-
-  // Closing finally the last cons:
+  // Closing finally the last cons of the overall list:
   write_empty_list_result( &output_sm_buf ) ;
 
 }
+
+
 
 
 
