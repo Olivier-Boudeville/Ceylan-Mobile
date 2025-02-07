@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<meta name="generator" content="Docutils 0.21.2: https://docutils.sourceforge.io/" />
 <meta content="Mobile, cellular, phone, 3G, SMS, MMS, Erlang" name="keywords" />
 <title>Welcome to the Ceylan-Mobile documentation</title>
 <link rel="stylesheet" href="pygments-default.css" type="text/css" />
@@ -23,7 +23,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2019-2024 Olivier Boudeville</p>
+<tr class="field"><th class="field-name">Organisation:</th><td class="field-body"><p class="first">Copyright (C) 2019-2025 Olivier Boudeville</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Contact:</th><td class="field-body"><p class="first">about (dash) mobile (at) esperide (dot) com</p>
@@ -32,10 +32,10 @@
 <tr class="field"><th class="field-name">Creation date:</th><td class="field-body"><p class="first">Sunday, March 3, 2019</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Sunday, January 14, 2024</p>
+<tr class="field"><th class="field-name">Lastly updated:</th><td class="field-body"><p class="first">Friday, February 7, 2025</p>
 </td>
 </tr>
-<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.0.12</p>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body"><p class="first">1.1.0</p>
 </td>
 </tr>
 <tr class="field"><th class="field-name">Status:</th><td class="field-body"><p class="first">Stable</p>
@@ -45,7 +45,7 @@
 </td>
 </tr>
 <tr class="field"><th class="field-name">Abstract:</th><td class="field-body"><p class="first">The role of the <a class="reference external" href="http://mobile.esperide.org/">Mobile</a> library is to control mobile phones from Erlang.
-A typical use case is to send SMS from Erlang thanks to a connected 3G USB key.</p>
+A typical use case is to send (and possibly receive) SMS from Erlang thanks to a connected 3G USB key.</p>
 <p class="last">We present here a short overview of these services, to introduce them to newcomers.
 The next level of information is either to browse the <a class="reference external" href="api-doc/index.html">Mobile API documentation</a> or simply to read the corresponding <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">source files</a>, which are intensely commented and generally straightforward.</p>
 </td>
@@ -59,7 +59,7 @@ The next level of information is either to browse the <a class="reference extern
 <p></p>
 <p><span class="raw-html"><a name="mobile_toc"></a></span></p>
 <div class="contents topic" id="topic-1">
-<span id="table-of-contents"></span><p class="topic-title"><strong>Table of Contents</strong></p>
+<span id="table-of-contents"></span><p class="topic-title"><a class="reference internal" href="#top"><strong>Table of Contents</strong></a></p>
 <ul class="simple">
 <li><a class="reference internal" href="#overview" id="toc-entry-1">Overview</a></li>
 <li><a class="reference internal" href="#securing-the-prerequisites" id="toc-entry-2">Securing the Prerequisites</a><ul>
@@ -305,7 +305,7 @@ $<span class="w"> </span>gpasswd<span class="w"> </span>-a<span class="w"> </spa
 <pre class="code bash literal-block">
 $<span class="w"> </span>newgrp<span class="w"> </span>uucp
 </pre>
-<p>We re-use that group so that this non-privileged user can also write in the Gammu log file we specified; as root:</p>
+<p>We re-use that group so that this non-privileged user can also write in the Gammu log file that we specified; as root:</p>
 <pre class="code bash literal-block">
 $<span class="w"> </span>touch<span class="w"> </span>/var/log/gammu-ceylan.log<span class="w">
 </span>$<span class="w"> </span>chgrp<span class="w"> </span>uucp<span class="w"> </span>/var/log/gammu-ceylan.log
@@ -485,7 +485,7 @@ $<span class="w"> </span>gammu<span class="w"> </span>--identify<span class="w">
 <p>Once proper Erlang and C environments are available and Gammu is setup, the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Myriad">Ceylan-Myriad repository</a> should be cloned and built, before doing the same with the <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Seaplus">Ceylan-Seaplus repository</a> and then this <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile">Ceylan-Mobile repository</a>. This can be done directly (manually) or thanks to rebar3 (automatically).</p>
 <p>Then one will be able to enjoy using one's mobile from Erlang.</p>
 <div class="section" id="using-cutting-edge-git">
-<h4>Using Cutting-Edge GIT</h4>
+<h4>Using Cutting-Edge Git</h4>
 <p>Once Erlang is available, a manual install should be just a matter of executing:</p>
 <pre class="code bash literal-block">
 $<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Olivier-Boudeville/Ceylan-Myriad<span class="w"> </span>myriad<span class="w">
@@ -506,12 +506,12 @@ $<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span
 </span>$<span class="w"> </span>rebar3<span class="w"> </span>compile
 </pre>
 <p>Then Mobile and its tests shall be ready for a successful execution.</p>
-<p>Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead.</p>
+<p>Note that rebar3 is only an alternate way of building Mobile, as one may rely directly on our make-based system instead (that we prefer dearly).</p>
 </div>
 </div>
 <div class="section" id="testing-ceylan-mobile">
 <h3><a class="toc-backref" href="#toc-entry-16">Testing Ceylan-Mobile</a></h3>
-<p>To test the current functional coverage, once the prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself have been secured (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge GIT</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no functional 3G device):</p>
+<p>To test the current functional coverage, once the prerequisites (<a class="reference external" href="https://myriad.esperide.org">Myriad</a> and <a class="reference external" href="https://seaplus.esperide.org">Seaplus</a>) and Mobile itself have been secured (for that refer to either <a class="reference internal" href="#using-cutting-edge-git">Using Cutting-Edge Git</a> or <a class="reference internal" href="#using-rebar3">Using Rebar3</a>), one may run <a class="reference external" href="https://github.com/Olivier-Boudeville/Ceylan-Mobile/blob/master/test/mobile_test.erl">mobile_test.erl</a>; from the root of the <tt class="docutils literal"><span class="pre">Ceylan-Mobile</span></tt> clone (once built, and assuming here using the <tt class="docutils literal">dummy</tt> Gammu driver - so that the test can be run even if having no functional 3G device):</p>
 <pre class="code bash literal-block">
 $<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nb">test</span><span class="w">
 </span>$<span class="w"> </span>make<span class="w"> </span>mobile-test<span class="w">
@@ -561,7 +561,7 @@ $<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span
 <div class="section" id="some-sms-related-general-information">
 <h1><a class="toc-backref" href="#toc-entry-17">Some SMS-related General Information</a></h1>
 <p>The text to be sent as a SMS must be somehow encoded in messages.</p>
-<p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used, and then only 70 characters will fit in that SMS.</p>
+<p>Either the default, very limited <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38">alphabet of 7bit encoding</a> can be used, and then a single, regular SMS will contain up to 160 characters (knowing that the <tt class="docutils literal"><span class="pre">|^€{}[]\</span></tt> characters will have to be escaped and thus will count for 2 characters with this encoding), or at least one character does not belong to that alphabet and then the Unicode <a class="reference external" href="https://en.wikipedia.org/wiki/GSM_03.38#UCS-2_Encoding">UCS-2</a> encoding will have to be used - and then only 70 characters will fit in that SMS.</p>
 <p>Should the message be longer than what a single SMS can carry for the relevant encoding, a multi-part SMS shall be used: the text will be split into as many SMS as needed (at least, up to 255 of them, each with a reduced per-SMS payload due to an UDH header being needed; with the 7bit encoding: 153 characters per SMS; with UCS-2: 67 of them), and they will be sent as separate SMS. The receiver is expected to decode these headers, reassemble the messages correctly and present them as if they were a single, longer SMS.</p>
 <p>Ceylan-Mobile automatically detects the relevant encoding and type (single/multiple) parts needed; the user just has to specify the text message that shall be sent.</p>
 <p>See also an <a class="reference external" href="https://messente.com/documentation/tools/sms-length-calculator">Online SMS Length Calculator</a>.</p>
@@ -627,7 +627,7 @@ $<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span
 <h1><a class="toc-backref" href="#toc-entry-25">Troubleshooting</a></h1>
 <div class="section" id="initialisation-issues">
 <h2><a class="toc-backref" href="#toc-entry-26">Initialisation Issues</a></h2>
-<p>If the Mobile driver crashes and its logs report:</p>
+<p>If the Mobile driver crashes, and its logs report:</p>
 <pre class="literal-block">
 Gammu error in the 'find Gammu RC' step:
 'Can not open specified file.'
