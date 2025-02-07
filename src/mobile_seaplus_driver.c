@@ -1573,7 +1573,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 		copy_index = 0 ;
 
 		// If ever reached n/n, but there was at least one more SMS:
-		break;
+		// Does not seem relevant after all: break ;
 
 	  }
 	  else
@@ -1592,7 +1592,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 	  if ( delete_on_reading )
 	  {
 
-		LOG_DEBUG( "Deleting SMS part." ) ;
+		LOG_DEBUG( "Deleting SMS %i/%i", i+1, received_sms.Number ) ;
 
 		GSM_Error gammu_error =
 		  GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
