@@ -102,7 +102,7 @@ endif
 # The uniquely-defined version of this layer, for all uses (including rebar, hex
 # and the code itself, see mobile:get_mobile_version{_string,}/0):
 #
-MOBILE_VERSION := 1.0.13
+MOBILE_VERSION := 1.1.0
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
