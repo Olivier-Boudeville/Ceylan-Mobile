@@ -322,7 +322,8 @@ endif
 
 
 ifndef EDOC_OPTS
-	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {macros,[{$(PROJECT_EDOC_VERSION_KEY),"$(PROJECT_VERSION)"}]}, {includes,["$(LAYER_TOP)/include", "$(MYRIAD_TOP)/..", "$(SEAPLUS_TOP)/.."]}, {overview, "$(LAYER_TOP)/overview.edoc"}]'
+	# No more relative links with "$(LAYER_TOP)" (see Myriad's counterpart):
+	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {macros,[{$(PROJECT_EDOC_VERSION_KEY),"$(PROJECT_VERSION)"}]}, {includes,["..", "$(MYRIAD_TOP)/..", "$(SEAPLUS_TOP)/.."]}, {overview, "doc/overview.edoc"}]'
 endif
 
 
