@@ -10,14 +10,8 @@
 <hr>
 
 <h1>Module mobile</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>Module implementing the <b>Ceylan-Mobile services</b>.
+<ul class="index"><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
 
-
-<h2><a name="description">Description</a></h2><p>Module implementing the <b>Ceylan-Mobile services</b>.</p>
-
- <p>Operates through a Seaplus-based interface to the Gammu backend library.</p>
-
- See Ceylan-Seaplus at http://seaplus.esperide.org.
 
 <h2><a name="types">Data Types</a></h2>
 
@@ -26,84 +20,91 @@
 
 
 <h3 class="typedecl"><a name="type-backend_version">backend_version()</a></h3>
-<p><code>backend_version() = <a href="basic_utils.html#type-version">basic_utils:version()</a></code></p>
-<p> For example {1,40,1}.</p>
+<p><code>backend_version() = <a href="basic_utils.html#type-version" docgen-rel="seetype" docgen-href="basic_utils#version/0">basic_utils:version()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-bin_mobile_number">bin_mobile_number()</a></h3>
-<p><code>bin_mobile_number() = <a href="#type-bin_string">bin_string()</a></code></p>
-<p> The mobile number associated to a device, as a binary
- (e.g. <code>&lt;&lt;"+1234567890"&gt;&gt;</code>).</p>
+<p><code>bin_mobile_number() = <a href="#type-bin_phone_number" docgen-rel="seetype" docgen-href="#bin_phone_number/0">bin_phone_number()</a></code></p>
+
+
+<h3 class="typedecl"><a name="type-bin_phone_number">bin_phone_number()</a></h3>
+<p><code>bin_phone_number() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-bin_sms_message">bin_sms_message()</a></h3>
-<p><code>bin_sms_message() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>bin_sms_message() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-bin_string">bin_string()</a></h3>
-<p><code>bin_string() = <a href="text_utils.html#type-bin_string">text_utils:bin_string()</a></code></p>
-
-
-<h3 class="typedecl"><a name="type-count">count()</a></h3>
-<p><code>count() = <a href="basic_utils.html#type-count">basic_utils:count()</a></code></p>
+<p><code>bin_string() = <a href="text_utils.html#type-bin_string" docgen-rel="seetype" docgen-href="text_utils#bin_string/0">text_utils:bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-date_text">date_text()</a></h3>
-<p><code>date_text() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>date_text() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-device_name">device_name()</a></h3>
-<p><code>device_name() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>device_name() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-encoding">encoding()</a></h3>
 <p><code>encoding() = unicode_uncompressed | unicode_compressed | gsm_uncompressed | gsm_compressed | eight_bit</code></p>
 
 
+<h3 class="typedecl"><a name="type-encoding_enum">encoding_enum()</a></h3>
+<p><code>encoding_enum() = pos_integer()</code></p>
+
+
 <h3 class="typedecl"><a name="type-error_rate">error_rate()</a></h3>
-<p><code>error_rate() = <a href="#type-integer_percent">integer_percent()</a></code></p>
-<p> For example -1% (!) or 0%.</p>
+<p><code>error_rate() = <a href="#type-integer_percent" docgen-rel="seetype" docgen-href="#integer_percent/0">integer_percent()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-hardware_info">hardware_info()</a></h3>
-<p><code>hardware_info() = <a href="#type-bin_string">bin_string()</a></code></p>
-<p> For example <code>&lt;&lt;"FOO DUMMY BAR"&gt;&gt;</code>, <code>&lt;&lt;"Gammu error: Function not supported by
- phone."&gt;&gt;</code>.</p>
+<p><code>hardware_info() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-imei">imei()</a></h3>
-<p><code>imei() = <a href="#type-bin_string">bin_string()</a></code></p>
-<p><p> International Mobile Equipment Identity code.</p>
+<p><code>imei() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
- For example <code>&lt;&lt;"154483225355085"&gt;&gt;</code>.</p>
 
 <h3 class="typedecl"><a name="type-imsi_code">imsi_code()</a></h3>
-<p><code>imsi_code() = <a href="#type-bin_string">bin_string()</a></code></p>
-<p> International Mobile Subscriber Identity code.
- For example <code>&lt;&lt;"208150030213526"&gt;&gt;</code>.</p>
+<p><code>imsi_code() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-integer_percent">integer_percent()</a></h3>
-<p><code>integer_percent() = <a href="math_utils.html#type-integer_percent">math_utils:integer_percent()</a></code></p>
+<p><code>integer_percent() = <a href="math_utils.html#type-integer_percent" docgen-rel="seetype" docgen-href="math_utils#integer_percent/0">math_utils:integer_percent()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-manufacturer_name">manufacturer_name()</a></h3>
-<p><code>manufacturer_name() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>manufacturer_name() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-mobile_number">mobile_number()</a></h3>
-<p><code>mobile_number() = <a href="#type-ustring">ustring()</a></code></p>
-<p> The mobile number associated to a device (e.g. "+1234567890").</p>
+<p><code>mobile_number() = <a href="#type-phone_number" docgen-rel="seetype" docgen-href="#phone_number/0">phone_number()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-model_name">model_name()</a></h3>
-<p><code>model_name() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>model_name() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
+
+
+<h3 class="typedecl"><a name="type-phone_number">phone_number()</a></h3>
+<p><code>phone_number() = <a href="#type-ustring" docgen-rel="seetype" docgen-href="#ustring/0">ustring()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-received_sms">received_sms()</a></h3>
-<p><code>received_sms() = #received_sms{sender_number = <a href="#type-bin_mobile_number">bin_mobile_number()</a>, encoding = <a href="#type-encoding">encoding()</a>, text = <a href="#type-bin_sms_message">bin_sms_message()</a>, message_reference = <a href="#type-sms_tpmr">sms_tpmr()</a>, timestamp = <a href="#type-sms_timestamp">sms_timestamp()</a>}</code></p>
-<p> Describes a received SMS.</p>
+<p><code>received_sms() = #received_sms{sender_number = <a href="#type-bin_mobile_number" docgen-rel="seetype" docgen-href="#bin_mobile_number/0">bin_mobile_number()</a>, encoding = <a href="#type-encoding" docgen-rel="seetype" docgen-href="#encoding/0">encoding()</a>, text = <a href="#type-bin_sms_message" docgen-rel="seetype" docgen-href="#bin_sms_message/0">bin_sms_message()</a>, message_reference = <a href="#type-sms_tpmr" docgen-rel="seetype" docgen-href="#sms_tpmr/0">sms_tpmr()</a>, timestamp = <a href="#type-sms_timestamp" docgen-rel="seetype" docgen-href="#sms_timestamp/0">sms_timestamp()</a>}</code></p>
+
+
+<h3 class="typedecl"><a name="type-received_sms_tuple">received_sms_tuple()</a></h3>
+<p><code>received_sms_tuple() = {BinSenderNumber::<a href="#type-bin_phone_number" docgen-rel="seetype" docgen-href="#bin_phone_number/0">bin_phone_number()</a>, EncodingValue::<a href="#type-encoding_enum" docgen-rel="seetype" docgen-href="#encoding_enum/0">encoding_enum()</a>, MessageReference::<a href="#type-sms_tpmr" docgen-rel="seetype" docgen-href="#sms_tpmr/0">sms_tpmr()</a>, Timestamp::<a href="#type-sms_timestamp" docgen-rel="seetype" docgen-href="#sms_timestamp/0">sms_timestamp()</a>, BinText::<a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a>}</code></p>
+
 
 <h3 class="typedecl"><a name="type-revision_number">revision_number()</a></h3>
 <p><code>revision_number() = float()</code></p>
 
 
 <h3 class="typedecl"><a name="type-revision_text">revision_text()</a></h3>
-<p><code>revision_text() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>revision_text() = <a href="#type-bin_string" docgen-rel="seetype" docgen-href="#bin_string/0">bin_string()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-seaplus_option">seaplus_option()</a></h3>
@@ -111,52 +112,50 @@
 
 
 <h3 class="typedecl"><a name="type-signal_strength">signal_strength()</a></h3>
-<p><code>signal_strength() = <a href="#type-integer_percent">integer_percent()</a></code></p>
-<p> In dBm. For example -51 dBm or 42 dBm.</p>
+<p><code>signal_strength() = <a href="#type-integer_percent" docgen-rel="seetype" docgen-href="#integer_percent/0">integer_percent()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-signal_strength_percent">signal_strength_percent()</a></h3>
-<p><code>signal_strength_percent() = <a href="#type-integer_percent">integer_percent()</a></code></p>
-<p> In dBm. For example 100% or 42%.</p>
+<p><code>signal_strength_percent() = <a href="#type-integer_percent" docgen-rel="seetype" docgen-href="#integer_percent/0">integer_percent()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-sms_class">sms_class()</a></h3>
-<p><code>sms_class() = non_neg_integer()</code></p>
-<p><p> Most SMS are of class 1 (the default, should no class by specified).</p>
+<p><code>sms_class() = 0 | 1 | non_neg_integer()</code></p>
 
- See also <a href="http://www.ozekisms.com/index.php?owpn=544" target="_top"><code>http://www.ozekisms.com/index.php?owpn=544</code></a>.</p>
 
 <h3 class="typedecl"><a name="type-sms_message">sms_message()</a></h3>
-<p><code>sms_message() = <a href="#type-ustring">ustring()</a></code></p>
-<p> User-specified SMS message.</p>
+<p><code>sms_message() = <a href="#type-ustring" docgen-rel="seetype" docgen-href="#ustring/0">ustring()</a></code></p>
+
 
 <h3 class="typedecl"><a name="type-sms_sending_report">sms_sending_report()</a></h3>
-<p><code>sms_sending_report() = {<a href="#type-sms_sending_status">sms_sending_status()</a>, <a href="#type-sms_tpmr">sms_tpmr()</a>}</code></p>
-<p> Returned by a sending.</p>
+<p><code>sms_sending_report() = {<a href="#type-sms_sending_status" docgen-rel="seetype" docgen-href="#sms_sending_status/0">sms_sending_status()</a>, <a href="#type-sms_tpmr" docgen-rel="seetype" docgen-href="#sms_tpmr/0">sms_tpmr()</a>}</code></p>
+
 
 <h3 class="typedecl"><a name="type-sms_sending_status">sms_sending_status()</a></h3>
 <p><code>sms_sending_status() = success | failure</code></p>
-<p> Describes the status of a SMS sending.</p>
+
 
 <h3 class="typedecl"><a name="type-sms_timestamp">sms_timestamp()</a></h3>
-<p><code>sms_timestamp() = <a href="#type-bin_string">bin_string()</a></code></p>
+<p><code>sms_timestamp() = <a href="time_utils.html#type-timestamp" docgen-rel="seetype" docgen-href="time_utils#timestamp/0">time_utils:timestamp()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-sms_tpmr">sms_tpmr()</a></h3>
-<p><code>sms_tpmr() = <a href="#type-count">count()</a></code></p>
-<p> Message reference, as generated by the GSM network.</p>
+<p><code>sms_tpmr() = pos_integer()</code></p>
+
 
 <h3 class="typedecl"><a name="type-three_digit_version">three_digit_version()</a></h3>
-<p><code>three_digit_version() = <a href="basic_utils.html#type-three_digit_version">basic_utils:three_digit_version()</a></code></p>
+<p><code>three_digit_version() = <a href="basic_utils.html#type-three_digit_version" docgen-rel="seetype" docgen-href="basic_utils#three_digit_version/0">basic_utils:three_digit_version()</a></code></p>
 
 
 <h3 class="typedecl"><a name="type-ustring">ustring()</a></h3>
-<p><code>ustring() = <a href="text_utils.html#type-ustring">text_utils:ustring()</a></code></p>
+<p><code>ustring() = <a href="text_utils.html#type-ustring" docgen-rel="seetype" docgen-href="text_utils#ustring/0">text_utils:ustring()</a></code></p>
 
 
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#activate_seaplus-1">activate_seaplus/1</a></td><td></td></tr>
-<tr><td valign="top"><a href="#get_mobile_version-0">get_mobile_version/0</a></td><td>Returns the version of the Mobile library being used.</td></tr>
-<tr><td valign="top"><a href="#get_mobile_version_string-0">get_mobile_version_string/0</a></td><td>Returns the version of the Mobile library being used, as a string.</td></tr>
-<tr><td valign="top"><a href="#received_sms_to_string-1">received_sms_to_string/1</a></td><td>Returns a textual description of the specified received SMS.</td></tr>
+<tr><td valign="top"><a href="#get_mobile_version-0">get_mobile_version/0</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_mobile_version_string-0">get_mobile_version_string/0</a></td><td></td></tr>
+<tr><td valign="top"><a href="#received_sms_to_string-1">received_sms_to_string/1</a></td><td></td></tr>
 <tr><td valign="top"><a href="#restart-0">restart/0</a></td><td></td></tr>
 </table>
 
@@ -164,31 +163,31 @@
 
 <h3 class="function"><a name="activate_seaplus-1">activate_seaplus/1</a></h3>
 <div class="spec">
-<p><code>activate_seaplus(Options::[<a href="#type-seaplus_option">seaplus_option()</a>]) -&gt; <a href="#type-void">void()</a></code><br></p>
+<p><code>activate_seaplus(Options::[<a href="#type-seaplus_option" docgen-rel="seetype" docgen-href="#seaplus_option/0">seaplus_option()</a>]) -&gt; <a href="#type-void" docgen-rel="seetype" docgen-href="#void/0">void()</a></code><br></p>
 <p> </p>
 </div>
 
 <h3 class="function"><a name="get_mobile_version-0">get_mobile_version/0</a></h3>
 <div class="spec">
-<p><code>get_mobile_version() -&gt; <a href="#type-three_digit_version">three_digit_version()</a></code><br></p>
+<p><code>get_mobile_version() -&gt; <a href="#type-three_digit_version" docgen-rel="seetype" docgen-href="#three_digit_version/0">three_digit_version()</a></code><br></p>
 <p> </p>
-</div><p>Returns the version of the Mobile library being used.</p>
+</div>
 
 <h3 class="function"><a name="get_mobile_version_string-0">get_mobile_version_string/0</a></h3>
 <div class="spec">
-<p><code>get_mobile_version_string() -&gt; <a href="#type-ustring">ustring()</a></code><br></p>
+<p><code>get_mobile_version_string() -&gt; <a href="#type-ustring" docgen-rel="seetype" docgen-href="#ustring/0">ustring()</a></code><br></p>
 <p> </p>
-</div><p>Returns the version of the Mobile library being used, as a string.</p>
+</div>
 
 <h3 class="function"><a name="received_sms_to_string-1">received_sms_to_string/1</a></h3>
 <div class="spec">
 <p><code>received_sms_to_string(Received_sms) -&gt; any()</code></p>
 <p> </p>
-</div><p>Returns a textual description of the specified received SMS.</p>
+</div>
 
 <h3 class="function"><a name="restart-0">restart/0</a></h3>
 <div class="spec">
-<p><code>restart() -&gt; <a href="#type-void">void()</a></code><br></p>
+<p><code>restart() -&gt; <a href="#type-void" docgen-rel="seetype" docgen-href="#void/0">void()</a></code><br></p>
 <p> </p>
 </div>
 <hr>
