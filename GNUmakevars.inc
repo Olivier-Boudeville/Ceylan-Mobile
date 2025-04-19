@@ -102,7 +102,7 @@ endif
 # The uniquely-defined version of this layer, for all uses (including rebar, hex
 # and the code itself, see mobile:get_mobile_version{_string,}/0):
 #
-MOBILE_VERSION := 1.1.0
+MOBILE_VERSION := 1.1.1
 
 
 # PROJECT_VERSION should be defined on a per-project basis.
@@ -321,9 +321,11 @@ endif
 # Documentation section.
 
 
+# No $(LAYER_TOP) in includes, it would be misleading as edoc is run from the
+# clone root, not from doc:
+#
 ifndef EDOC_OPTS
-	# No more relative links with "$(LAYER_TOP)" (see Myriad's counterpart):
-	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {macros,[{$(PROJECT_EDOC_VERSION_KEY),"$(PROJECT_VERSION)"}]}, {includes,["..", "$(MYRIAD_TOP)/..", "$(SEAPLUS_TOP)/.."]}, {overview, "doc/overview.edoc"}]'
+	EDOC_OPTS = '[{dir,"$(API_DOC_ROOT)"}, {def,{vsn,"$(PROJECT_VERSION)"}}, {preprocess,true}, {macros,[{$(PROJECT_EDOC_VERSION_KEY),"$(PROJECT_VERSION)"}]}, {includes,["..", "$(SEAPLUS_TOP)/..", "$(MYRIAD_TOP)/..", ]}, {overview, "doc/overview.edoc"}]'
 endif
 
 
