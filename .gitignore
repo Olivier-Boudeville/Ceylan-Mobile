@@ -32,3 +32,8 @@ src/mobile_seaplus_driver
 doc/mathjax
 
 doc/Ceylan-Mobile-Layer-technical-manual-english.rst
+doc/api-doc/
+doc/index.html
+doc/mobile.html
+doc/mobile.pdf
+doc/overview.edoc
