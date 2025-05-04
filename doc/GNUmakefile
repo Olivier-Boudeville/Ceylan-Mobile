@@ -42,8 +42,7 @@ all:
 	@echo "  Run 'make doc' to generate the documentation of the 'Mobile' layer."
 
 
-# ex_doc currently failing:
-doc: html pdf #create-api-doc
+doc: html pdf create-api-doc
 
 
 html: local-html
@@ -77,6 +76,8 @@ export-doc: clean-doc doc export-doc-to-official export-doc-to-mirror
 #
 export-doc-to-official: clean-doc create-links doc
 	@echo "   Exporting Mobile documentation to official website ($(WEB_SRV))"
+
+toto:
 	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 
 
