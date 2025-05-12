@@ -32,7 +32,7 @@ help-mobile:
 all: check-gammu
 
 check-gammu:
-	@if pkg-config gammu; then echo "  Checking that Gammu is available: found."; else echo "Error, the Gammu dependency does not seem available. Please install this package beforehand (e.g. 'pacman -Sy gammu' on Arch Linux)." 1>&2; exit 12; fi
+	@if pkg-config gammu 2>/dev/null; then echo "  Checking that Gammu is available: found."; else echo "  Error, the Gammu dependency does not seem available. Please install this package beforehand (e.g. 'pacman -Sy gammu' on Arch Linux)." 1>&2; exit 12; fi
 
 
 register-version-in-header:
