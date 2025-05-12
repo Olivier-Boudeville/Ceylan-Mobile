@@ -192,7 +192,7 @@ SEAPLUS_PARSE_TRANSFORMS_PZ_OPT = -pz $(SEAPLUS_OTP_BEAM_DIR_FROM_USUAL) \
 #GAMMU_INC_DIR := /usr/include/gammu
 
 # Better than -I$(GAMMU_INC_DIR):
-GAMMU_INC := $(shell pkg-config --cflags gammu)
+GAMMU_INC = $(shell pkg-config --cflags gammu 2>/dev/null)
 
 
 
@@ -205,7 +205,7 @@ GAMMU_LIB := lib$(GAMMU_BASE_NAME).so
 GAMMU_LIB_PATH = $(GAMMU_LIB_DIR)/$(GAMMU_LIB)
 
 # If wanting to use the system-wide library:
-GAMMU_LIBS := $(shell pkg-config --libs gammu)
+GAMMU_LIBS = $(shell pkg-config --libs gammu 2>/dev/null)
 
 # If wanting to use any custom (e.g. debug) build:
 #GAMMU_LIBS := -L$(HOME)/Software/libgammu/lib -lGammu
