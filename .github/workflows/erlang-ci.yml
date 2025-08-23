@@ -10,8 +10,9 @@ on:
 jobs:
 
   build:
-    # The actual OS is dictated by the image, which is currently a Debian 11
-    # (bullseye):
+    # The actual OS is dictated by the image, which is currently a Debian 12
+    # (bookworm); note that the addition of backports below will require an
+    # update each time a new Debian is obtained through the next tag.
     #
     runs-on: ubuntu-latest
 
@@ -35,7 +36,10 @@ jobs:
         #add-apt-repository universe
         #echo "## Updating packages (2/2)"
         #apt-get update
-        echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
+        # Will require to be updated whenever 'ubuntu-latest' will resolve into
+        # a new Debian version:
+        #
+        echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list
         echo "## Updating packages"
         apt-get update
         #echo "## Searching for gammu-related packages"
