@@ -76,8 +76,6 @@ export-doc: clean-doc doc export-doc-to-official export-doc-to-mirror
 #
 export-doc-to-official: clean-doc create-links doc
 	@echo "   Exporting Mobile documentation to official website ($(WEB_SRV))"
-
-toto:
 	@/bin/scp $(SP) -r $(WEB_CONTENT) $(WEB_SRV):$(WEB_ROOT)/Mobile/
 
 

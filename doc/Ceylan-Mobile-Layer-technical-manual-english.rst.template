@@ -803,7 +803,7 @@ If the Mobile driver crashes, and its logs report::
  Gammu error in the 'find Gammu RC' step:
  'Can not open specified file.'
 
-this means that Gammu was not able to find a configuration file (for example in ``in ~/.gammurc``); refer to `this section <#gammu-conventions>`_ for more details.
+this means that Gammu was not able to find a configuration file (for example in ``~/.gammurc``); refer to `this section <#gammu-conventions>`_ for more details.
 
 
 
