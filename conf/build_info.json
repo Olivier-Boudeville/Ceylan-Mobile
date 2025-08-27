@@ -9,7 +9,7 @@
       "dir": "..",
       "src_dirs": ["./src"],
       "extra_src_dirs": ["test"],
-       "include_dirs": [
+      "include_dirs": [
         "include"
       ],
 
