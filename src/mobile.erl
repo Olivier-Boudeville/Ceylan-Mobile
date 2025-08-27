@@ -31,11 +31,11 @@
 Module implementing the **Ceylan-Mobile services**, in charge of controlling
 mobile devices (smartphones, dongles), 2G/3G, possibly 4G or more recent.
 
-Refer to send_sms/2 for the most useful, integrated sending function.
+Refer to `send_sms/2` for the most useful, integrated sending function.
 
 Operates through a Seaplus-based interface to the Gammu backend library.
 
-See Ceylan-Seaplus at <http://seaplus.esperide.org>.
+See Ceylan-Seaplus at [http://seaplus.esperide.org].
 """.
 
 
@@ -53,7 +53,7 @@ See Ceylan-Seaplus at <http://seaplus.esperide.org>.
 -type backend_type() :: 'gammu'.
 
 
--doc "For example {1,40,1}.".
+-doc "For example `{1,40,1}`.".
 -type backend_version() :: basic_utils:version().
 
 
@@ -121,7 +121,7 @@ For example `<<"208150030213526">>`.
 -doc """
 Most SMS are of class 1 ("normal", the default, should no class be specified).
 
-See also <http://www.ozekisms.com/index.php?owpn=544>.
+See also [http://www.ozekisms.com/index.php?owpn=544].
 """.
 -type sms_class() :: 0 % Flash
 				   | 1 % Norm
@@ -139,7 +139,7 @@ See also <http://www.ozekisms.com/index.php?owpn=544>.
 
 -doc """
 The mobile number associated to a device, as a plain string
-(e.g. "+1234567890").
+(e.g. `"+1234567890"`).
 """.
 -type mobile_number() :: phone_number().
 
@@ -387,7 +387,7 @@ ever.
 
 Tells notably if the backend is available and is able to find a suitable
 configuration file; for example does not tell whether an actual device can be
-used (see has_actual_device/0 for that).
+used (see `has_actual_device/0` for that).
 
 Avoids the user code to have to trigger a dummy operation and catch a possible
 exception in order to know whether the backend is usable.
@@ -468,7 +468,7 @@ start_common() ->
 
 -doc """
 Returns a set containing all characters of the GSM, 7bit alphabet that shall not
-be escaped, for faster look-ups.
+be escaped, for faster lookups.
 """.
 create_gsm_charset() ->
 
@@ -534,8 +534,8 @@ get_hardware_information() ->
 Returns the name and version of the backend used.
 
 We override this function for convenience: the C-side just returns the Gammu
-version as a string (e.g. "1.40.0"), we prefer return a more proper tuple
-(e.g. {1,40,0}).
+version as a string (e.g. `"1.40.0"`), we prefer return a more proper tuple
+(e.g. `{1,40,0}`).
 """.
 -spec get_backend_information() -> { backend_type(), backend_version() }.
 get_backend_information() ->
@@ -988,9 +988,7 @@ read_all_sms( DeleteOnReading ) ->
 
 
 -doc """
-Converts a transmitted subset of GSM_SMSMessage into a received_sms record.
-
-(helper)
+Converts a transmitted subset of `GSM_SMSMessage` into a `received_sms` record.
 """.
 to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
 		  BinText } ) ->
