@@ -124,8 +124,8 @@ Most SMS are of class 1 ("normal", the default, should no class be specified).
 See also [http://www.ozekisms.com/index.php?owpn=544].
 """.
 -type sms_class() :: 0 % Flash
-				   | 1 % Norm
-				   | non_neg_integer().
+                   | 1 % Norm
+                   | non_neg_integer().
 
 
 
@@ -156,14 +156,14 @@ The mobile number associated to a device, as a binary string
 -doc "How the text of a SMS shall be encoded.".
 -type encoding() ::
 
-	% Default Unicode:
-	'unicode_uncompressed' % Perfect encoding expected
+    % Default Unicode:
+    'unicode_uncompressed' % Perfect encoding expected
 
   | 'unicode_compressed' % Not supported by most recipients anyway?
 
-	% Default GSM alphabet:
+    % Default GSM alphabet:
   | 'gsm_uncompressed' % Some characters are correctly encoded (e.g. aéàù),
-					   % some not (e.g. âêîôû become aeiou)
+                       % some not (e.g. âêîôû become aeiou)
 
   | 'gsm_compressed' % Not supported by most recipients anyway?
 
@@ -203,20 +203,20 @@ parts automatically aggregated.
 
 
 -export_type([ backend_type/0, backend_version/0,
-			   device_name/0, manufacturer_name/0,
-			   model_name/0, revision_text/0,
-			   date_text/0, revision_number/0, imei/0,
-			   hardware_info/0, imsi_code/0,
-			   signal_strength/0, signal_strength_percent/0,
-			   error_rate/0,
-			   sms_message/0, sms_class/0,
+               device_name/0, manufacturer_name/0,
+               model_name/0, revision_text/0,
+               date_text/0, revision_number/0, imei/0,
+               hardware_info/0, imsi_code/0,
+               signal_strength/0, signal_strength_percent/0,
+               error_rate/0,
+               sms_message/0, sms_class/0,
 
-			   phone_number/0, bin_phone_number/0,
-			   mobile_number/0, bin_mobile_number/0,
+               phone_number/0, bin_phone_number/0,
+               mobile_number/0, bin_mobile_number/0,
 
-			   encoding/0,
-			   sms_sending_status/0, sms_tpmr/0,
-			   sms_sending_report/0, received_sms/0 ]).
+               encoding/0,
+               sms_sending_status/0, sms_tpmr/0,
+               sms_sending_report/0, received_sms/0 ]).
 
 
 % Version-related functions.
@@ -230,10 +230,10 @@ parts automatically aggregated.
 
 -doc "As received from the C node.".
 -type received_sms_tuple() :: { BinSenderNumber :: bin_phone_number(),
-								EncodingValue :: encoding_enum(),
-								MessageReference :: sms_tpmr(),
-								Timestamp :: sms_timestamp(),
-								BinText :: bin_string() }.
+                                EncodingValue :: encoding_enum(),
+                                MessageReference :: sms_tpmr(),
+                                Timestamp :: sms_timestamp(),
+                                BinText :: bin_string() }.
 
 % Silencing:
 -export_type([ received_sms_tuple/0 ]).
@@ -306,7 +306,7 @@ parts automatically aggregated.
 % <<"20150101">>, 1.42}`.
 %
 -spec get_firmware_information() ->
-	{ revision_text(), date_text(), revision_number() }.
+    { revision_text(), date_text(), revision_number() }.
 
 
 % doc: Returns the IMEI/serial number of the (supposedly connected) mobile
@@ -338,7 +338,7 @@ parts automatically aggregated.
 % Note that the returned error rate might be -1% (actual) or 0% (emulated).
 %
 -spec get_signal_quality() ->
-	{ signal_strength(), signal_strength_percent(), error_rate() }.
+    { signal_strength(), signal_strength_percent(), error_rate() }.
 
 
 
@@ -350,15 +350,15 @@ parts automatically aggregated.
 -doc "Returns the version of the Mobile library being used.".
 -spec get_mobile_version() -> three_digit_version().
 get_mobile_version() ->
-	basic_utils:parse_version( get_mobile_version_string() ).
+    basic_utils:parse_version( get_mobile_version_string() ).
 
 
 
 -doc "Returns the version of the Mobile library being used, as a string.".
 -spec get_mobile_version_string() -> ustring().
 get_mobile_version_string() ->
-	% As defined (uniquely) in GNUmakevars.inc:
-	?mobile_version.
+    % As defined (uniquely) in GNUmakevars.inc:
+    ?mobile_version.
 
 
 
@@ -395,35 +395,35 @@ exception in order to know whether the backend is usable.
 -spec is_available() -> boolean().
 is_available() ->
 
-	% No better/simpler/more reliable test known that:
-	try get_device_name() of
+    % No better/simpler/more reliable test known that:
+    try get_device_name() of
 
-		_ ->
-			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
-				"Ceylan-Mobile considered to be available." ) ),
-			true
+        _ ->
+            cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
+                "Ceylan-Mobile considered to be available." ) ),
+            true
 
-	% Intercepting just the exception class and pattern of interest:
-	catch
+    % Intercepting just the exception class and pattern of interest:
+    catch
 
-		throw:{ driver_crashed, unknown_reason } ->
+        throw:{ driver_crashed, unknown_reason } ->
 
-			cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
-				"Ceylan-Mobile considered as not available, as it "
-				"cannot perform a Gammu test operation (driver crash)." ) ),
+            cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
+                "Ceylan-Mobile considered as not available, as it "
+                "cannot perform a Gammu test operation (driver crash)." ) ),
 
-			false;
+            false;
 
-		% Never crashing:
-		Class:Pattern ->
+        % Never crashing:
+        Class:Pattern ->
 
-			trace_utils:error_fmt( "Unexpected exception raised "
-				"when checking the availability of Gammu: "
-				"exception class is ~p, pattern is ~p.", [ Class, Pattern ] ),
+            trace_utils:error_fmt( "Unexpected exception raised "
+                "when checking the availability of Gammu: "
+                "exception class is ~p, pattern is ~p.", [ Class, Pattern ] ),
 
-			false
+            false
 
-	end.
+    end.
 
 
 
@@ -436,33 +436,33 @@ by the Seaplus parse transform.
 """.
 -spec start() -> void().
 start() ->
-	start_common().
+    start_common().
 
 
 
 -doc "Starts and links the Mobile service.".
 -spec start_link() -> void().
 start_link() ->
-	start_common().
+    start_common().
 
 
 
 % (helper)
 start_common() ->
 
-	cond_utils:if_defined( mobile_debug_base,
-						   trace_bridge:debug( "Starting Mobile." ) ),
+    cond_utils:if_defined( mobile_debug_base,
+                           trace_bridge:debug( "Starting Mobile." ) ),
 
-	% This is needed whenever for example the overall (Erlang) application is
-	% launched with the '-noinput' option (in this case the VM encoding switches
-	% from unicode to latin1, and we cannot output proper UTF-8 characters
-	% anymore: they are displayed as question marks in terminals):
-	%
-	io:setopts( [ { encoding, unicode } ] ),
+    % This is needed whenever for example the overall (Erlang) application is
+    % launched with the '-noinput' option (in this case the VM encoding switches
+    % from unicode to latin1, and we cannot output proper UTF-8 characters
+    % anymore: they are displayed as question marks in terminals):
+    %
+    io:setopts( [ { encoding, unicode } ] ),
 
-	[ process_dictionary:put_as_new( K, V ) || { K, V } <-
-		[ { ?mobile_gsm_charset_key, create_gsm_charset() },
-		  { ?mobile_encoding_key, create_encoding_table() } ] ].
+    [ process_dictionary:put_as_new( K, V ) || { K, V } <-
+        [ { ?mobile_gsm_charset_key, create_gsm_charset() },
+          { ?mobile_encoding_key, create_encoding_table() } ] ].
 
 
 
@@ -472,32 +472,32 @@ be escaped, for faster lookups.
 """.
 create_gsm_charset() ->
 
-	% Based on
-	% https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38:
+    % Based on
+    % https://en.wikipedia.org/wiki/GSM_03.38#GSM_7-bit_default_alphabet_and_extension_table_of_3GPP_TS_23.038_/_GSM_03.38:
 
-	set_utils:new(
-		[ C || C <- lists:seq( $a, $z ) ]
-	 ++ [ C || C <- lists:seq( $A, $Z ) ]
-	 ++ [ C || C <- lists:seq( $0, $9 ) ]
-	 ++ [ $:, $;, $<, $=, $>, $?, $¡, $Ä, $Ö, $Ñ, $Ü, $§, $¿,
-		  $ä, $ö, $ñ, $ü, $à, $@, $£, $$, $¥, $è, $é, $ù, $ì, $ò,
-		  $Ç, $\n, $Ø, $ø, $\r, $Å, $å,
-		  $Δ, $_, $Φ, $Γ, $Λ, $Ω, $Π, $Ψ, $Σ, $Θ, $Ξ,
-		  % Removed as already expected to be escaped: $\\,
-		  $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
-		  $*, $+, $,, $-, $., $/ ] ).
+    set_utils:new(
+        [ C || C <- lists:seq( $a, $z ) ]
+     ++ [ C || C <- lists:seq( $A, $Z ) ]
+     ++ [ C || C <- lists:seq( $0, $9 ) ]
+     ++ [ $:, $;, $<, $=, $>, $?, $¡, $Ä, $Ö, $Ñ, $Ü, $§, $¿,
+          $ä, $ö, $ñ, $ü, $à, $@, $£, $$, $¥, $è, $é, $ù, $ì, $ò,
+          $Ç, $\n, $Ø, $ø, $\r, $Å, $å,
+          $Δ, $_, $Φ, $Γ, $Λ, $Ω, $Π, $Ψ, $Σ, $Θ, $Ξ,
+          % Removed as already expected to be escaped: $\\,
+          $Æ, $æ, $ß, $É, $, , $!, $", $#, $¤, $%, $&, $', $(, $),
+          $*, $+, $,, $-, $., $/ ] ).
 
 
 
 -doc "Returns a suitable (bijective) encoding table.".
 -spec create_encoding_table() -> encoding_table().
 create_encoding_table() ->
-	% A build-time const_bijective_table would be overkill:
-	bijective_table:new( [ { unicode_uncompressed, 1 },
-						   { unicode_compressed,   2 },
-						   { gsm_uncompressed,     3 },
-						   { gsm_compressed,       4 },
-						   { eight_bit,            5 } ] ).
+    % A build-time const_bijective_table would be overkill:
+    bijective_table:new( [ { unicode_uncompressed, 1 },
+                           { unicode_compressed,   2 },
+                           { gsm_uncompressed,     3 },
+                           { gsm_compressed,       4 },
+                           { eight_bit,            5 } ] ).
 
 
 
@@ -512,21 +512,21 @@ example sending tagged error tuples.
 """.
 get_hardware_information() ->
 
-	% These two pseudo-calls are replaced at compilation time by the Seaplus
-	% parse transform with the relevant immediate values:
+    % These two pseudo-calls are replaced at compilation time by the Seaplus
+    % parse transform with the relevant immediate values:
 
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+    PortKey = seaplus:get_service_port_key(),
+    FunctionDriverId = seaplus:get_function_driver_id(),
 
-	case seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ) of
+    case seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ) of
 
-		Bin when is_binary( Bin ) ->
-			Bin;
+        Bin when is_binary( Bin ) ->
+            Bin;
 
-		Other ->
-			throw( Other )
+        Other ->
+            throw( Other )
 
-	end.
+    end.
 
 
 
@@ -540,19 +540,19 @@ version as a string (e.g. `"1.40.0"`), we prefer return a more proper tuple
 -spec get_backend_information() -> { backend_type(), backend_version() }.
 get_backend_information() ->
 
-	% These two pseudo-calls are replaced at compilation time by the Seaplus
-	% parse transform with the relevant immediate values:
+    % These two pseudo-calls are replaced at compilation time by the Seaplus
+    % parse transform with the relevant immediate values:
 
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+    PortKey = seaplus:get_service_port_key(),
+    FunctionDriverId = seaplus:get_function_driver_id(),
 
-	{ Backend, VersionString } =
-		seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ),
+    { Backend, VersionString } =
+        seaplus:call_port_for( PortKey, FunctionDriverId, _Args=[] ),
 
-	% Overridding allows to perform a bit of post-processing here:
-	VersionTuple = basic_utils:parse_version( VersionString ),
+    % Overridding allows to perform a bit of post-processing here:
+    VersionTuple = basic_utils:parse_version( VersionString ),
 
-	{ Backend, VersionTuple }.
+    { Backend, VersionTuple }.
 
 
 
@@ -561,8 +561,8 @@ Tells whether a real (non-virtual, i.e. non-emulated) device is connected.
 """.
 -spec has_actual_device() -> boolean().
 has_actual_device() ->
-	% Best criterion:
-	get_device_manufacturer() =/= <<"Gammu">>.
+    % Best criterion:
+    get_device_manufacturer() =/= <<"Gammu">>.
 
 
 % For the (key) sending of SMS, we override a lot the default Seaplus
@@ -576,9 +576,9 @@ automatically-detected encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number() ) ->
-								sms_sending_report().
+                                sms_sending_report().
 send_regular_sms( Message, MobileNumber ) ->
-	send_regular_sms( Message, MobileNumber, _Class=1 ).
+    send_regular_sms( Message, MobileNumber, _Class=1 ).
 
 
 
@@ -589,34 +589,34 @@ automatically-detected encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number(), sms_class() ) ->
-								sms_sending_report().
+                                sms_sending_report().
 send_regular_sms( Message, MobileNumber, Class ) ->
 
-	% We directly branch to the more complete version, the only one to be known
-	% of the driver:
-	%
-	{ ActualEncoding, ActualMessage } = case scan_characters( Message ) of
+    % We directly branch to the more complete version, the only one to be known
+    % of the driver:
+    %
+    { ActualEncoding, ActualMessage } = case scan_characters( Message ) of
 
-		{ single_sms, Encoding, ReadyMessage } ->
+        { single_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
-			%    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
+            %trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
+            %    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
 
-			{ Encoding, ReadyMessage } ;
+            { Encoding, ReadyMessage } ;
 
 
-		{ multiple_sms, Encoding, ReadyMessage } ->
+        { multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:warning_fmt(
-			%   "Sending '~ts' as a single SMS (as requested), with "
-			%   "encoding ~ts, yet expecting it to be truncated.",
-			%   [ ReadyMessage, Encoding ] ),
+            %trace_bridge:warning_fmt(
+            %   "Sending '~ts' as a single SMS (as requested), with "
+            %   "encoding ~ts, yet expecting it to be truncated.",
+            %   [ ReadyMessage, Encoding ] ),
 
-			{ Encoding, ReadyMessage }
+            { Encoding, ReadyMessage }
 
-	end,
+    end,
 
-	send_regular_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
+    send_regular_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
 
 
 
@@ -626,27 +626,27 @@ Sends a regular (non-multipart) SMS, using specified class and encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
-						encoding() ) -> sms_sending_report().
+                        encoding() ) -> sms_sending_report().
 send_regular_sms( Message, MobileNumber, Class, Encoding )
-		when is_list( Message ) andalso is_list( MobileNumber )
-			 andalso is_integer( Class ) andalso is_atom( Encoding ) ->
+        when is_list( Message ) andalso is_list( MobileNumber )
+             andalso is_integer( Class ) andalso is_atom( Encoding ) ->
 
-	% Only available directly in this (overridden) function:
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+    % Only available directly in this (overridden) function:
+    PortKey = seaplus:get_service_port_key(),
+    FunctionDriverId = seaplus:get_function_driver_id(),
 
-	% Exchanging binaries and directly numerical identifiers is more efficient:
+    % Exchanging binaries and directly numerical identifiers is more efficient:
 
-	MessageBin = unicode:characters_to_binary( Message ),
-	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
-	EncodingEnum = encoding_to_enum( Encoding ),
+    MessageBin = unicode:characters_to_binary( Message ),
+    MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+    EncodingEnum = encoding_to_enum( Encoding ),
 
-	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
+    Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
-	%trace_bridge:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
-	%                        [ Args ] ),
+    %trace_bridge:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
+    %                        [ Args ] ),
 
-	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+    seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
 
 
@@ -657,9 +657,9 @@ encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number() ) ->
-								sms_sending_report().
+                                sms_sending_report().
 send_multipart_sms( Message, MobileNumber ) ->
-	send_multipart_sms( Message, MobileNumber, _Class=1 ).
+    send_multipart_sms( Message, MobileNumber, _Class=1 ).
 
 
 
@@ -670,34 +670,34 @@ encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number(), sms_class() ) ->
-								sms_sending_report().
+                                sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class ) ->
 
-	% We directly branch to the more complete version, the only one to be known
-	% of the driver:
-	%
-	{ ActualEncoding, ActualMessage } = case scan_characters( Message ) of
+    % We directly branch to the more complete version, the only one to be known
+    % of the driver:
+    %
+    { ActualEncoding, ActualMessage } = case scan_characters( Message ) of
 
-		{ single_sms, Encoding, ReadyMessage } ->
+        { single_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:warning_fmt(
-			%   "Sending '~ts' as a multipart SMS (as requested), with "
-			%   "encoding ~ts, yet believing a single-part SMS would have "
-			%   "sufficed.", [ ReadyMessage, Encoding ] ),
+            %trace_bridge:warning_fmt(
+            %   "Sending '~ts' as a multipart SMS (as requested), with "
+            %   "encoding ~ts, yet believing a single-part SMS would have "
+            %   "sufficed.", [ ReadyMessage, Encoding ] ),
 
-			{ Encoding, ReadyMessage } ;
+            { Encoding, ReadyMessage } ;
 
 
-		{ multiple_sms, Encoding, ReadyMessage } ->
+        { multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
-			%    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
+            %trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
+            %    "encoding ~ts.", [ ReadyMessage, Encoding ] ),
 
-			{ Encoding, ReadyMessage }
+            { Encoding, ReadyMessage }
 
-	end,
+    end,
 
-	send_multipart_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
+    send_multipart_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
 
 
 
@@ -707,27 +707,27 @@ Sends specified SMS, using specified class and encoding.
 Returns whether it succeeded, and the message TPMR reference.
 """.
 -spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
-						  encoding() ) -> sms_sending_report().
+                          encoding() ) -> sms_sending_report().
 send_multipart_sms( Message, MobileNumber, Class, Encoding )
-		when is_list( Message ) andalso is_list( MobileNumber )
-			 andalso is_integer( Class ) andalso is_atom( Encoding ) ->
+        when is_list( Message ) andalso is_list( MobileNumber )
+             andalso is_integer( Class ) andalso is_atom( Encoding ) ->
 
-	% Only available directly in this (overridden) function:
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+    % Only available directly in this (overridden) function:
+    PortKey = seaplus:get_service_port_key(),
+    FunctionDriverId = seaplus:get_function_driver_id(),
 
-	% Exchanging binaries and identifiers is more efficient:
+    % Exchanging binaries and identifiers is more efficient:
 
-	MessageBin = unicode:characters_to_binary( Message ),
-	MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
-	EncodingEnum = encoding_to_enum( Encoding ),
+    MessageBin = unicode:characters_to_binary( Message ),
+    MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+    EncodingEnum = encoding_to_enum( Encoding ),
 
-	Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
+    Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
-	%trace_bridge:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
-	%                        [ Args ] ),
+    %trace_bridge:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
+    %                        [ Args ] ),
 
-	seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+    seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
 
 
 
@@ -742,7 +742,7 @@ lower-level one, for the default class 1.
 """.
 -spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
 send_sms( Message, MobileNumber ) ->
-	send_sms( Message, MobileNumber, _Class=1 ).
+    send_sms( Message, MobileNumber, _Class=1 ).
 
 
 
@@ -754,109 +754,109 @@ The most advanced SMS-sending primitive, switching automatically to the right
 lower-level one, based on specified class.
 """.
 -spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
-						sms_sending_report().
+                        sms_sending_report().
 send_sms( Message, MobileNumber, Class ) ->
 
-	% Select the right sending primitive to call:
-	case scan_characters( Message ) of
+    % Select the right sending primitive to call:
+    case scan_characters( Message ) of
 
-		{ single_sms, Encoding, ReadyMessage } ->
+        { single_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
-			%   "class ~B and encoding ~ts.",
-			%   [ ReadyMessage, Class, Encoding ] ),
+            %trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
+            %   "class ~B and encoding ~ts.",
+            %   [ ReadyMessage, Class, Encoding ] ),
 
-			send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
+            send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
 
 
-		{ multiple_sms, Encoding, ReadyMessage } ->
+        { multiple_sms, Encoding, ReadyMessage } ->
 
-			%trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
-			%   "class ~B and encoding ~ts.",
-			%   [ ReadyMessage, Class, Encoding ] ),
+            %trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
+            %   "class ~B and encoding ~ts.",
+            %   [ ReadyMessage, Class, Encoding ] ),
 
-			send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
+            send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
 
-	end.
+    end.
 
 
 
 % (helper)
 scan_characters( Message ) ->
 
-	GSMCharSet = process_dictionary:get_existing( ?mobile_gsm_charset_key ),
+    GSMCharSet = process_dictionary:get_existing( ?mobile_gsm_charset_key ),
 
-	scan_characters( Message, _GSMUCharCount=0, _UCS2UCharCount=0,
-		_CurrentEncoding=gsm_uncompressed, _GSMUMessage=[],
-		_UCS2UMessage=Message, GSMCharSet ).
+    scan_characters( Message, _GSMUCharCount=0, _UCS2UCharCount=0,
+        _CurrentEncoding=gsm_uncompressed, _GSMUMessage=[],
+        _UCS2UMessage=Message, GSMCharSet ).
 
 
 % (sub-helper)
 scan_characters( _Message=[], GSMUCharCount, _UCS2UCharCount,
-		CurrentEncoding=gsm_uncompressed, GSMUMessage, _UCS2UMessage,
-		_GSMCharSet ) ->
+        CurrentEncoding=gsm_uncompressed, GSMUMessage, _UCS2UMessage,
+        _GSMCharSet ) ->
 
-	% Can only be decided once all characters have been examined (as even the
-	% last one may be a Unicode one):
-	%
-	SMSMultiplicity = case GSMUCharCount > 160 of
+    % Can only be decided once all characters have been examined (as even the
+    % last one may be a Unicode one):
+    %
+    SMSMultiplicity = case GSMUCharCount > 160 of
 
-		true ->
-			multiple_sms;
+        true ->
+            multiple_sms;
 
-		false ->
-			single_sms
+        false ->
+            single_sms
 
-	 end,
+     end,
 
-	{ SMSMultiplicity, CurrentEncoding, lists:reverse( GSMUMessage ) };
+    { SMSMultiplicity, CurrentEncoding, lists:reverse( GSMUMessage ) };
 
 
 scan_characters( _Message=[], _GSMUCharCount, _UCS2UCharCount,
-		CurrentEncoding=unicode_uncompressed, _GSMUMessage, UCS2UMessage,
-		_GSMCharSet ) ->
-	%  If not having exit beforehand, it means:
-	{ single_sms, CurrentEncoding, UCS2UMessage };
+        CurrentEncoding=unicode_uncompressed, _GSMUMessage, UCS2UMessage,
+        _GSMCharSet ) ->
+    %  If not having exit beforehand, it means:
+    { single_sms, CurrentEncoding, UCS2UMessage };
 
 
 scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
-		CurrentEncoding=gsm_uncompressed, GSMUMessage, UCS2UMessage,
-		GSMCharSet ) ->
+        CurrentEncoding=gsm_uncompressed, GSMUMessage, UCS2UMessage,
+        GSMCharSet ) ->
 
-	% With the default GSM alphabet, some characters have to be escaped:
-	case lists:member( C, [ $|, $^, $€, ${, $}, $[, $], $\\ ] ) of
+    % With the default GSM alphabet, some characters have to be escaped:
+    case lists:member( C, [ $|, $^, $€, ${, $}, $[, $], $\\ ] ) of
 
-		true ->
-			% Still the default GSM alphabet, yet must be escaped then:
-			scan_characters( H, GSMUCharCount+2, UCS2UCharCount+1,
-				CurrentEncoding, [ C, $\ | GSMUMessage ], UCS2UMessage,
-				GSMCharSet );
+        true ->
+            % Still the default GSM alphabet, yet must be escaped then:
+            scan_characters( H, GSMUCharCount+2, UCS2UCharCount+1,
+                CurrentEncoding, [ C, $\ | GSMUMessage ], UCS2UMessage,
+                GSMCharSet );
 
-		false ->
-			% Either belonging to the unescaped default GSM alphabet, or to the
-			% UCS-2 one (the actual encoding will be done by Gammu, here we just
-			% determine the right encoding and single/multipart settings to
-			% select):
-			%
-			case is_gsm_char( C, GSMCharSet ) of
+        false ->
+            % Either belonging to the unescaped default GSM alphabet, or to the
+            % UCS-2 one (the actual encoding will be done by Gammu, here we just
+            % determine the right encoding and single/multipart settings to
+            % select):
+            %
+            case is_gsm_char( C, GSMCharSet ) of
 
-				true ->
-					scan_characters( H, GSMUCharCount+1, UCS2UCharCount+1,
-						CurrentEncoding, [ C | GSMUMessage ],
-						UCS2UMessage, GSMCharSet );
+                true ->
+                    scan_characters( H, GSMUCharCount+1, UCS2UCharCount+1,
+                        CurrentEncoding, [ C | GSMUMessage ],
+                        UCS2UMessage, GSMCharSet );
 
-				false ->
-					% Alphabet switch required, no need to take care of GSM
-					% anymore, we just have to determine next whether a single
-					% or multipart SMS is needed then:
-					%
-					scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
-						unicode_uncompressed, _GSMUMessage=[],
-						UCS2UMessage, GSMCharSet )
+                false ->
+                    % Alphabet switch required, no need to take care of GSM
+                    % anymore, we just have to determine next whether a single
+                    % or multipart SMS is needed then:
+                    %
+                    scan_characters( H, _GSMUCharCount=0, UCS2UCharCount+1,
+                        unicode_uncompressed, _GSMUMessage=[],
+                        UCS2UMessage, GSMCharSet )
 
-			end
+            end
 
-	end;
+    end;
 
 
 % Shortcut (regardless of the next characters, we will stick to multipart
@@ -864,19 +864,19 @@ scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 %
 %scan_characters( _Message=[ C | H ], GSMUCharCount, UCS2UCharCount,
 scan_characters( _Message, _GSMUCharCount, UCS2UCharCount,
-		CurrentEncoding=unicode_uncompressed, _GSMUMessage,
-		UCS2UMessage, _GSMCharSet ) when UCS2UCharCount > 70 ->
+        CurrentEncoding=unicode_uncompressed, _GSMUMessage,
+        UCS2UMessage, _GSMCharSet ) when UCS2UCharCount > 70 ->
 
-	% No need to go further:
-	{ multiple_sms, CurrentEncoding, UCS2UMessage };
+    % No need to go further:
+    { multiple_sms, CurrentEncoding, UCS2UMessage };
 
 scan_characters( _Message=[ _C | H ], _ZeroGSMUCharCount, UCS2UCharCount,
-		CurrentEncoding=unicode_uncompressed, _EmptyGSMUMessage,
-		UCS2UMessage, GSMCharSet ) ->
+        CurrentEncoding=unicode_uncompressed, _EmptyGSMUMessage,
+        UCS2UMessage, GSMCharSet ) ->
 
-	% No need to take care of GSM anymore:
-	scan_characters( H, _StillZeroGSMUCharCount=0, UCS2UCharCount+1,
-		CurrentEncoding, _StillEmptyGSMUMessage=[], UCS2UMessage, GSMCharSet ).
+    % No need to take care of GSM anymore:
+    scan_characters( H, _StillZeroGSMUCharCount=0, UCS2UCharCount+1,
+        CurrentEncoding, _StillEmptyGSMUMessage=[], UCS2UMessage, GSMCharSet ).
 
 
 
@@ -901,31 +901,31 @@ most frequent characters to the least:
 %
 %is_gsm_char( C ) ->
 
-	% Remaining subsets:
-	%
-	%    $: $; $< $= $> $? $¡
-	%    $Ä $Ö $Ñ $Ü $§ $¿
-	%    $ä $ö $ñ $ü $à
-	%    $@ $£ $$ $¥ $è $é $ù $ì $ò $Ç $\n $Ø $ø $\r $Å $å
-	%    $Δ $_ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $\\ $Æ $æ $ß $É
-	%    $  $! $" $# $¤ $% $& $' $( $) $* $+ $, $- $. $/
-	%
-	% We remove $\\ as it is already escaped, and reorder characters from
-	% (approximately) most frequent to least:
-	%
-	%    $  $: $; $( $) $* $! $? $+ $, $- $. $\n $\r $% $& $' $/ $_
-	%    $" $# $@ $£ $$ $¥ $è $é $ù $< $= $>
-	%    $à $É $Ä $Ö $Ñ $Ü $§ $¿ $¡
-	%    $ä $ö $ñ $ü
-	%    $ì $ò $Ç $Ø $ø $Å $å
-	%    $Δ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $Æ $æ $ß $¤
-	%
-	%
-	% See also:
-	% [http://erlang.org/doc/reference_manual/data_types.html#escape-sequences]
+    % Remaining subsets:
+    %
+    %    $: $; $< $= $> $? $¡
+    %    $Ä $Ö $Ñ $Ü $§ $¿
+    %    $ä $ö $ñ $ü $à
+    %    $@ $£ $$ $¥ $è $é $ù $ì $ò $Ç $\n $Ø $ø $\r $Å $å
+    %    $Δ $_ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $\\ $Æ $æ $ß $É
+    %    $  $! $" $# $¤ $% $& $' $( $) $* $+ $, $- $. $/
+    %
+    % We remove $\\ as it is already escaped, and reorder characters from
+    % (approximately) most frequent to least:
+    %
+    %    $  $: $; $( $) $* $! $? $+ $, $- $. $\n $\r $% $& $' $/ $_
+    %    $" $# $@ $£ $$ $¥ $è $é $ù $< $= $>
+    %    $à $É $Ä $Ö $Ñ $Ü $§ $¿ $¡
+    %    $ä $ö $ñ $ü
+    %    $ì $ò $Ç $Ø $ø $Å $å
+    %    $Δ $Φ $Γ $Λ $Ω $Π $Ψ $Σ $Θ $Ξ $Æ $æ $ß $¤
+    %
+    %
+    % See also:
+    % [http://erlang.org/doc/reference_manual/data_types.html#escape-sequences]
 
 is_gsm_char( C, GSMCharset ) ->
-	set_utils:member( C, GSMCharset ).
+    set_utils:member( C, GSMCharset ).
 
 
 
@@ -933,15 +933,15 @@ is_gsm_char( C, GSMCharset ) ->
 -doc "Helper; see the enum encoding in the corresponding driver.".
 -spec encoding_to_enum( encoding() ) -> encoding_enum().
 encoding_to_enum( Encoding ) ->
-	EncTable = process_dictionary:get( ?mobile_encoding_key ),
-	bijective_table:get_second_for( Encoding, EncTable ).
+    EncTable = process_dictionary:get( ?mobile_encoding_key ),
+    bijective_table:get_second_for( Encoding, EncTable ).
 
 
 -doc "Reverse conversion.".
 -spec enum_to_encoding( encoding_enum() ) -> encoding().
 enum_to_encoding( EncodingEnum ) ->
-	EncTable = process_dictionary:get( ?mobile_encoding_key ),
-	bijective_table:get_first_for( EncodingEnum, EncTable ).
+    EncTable = process_dictionary:get( ?mobile_encoding_key ),
+    bijective_table:get_first_for( EncodingEnum, EncTable ).
 
 
 
@@ -956,34 +956,34 @@ Specialised here to transform conveniently its outputs.
 -spec read_all_sms( boolean() ) -> [ received_sms() ].
 read_all_sms( DeleteOnReading ) ->
 
-	% These two pseudo-calls are replaced at compilation time by the Seaplus
-	% parse transform with the relevant immediate values:
+    % These two pseudo-calls are replaced at compilation time by the Seaplus
+    % parse transform with the relevant immediate values:
 
-	PortKey = seaplus:get_service_port_key(),
-	FunctionDriverId = seaplus:get_function_driver_id(),
+    PortKey = seaplus:get_service_port_key(),
+    FunctionDriverId = seaplus:get_function_driver_id(),
 
-	DeleteToggle = case DeleteOnReading of
+    DeleteToggle = case DeleteOnReading of
 
-		true ->
-			1;
+        true ->
+            1;
 
-		false ->
-			0
+        false ->
+            0
 
-	end,
+    end,
 
-	SMSList = case seaplus:call_port_for( PortKey, FunctionDriverId,
-										  _Args=[ DeleteToggle ] ) of
+    SMSList = case seaplus:call_port_for( PortKey, FunctionDriverId,
+                                          _Args=[ DeleteToggle ] ) of
 
-		L when is_list( L ) ->
-			L;
+        L when is_list( L ) ->
+            L;
 
-		Other ->
-			throw( { faulty_read_return, Other } )
+        Other ->
+            throw( { faulty_read_return, Other } )
 
-	end,
+    end,
 
-	[ to_sms( E ) || E <- SMSList ].
+    [ to_sms( E ) || E <- SMSList ].
 
 
 
@@ -991,16 +991,16 @@ read_all_sms( DeleteOnReading ) ->
 Converts a transmitted subset of `GSM_SMSMessage` into a `received_sms` record.
 """.
 to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
-		  BinText } ) ->
+          BinText } ) ->
 
-	%trace_utils:debug_fmt( "BinText = '~ts', i.e.: ~w.",
-	%                       [ BinText, BinText ] ),
+    %trace_utils:debug_fmt( "BinText = '~ts', i.e.: ~w.",
+    %                       [ BinText, BinText ] ),
 
-	#received_sms{ sender_number=BinSenderNumber,
-				   encoding=enum_to_encoding( EncodingValue ),
-				   text=BinText,
-				   message_reference=MessageReference,
-				   timestamp=Timestamp }.
+    #received_sms{ sender_number=BinSenderNumber,
+                   encoding=enum_to_encoding( EncodingValue ),
+                   text=BinText,
+                   message_reference=MessageReference,
+                   timestamp=Timestamp }.
 
 
 
@@ -1010,38 +1010,38 @@ Returns an overall, textual information about the current mobile setting.
 -spec get_textual_information() -> ustring().
 get_textual_information() ->
 
-	{ BackendType, BackendVersion } = get_backend_information(),
+    { BackendType, BackendVersion } = get_backend_information(),
 
-	HardwareInfoBin = get_hardware_information(),
+    HardwareInfoBin = get_hardware_information(),
 
-	{ BinRevText, BinDataText, FloatRev } = get_firmware_information(),
+    { BinRevText, BinDataText, FloatRev } = get_firmware_information(),
 
-	{ SigStrength, SigStrPct, ErrorRate } = get_signal_quality(),
+    { SigStrength, SigStrPct, ErrorRate } = get_signal_quality(),
 
-	text_utils:format( "Ceylan-Mobile based on the ~ts version of "
-		"the ~ts backend, running on '~ts' hardware (IMEI: '~ts'). "
-		"Device name is '~ts', manufacturer is '~ts', model is '~ts'. "
-		"Firmware is revision '~ts' (date: '~ts', number: ~f). "
-		"IMSI is '~ts'. "
-		"Signal strength is ~B dBm (~B%), error rate is ~B%",
-		[ text_utils:version_to_string( BackendVersion ), BackendType,
-		  HardwareInfoBin, get_imei_code(),
-		  get_device_name(), get_device_manufacturer(), get_device_model(),
-		  BinRevText, BinDataText, FloatRev,
-		  get_imsi_code(), SigStrength, SigStrPct, ErrorRate ] ).
+    text_utils:format( "Ceylan-Mobile based on the ~ts version of "
+        "the ~ts backend, running on '~ts' hardware (IMEI: '~ts'). "
+        "Device name is '~ts', manufacturer is '~ts', model is '~ts'. "
+        "Firmware is revision '~ts' (date: '~ts', number: ~f). "
+        "IMSI is '~ts'. "
+        "Signal strength is ~B dBm (~B%), error rate is ~B%",
+        [ text_utils:version_to_string( BackendVersion ), BackendType,
+          HardwareInfoBin, get_imei_code(),
+          get_device_name(), get_device_manufacturer(), get_device_model(),
+          BinRevText, BinDataText, FloatRev,
+          get_imsi_code(), SigStrength, SigStrPct, ErrorRate ] ).
 
 
 
 -doc "Returns a textual description of the specified received SMS.".
 received_sms_to_string( #received_sms{ sender_number=BinSenderNumber,
-									   encoding=Encoding,
-									   text=BinText,
-									   message_reference=MsgRef,
-									   timestamp=Timestamp } ) ->
-	text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
-		" whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
-		[ BinSenderNumber, Encoding, BinText, MsgRef,
-		  time_utils:timestamp_to_string( Timestamp ) ] ).
+                                       encoding=Encoding,
+                                       text=BinText,
+                                       message_reference=MsgRef,
+                                       timestamp=Timestamp } ) ->
+    text_utils:format( "received SMS sent from number '~ts' (with encoding ~ts)"
+        " whose text is: '~ts' (reference: ~p, sending timestamp: ~ts)",
+        [ BinSenderNumber, Encoding, BinText, MsgRef,
+          time_utils:timestamp_to_string( Timestamp ) ] ).
 
 
 
@@ -1053,8 +1053,8 @@ Service-specific stop procedure.
 -spec stop() -> void().
 stop() ->
 
-	cond_utils:if_defined( mobile_debug_base,
-						   trace_bridge:debug( "Stopping Mobile." ) ),
+    cond_utils:if_defined( mobile_debug_base,
+                           trace_bridge:debug( "Stopping Mobile." ) ),
 
-	[ process_dictionary:remove_existing( K )
-		|| K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].
+    [ process_dictionary:remove_existing( K )
+        || K <- [ ?mobile_gsm_charset_key, ?mobile_encoding_key ] ].

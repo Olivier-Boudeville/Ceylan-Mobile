@@ -41,35 +41,35 @@ Note that with the 'dummy' Gammu model, TPMR references might be always 255.
 
 run() ->
 
-	test_facilities:start( ?MODULE ),
+    test_facilities:start( ?MODULE ),
 
-	test_facilities:display(
-		"Testing the Ceylan-Mobile service regarding the reading of SMS." ),
+    test_facilities:display(
+        "Testing the Ceylan-Mobile service regarding the reading of SMS." ),
 
-	mobile_test:set_up_mobile_environment(),
+    mobile_test:set_up_mobile_environment(),
 
-	% Not mobile:start_link(), as here we want to survive a crash of the mobile
-	% service (i.e. to be able to handle failures explicitly, as messages
-	% received by this test process):
-	%
-	mobile:start(),
+    % Not mobile:start_link(), as here we want to survive a crash of the mobile
+    % service (i.e. to be able to handle failures explicitly, as messages
+    % received by this test process):
+    %
+    mobile:start(),
 
-	% By default, do not delete read SMS:
-	DeleteOnReading = false,
-	%DeleteOnReading = true,
+    % By default, do not delete read SMS:
+    DeleteOnReading = false,
+    %DeleteOnReading = true,
 
-	case mobile:read_all_sms( DeleteOnReading ) of
+    case mobile:read_all_sms( DeleteOnReading ) of
 
-		[] ->
-			test_facilities:display( "No SMS to read found." );
+        [] ->
+            test_facilities:display( "No SMS to read found." );
 
-		SMSList ->
-			test_facilities:display( "~B SMS read: ~ts",
-				[ length( SMSList ), text_utils:strings_to_enumerated_string(
-				  [ mobile:received_sms_to_string( S ) || S <- SMSList ] ) ] )
+        SMSList ->
+            test_facilities:display( "~B SMS read: ~ts",
+                [ length( SMSList ), text_utils:strings_to_enumerated_string(
+                  [ mobile:received_sms_to_string( S ) || S <- SMSList ] ) ] )
 
-	end,
+    end,
 
-	mobile:stop(),
+    mobile:stop(),
 
-	test_facilities:stop().
+    test_facilities:stop().

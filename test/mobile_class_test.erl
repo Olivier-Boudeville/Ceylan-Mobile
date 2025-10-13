@@ -43,49 +43,49 @@ See also: <http://www.ozekisms.com/index.php?owpn=544>.
 %
 run() ->
 
-	test_facilities:start( ?MODULE ),
+    test_facilities:start( ?MODULE ),
 
-	test_facilities:display( "Testing the Ceylan-Mobile services "
-							 "regarding SMS classes." ),
+    test_facilities:display( "Testing the Ceylan-Mobile services "
+                             "regarding SMS classes." ),
 
-	mobile_test:set_up_mobile_environment(),
+    mobile_test:set_up_mobile_environment(),
 
-	% Not mobile:start_link(), as here we want to survive a crash of the mobile
-	% service (i.e. to be able to handle failures explicitly, as messages
-	% received by this test process):
-	%
-	mobile:start(),
+    % Not mobile:start_link(), as here we want to survive a crash of the mobile
+    % service (i.e. to be able to handle failures explicitly, as messages
+    % received by this test process):
+    %
+    mobile:start(),
 
-	case preferences:get( mobile_number ) of
+    case preferences:get( mobile_number ) of
 
-		undefined ->
-			test_facilities:display( "No registered preference regarding a "
-				"target mobile number, no actual sending performed." );
+        undefined ->
+            test_facilities:display( "No registered preference regarding a "
+                "target mobile number, no actual sending performed." );
 
-		MobileNumber ->
-			actual_sending_test( MobileNumber )
+        MobileNumber ->
+            actual_sending_test( MobileNumber )
 
-	end,
+    end,
 
-	mobile:stop(),
+    mobile:stop(),
 
-	test_facilities:stop().
+    test_facilities:stop().
 
 
 
 % Performs actual test sendings.
 actual_sending_test( MobileNumber ) ->
 
-	% The tested SMS classes:
-	Classes = [ 0, 1, 2, 3, 4 ],
+    % The tested SMS classes:
+    Classes = [ 0, 1, 2, 3, 4 ],
 
-	MessageFormat = "Hello class #~B, âêîôû!",
+    MessageFormat = "Hello class #~B, âêîôû!",
 
-	test_facilities:display( "~n~nThe next sending-related  tests will target "
-		"the following recipient mobile number: '~ts', with SMS of following "
-		"classes: ~w.", [ MobileNumber, Classes ] ),
+    test_facilities:display( "~n~nThe next sending-related  tests will target "
+        "the following recipient mobile number: '~ts', with SMS of following "
+        "classes: ~w.", [ MobileNumber, Classes ] ),
 
-	Reports = [ mobile:send_sms( text_utils:format( MessageFormat, [ Cl ] ),
-								 MobileNumber, Cl ) || Cl <- Classes ],
+    Reports = [ mobile:send_sms( text_utils:format( MessageFormat, [ Cl ] ),
+                                 MobileNumber, Cl ) || Cl <- Classes ],
 
-	test_facilities:display( "~nReports: ~w.", [ Reports ] ).
+    test_facilities:display( "~nReports: ~w.", [ Reports ] ).
