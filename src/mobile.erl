@@ -395,12 +395,21 @@ exception in order to know whether the backend is usable.
 -spec is_available() -> boolean().
 is_available() ->
 
-    % No better/simpler/more reliable test known that:
+    % No better/simpler/more reliable test known than:
+    %
+    % (inhibiting temporarily any trace bridge, as we do no want a spurious
+    % Seaplus crash report due to Mobile unavaibility to pollute the overall
+    % application traces)
+
+    AnyPastTraceBridgeInfo = trace_bridge:inhibit_any(),
+
     try get_device_name() of
 
-        _ ->
-            cond_utils:if_defined( mobile_debug_driver, trace_utils:debug(
-                "Ceylan-Mobile considered to be available." ) ),
+        DevName ->
+            cond_utils:if_defined( mobile_debug_driver,
+                trace_utils:debug_fmt( "Ceylan-Mobile considered to be "
+                    "available (as device '~ts').", [ DevName ] ),
+                basic_utils:ignore_unused( DevName ) ),
             true
 
     % Intercepting just the exception class and pattern of interest:
@@ -416,14 +425,19 @@ is_available() ->
 
         % Never crashing:
         Class:Pattern ->
-
             trace_utils:error_fmt( "Unexpected exception raised "
                 "when checking the availability of Gammu: "
                 "exception class is ~p, pattern is ~p.", [ Class, Pattern ] ),
 
             false
 
+    after
+
+        % In all cases (no impact on returned value):
+        trace_bridge:restore_any( AnyPastTraceBridgeInfo )
+
     end.
+
 
 
 
@@ -443,6 +457,7 @@ start() ->
 -doc "Starts and links the Mobile service.".
 -spec start_link() -> void().
 start_link() ->
+    % (actually no process is created)
     start_common().
 
 
@@ -1006,6 +1021,8 @@ to_sms( { BinSenderNumber, EncodingValue, MessageReference, Timestamp,
 
 -doc """
 Returns an overall, textual information about the current mobile setting.
+
+(Ceylan-Mobile must have already been started)
 """.
 -spec get_textual_information() -> ustring().
 get_textual_information() ->
