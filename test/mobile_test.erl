@@ -33,9 +33,9 @@ Module for the overall, most complete test of the **Ceylan-Mobile services**.
 Note that a series of SMS will be sent by this test to any registered mobile
 phone.
 
-Some test sentences emanate from dear /usr/bin/fortune.
+Some test sentences emanate from dear `/usr/bin/fortune`.
 
-Note that with the 'dummy' Gammu model, TPMR references might be always 255.
+Note that with the `dummy` Gammu model, TPMR references might be always 255.
 """.
 
 

@@ -31,7 +31,7 @@
 Module for the test of the Ceylan-Mobile services regarding the **reading of
 SMS**.
 
-Note that with the 'dummy' Gammu model, TPMR references might be always 255.
+Note that with the `dummy` Gammu model, TPMR references might be always 255.
 """.
 
 
