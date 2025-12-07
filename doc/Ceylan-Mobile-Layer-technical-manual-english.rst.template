@@ -798,6 +798,66 @@ Troubleshooting
 Initialisation Issues
 ---------------------
 
+
+.. Gammu Configuration File Seems to be Ignored
+.. ............................................
+
+
+
+Issue: ``Error opening device. Unknown, busy or no permissions.``
+.................................................................
+
+A proper Gammu configuration file (e.g. ``/etc/gammurc``) with proper read permissions for the current user exists, it points to a relevant ``tty`` and the full hardware is correctly setup, yet one still has:
+
+.. code:: bash
+
+ $ gammu --identify
+ Error opening device. Unknown, busy or no permissions.
+
+
+Apparently Gammu may sometimes `lock up for good one's GSM modem <https://github.com/pajikos/sms-gammu-gateway/issues/12>`_.
+
+Rather that unplugging/re-plugging the corresponding USB dongle (possibly inserted in a remote server), we use the ``usbreset`` tool (available on Arch Linux through the ``usbutils`` package).
+
+For example, as root:
+
+.. code:: bash
+
+  $ gammu --debug errors --identify
+  Error opening device. Unknown, busy or no permissions.
+
+  $ usbreset
+  Usage:
+	usbreset VVVV:PPPP - reset by vendor and product id
+	usbreset BBB/DDD   - reset by bus and device number
+	usbreset SN:SERIAL - reset by serial number
+	usbreset "Product" - reset by product name
+
+  Devices:
+	Number 002/002  ID 8287:8000
+	Number 003/004  ID 1e2d:2cee                   xxx
+	Number 003/002  ID 021d:0003  SN:xxx           xxx
+	Number 001/002  ID 8027:8008
+	Number 003/006  ID 0402:6001  SN:xxx           xxx
+	Number 003/003  ID 0462:c309
+	Number 003/005  ID 12d1:1003                   HUAWEI Mobile
+
+  $ usbreset 12d1:1003
+  Resetting HUAWEI Mobile ... ok
+
+  $ gammu --debug errors --identify
+  Device               : /dev/ttyUSB-C3G
+  Manufacturer         : Huawei
+  Model                : E17X (E17X)
+  Firmware             : 11.304.20.01.00
+  IMEI                 : xxx
+  SIM IMSI             : xxx
+
+
+
+Crash At Startup
+................
+
 If the Mobile driver crashes, and its logs report::
 
  Gammu error in the 'find Gammu RC' step:
