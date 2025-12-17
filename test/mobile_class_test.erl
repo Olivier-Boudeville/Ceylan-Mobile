@@ -1,4 +1,4 @@
-% Copyright (C) 2019-2025 Olivier Boudeville
+% Copyright (C) 2019-2026 Olivier Boudeville
 %
 % This file is part of the Ceylan-Mobile library.
 %
@@ -30,7 +30,7 @@
 -moduledoc """
 Module for the test of the Ceylan-Mobile services regarding **SMS classes**.
 
-See also: <http://www.ozekisms.com/index.php?owpn=544>.
+See also [http://www.ozekisms.com/index.php?owpn=544].
 """.
 
 
@@ -69,6 +69,9 @@ run() ->
 
     mobile:stop(),
 
+    % Useful to catch any unexpected driver-sent message left in the mailbox:
+    basic_utils:check_only_normal_exit_pending_messages(),
+
     test_facilities:stop().
 
 
@@ -81,7 +84,7 @@ actual_sending_test( MobileNumber ) ->
 
     MessageFormat = "Hello class #~B, âêîôû!",
 
-    test_facilities:display( "~n~nThe next sending-related  tests will target "
+    test_facilities:display( "~n~nThe next sending-related tests will target "
         "the following recipient mobile number: '~ts', with SMS of following "
         "classes: ~w.", [ MobileNumber, Classes ] ),
 
