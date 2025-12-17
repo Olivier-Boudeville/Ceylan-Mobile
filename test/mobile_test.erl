@@ -1,4 +1,4 @@
-% Copyright (C) 2019-2025 Olivier Boudeville
+% Copyright (C) 2019-2026 Olivier Boudeville
 %
 % This file is part of the Ceylan-Mobile library.
 %
@@ -171,6 +171,9 @@ actual_test() ->
 
     mobile:stop(),
 
+    % Useful to catch any unexpected driver-sent message left in the mailbox:
+    basic_utils:check_only_normal_exit_pending_messages(),
+
     test_facilities:stop().
 
 
@@ -199,6 +202,8 @@ actual_sending_test( MobileNumber ) ->
         "with default settings, whose report is: ~w.",
         [ FirstMessage, FirstSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
     % With (uncompressed) GSM encoding, the single received SMS should stop just
     % after the second 'Tom' (found actually stopping just after
@@ -221,6 +226,8 @@ actual_sending_test( MobileNumber ) ->
     test_facilities:display( "~nSent second (single-part) SMS (message: '~ts') "
         "with default settings, whose report is: ~w.",
         [ SecondMessage, SecondSMSReport ] ),
+
+    basic_utils:check_only_normal_exit_pending_messages(),
 
 
     EncodingTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
@@ -249,6 +256,7 @@ actual_sending_test( MobileNumber ) ->
         "for the test of GSM uncompressed encoding, whose report is: ~w.",
         [ GSMUncompMsg, GSMUncompSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
 
 
     UnicodeUncompMsg = text_utils:format( EncodingTestFormatMsg,
@@ -267,6 +275,8 @@ actual_sending_test( MobileNumber ) ->
         "for the test of Unicode uncompressed encoding, whose report is: ~w.",
         [ UnicodeUncompMsg, UnicodeUncompSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
     AutoMsg = text_utils:format( EncodingTestFormatMsg,
                                  [ "automatic encoding selection mode" ] ),
@@ -280,6 +290,7 @@ actual_sending_test( MobileNumber ) ->
         "for the test of (automatic) encoding, whose report is: ~w.",
         [ AutoMsg, AutoSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
 
 
     % Now, multipart testing:
@@ -296,6 +307,9 @@ actual_sending_test( MobileNumber ) ->
         "with default settings, whose report is: ~w.",
         [ FirstMessage, FirstMultiSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
+
     SecondMultiSMSReport = mobile:send_multipart_sms( SecondMessage,
                                                       MobileNumber ),
     %SecondMultiSMSReport = deactivated,
@@ -303,6 +317,9 @@ actual_sending_test( MobileNumber ) ->
     test_facilities:display( "~nSent second multipart SMS (message: '~ts') "
         "with default settings, whose report is: ~w.",
         [ SecondMessage, SecondMultiSMSReport ] ),
+
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
     EncodingMultiTestFormatMsg = "This is a text sent in ~ts: aéàùâêîôû; "
         "this is a longer message meant *not* to be truncated, thanks to the "
@@ -335,6 +352,8 @@ actual_sending_test( MobileNumber ) ->
         "for the test of GSM uncompressed encoding, whose report is: ~w.",
         [ GSMMultiUncompMsg, GSMMultiUncompSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
 
     UnicodeMultiUncompMsg = text_utils:format( EncodingMultiTestFormatMsg,
@@ -350,6 +369,8 @@ actual_sending_test( MobileNumber ) ->
         "for the test of Unicode uncompressed encoding, whose report is: ~w.",
         [ UnicodeMultiUncompMsg, UnicodeMultiUncompSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
 
     AutoMultiMsg = text_utils:format( EncodingMultiTestFormatMsg,
@@ -364,6 +385,8 @@ actual_sending_test( MobileNumber ) ->
         "for the test of (automatic) encoding, whose report is: ~w.",
         [ AutoMultiMsg, AutoMultiSMSReport ] ),
 
+    basic_utils:check_only_normal_exit_pending_messages(),
+
 
     %test_facilities:display( "Sending now the same message in full automatic "
     %                         "mode (regarding encoding and parts)..." ),
@@ -373,7 +396,14 @@ actual_sending_test( MobileNumber ) ->
     test_facilities:display( "~nSent message: '~ts' in full automatic mode, "
         "report is: ~w.", [ AutoMultiMsg, FullSMSReport ] ),
 
+   basic_utils:check_only_normal_exit_pending_messages(),
+
+
     % Automatic, single part, test for either encoding:
     mobile:send_sms( "Unicode expected: âêîôû.", MobileNumber ),
 
-    mobile:send_sms( "GSM-encoding expected (end of test).", MobileNumber ).
+    basic_utils:check_only_normal_exit_pending_messages(),
+
+    mobile:send_sms( "GSM-encoding expected (end of test).", MobileNumber ),
+
+    basic_utils:check_only_normal_exit_pending_messages().
