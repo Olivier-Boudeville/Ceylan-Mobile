@@ -124,17 +124,30 @@ Most SMS are of class 1 ("normal", the default, should no class be specified).
 See also [http://www.ozekisms.com/index.php?owpn=544].
 """.
 -type sms_class() :: 0 % Flash
-                   | 1 % Norm
+                   | 1 % Normal
                    | non_neg_integer().
 
 
 
--doc "Any phone number (mobile or not), as a plain string.".
--type phone_number() :: ustring().
+-doc """
+A phone number (mobile or not), preferably international, preferably with no
+whitespaces (e.g. `"+330616XXXXXX"`), as a plain string.
+""".
+-type phone_number() :: sms_utils:phone_number().
 
--doc "Any phone number (mobile or not), as a binary string.".
--type bin_phone_number() :: bin_string().
 
+-doc """
+A phone number (mobile or not), preferably international, preferably with no
+whitespaces (e.g. `<<"+330616XXXXXX">>`), as a binary string.
+""".
+-type bin_phone_number() :: sms_utils:bin_phone_numbe().
+
+
+-doc """
+A phone number (mobile or not), preferably international, preferably with no
+whitespaces (e.g. `<<"+330616XXXXXX">>`), as any string.
+""".
+-type any_phone_number() :: sms_utils:any_phone_numbe().
 
 
 -doc """
@@ -150,6 +163,14 @@ The mobile number associated to a device, as a binary string
 (e.g. `<<"+1234567890">>`).
 """.
 -type bin_mobile_number() :: bin_phone_number().
+
+
+-doc """
+The mobile number associated to a device, as any string
+(e.g. `"+1234567890"`).
+""".
+-type any_mobile_number() :: any_phone_number().
+
 
 
 
@@ -171,7 +192,7 @@ The mobile number associated to a device, as a binary string
 
 
 -doc "Describes the status of a SMS sending.".
--type sms_sending_status() :: 'success' | 'failure'.
+-type sms_sending_status() :: 'send_success' | 'send_failure'.
 
 
 
@@ -209,14 +230,14 @@ parts automatically aggregated.
                hardware_info/0, imsi_code/0,
                signal_strength/0, signal_strength_percent/0,
                error_rate/0,
-               sms_message/0, sms_class/0,
+               sms_message/0, bin_sms_message/0, sms_class/0,
 
-               phone_number/0, bin_phone_number/0,
-               mobile_number/0, bin_mobile_number/0,
+               phone_number/0, bin_phone_number/0, any_phone_number/0,
+               mobile_number/0, bin_mobile_number/0, any_mobile_number/0,
 
                encoding/0,
                sms_sending_status/0, sms_tpmr/0,
-               sms_sending_report/0, received_sms/0 ]).
+               sms_sending_report/0, sms_timestamp/0, received_sms/0 ]).
 
 
 % Version-related functions.
@@ -254,6 +275,10 @@ parts automatically aggregated.
 -type integer_percent() :: math_utils:integer_percent().
 
 -type bijective_table( F, S ) :: bijective_table:bijective_table( F, S ).
+
+-type service_key() :: seaplus:service_key().
+-type function_driver_id() :: seaplus:function_driver_id().
+-type function_params() :: seaplus:function_params().
 
 
 % For the Seaplus support (to be included after local exports):
@@ -549,8 +574,8 @@ get_hardware_information() ->
 Returns the name and version of the backend used.
 
 We override this function for convenience: the C-side just returns the Gammu
-version as a string (e.g. `"1.40.0"`), we prefer return a more proper tuple
-(e.g. `{1,40,0}`).
+version as a string (e.g. `"1.40.0"`), we prefer return a more proper version
+tuple (e.g. `{1,40,0}`).
 """.
 -spec get_backend_information() -> { backend_type(), backend_version() }.
 get_backend_information() ->
@@ -585,27 +610,27 @@ has_actual_device() ->
 
 
 -doc """
-Sends specified, regular (that is non-multipart) SMS (of class 1), using an
+Sends the specified, regular (that is non-multipart) SMS (of class 1), using an
 automatically-detected encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_regular_sms( sms_message(), mobile_number() ) ->
-                                sms_sending_report().
-send_regular_sms( Message, MobileNumber ) ->
-    send_regular_sms( Message, MobileNumber, _Class=1 ).
+-spec send_regular_sms( sms_message(), any_mobile_number() ) ->
+                                            sms_sending_report().
+send_regular_sms( Message, AnyMobileNumber ) ->
+    send_regular_sms( Message, AnyMobileNumber, _Class=1 ).
 
 
 
 -doc """
-Sends a regular (non-multipart) SMS, using specified class and an
+Sends a regular (non-multipart) SMS, using the specified class and an
 automatically-detected encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_regular_sms( sms_message(), mobile_number(), sms_class() ) ->
-                                sms_sending_report().
-send_regular_sms( Message, MobileNumber, Class ) ->
+-spec send_regular_sms( sms_message(), any_mobile_number(), sms_class() ) ->
+                                            sms_sending_report().
+send_regular_sms( Message, AnyMobileNumber, Class ) ->
 
     % We directly branch to the more complete version, the only one to be known
     % of the driver:
@@ -631,29 +656,33 @@ send_regular_sms( Message, MobileNumber, Class ) ->
 
     end,
 
-    send_regular_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
+    send_regular_sms( ActualMessage, AnyMobileNumber, Class, ActualEncoding ).
 
 
 
 -doc """
-Sends a regular (non-multipart) SMS, using specified class and encoding.
+Sends a regular (non-multipart) SMS, using the specified class and encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_regular_sms( sms_message(), mobile_number(), sms_class(),
+-spec send_regular_sms( sms_message(), any_mobile_number(), sms_class(),
                         encoding() ) -> sms_sending_report().
-send_regular_sms( Message, MobileNumber, Class, Encoding )
-        when is_list( Message ) andalso is_list( MobileNumber )
-             andalso is_integer( Class ) andalso is_atom( Encoding ) ->
+send_regular_sms( Message, AnyMobileNumber, Class, Encoding )
+        when is_list( Message ) andalso is_integer( Class )
+             andalso is_atom( Encoding ) ->
 
     % Only available directly in this (overridden) function:
     PortKey = seaplus:get_service_port_key(),
     FunctionDriverId = seaplus:get_function_driver_id(),
 
+    %trace_bridge:debug_fmt( "Executing send_regular_sms "
+    %    "(port key: ~ts; function driver id: ~B).",
+    %    [ PortKey, FunctionDriverId ] ),
+
     % Exchanging binaries and directly numerical identifiers is more efficient:
 
     MessageBin = unicode:characters_to_binary( Message ),
-    MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+    MobileNumberBin = text_utils:ensure_binary( AnyMobileNumber ),
     EncodingEnum = encoding_to_enum( Encoding ),
 
     Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
@@ -661,7 +690,10 @@ send_regular_sms( Message, MobileNumber, Class, Encoding )
     %trace_bridge:debug_fmt( "send_regular_sms/4 sending arguments ~p.",
     %                        [ Args ] ),
 
-    seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+    % Applies also for the regular SMS, as it is using the same callback as for
+    % the multipart SMSs:
+    %
+    process_sending_feedback( PortKey, FunctionDriverId, Args ).
 
 
 
@@ -671,22 +703,22 @@ encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), mobile_number() ) ->
-                                sms_sending_report().
-send_multipart_sms( Message, MobileNumber ) ->
-    send_multipart_sms( Message, MobileNumber, _Class=1 ).
+-spec send_multipart_sms( sms_message(), any_mobile_number() ) ->
+                                            sms_sending_report().
+send_multipart_sms( Message, AnyMobileNumber ) ->
+    send_multipart_sms( Message, AnyMobileNumber, _Class=1 ).
 
 
 
 -doc """
-Sends a multipart SMS, using specified class and an automatically-detected
+Sends a multipart SMS, using the specified class and an automatically-detected
 encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), mobile_number(), sms_class() ) ->
-                                sms_sending_report().
-send_multipart_sms( Message, MobileNumber, Class ) ->
+-spec send_multipart_sms( sms_message(), any_mobile_number(), sms_class() ) ->
+                                            sms_sending_report().
+send_multipart_sms( Message, AnyMobileNumber, Class ) ->
 
     % We directly branch to the more complete version, the only one to be known
     % of the driver:
@@ -712,65 +744,73 @@ send_multipart_sms( Message, MobileNumber, Class ) ->
 
     end,
 
-    send_multipart_sms( ActualMessage, MobileNumber, Class, ActualEncoding ).
+    send_multipart_sms( ActualMessage, AnyMobileNumber, Class, ActualEncoding ).
 
 
 
 -doc """
-Sends specified SMS, using specified class and encoding.
+Sends the specified SMS, using the specified class and encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), mobile_number(), sms_class(),
+-spec send_multipart_sms( sms_message(), any_mobile_number(), sms_class(),
                           encoding() ) -> sms_sending_report().
-send_multipart_sms( Message, MobileNumber, Class, Encoding )
-        when is_list( Message ) andalso is_list( MobileNumber )
-             andalso is_integer( Class ) andalso is_atom( Encoding ) ->
+send_multipart_sms( Message, AnyMobileNumber, Class, Encoding )
+        when is_list( Message ) andalso is_integer( Class )
+             andalso is_atom( Encoding ) ->
 
     % Only available directly in this (overridden) function:
     PortKey = seaplus:get_service_port_key(),
     FunctionDriverId = seaplus:get_function_driver_id(),
 
+    cond_utils:if_defined( mobile_debug_driver, trace_bridge:debug_fmt(
+        "Executing send_multipart_sms (port key: ~ts; function driver id: ~B).",
+        [ PortKey, FunctionDriverId ] ) ),
+
     % Exchanging binaries and identifiers is more efficient:
 
     MessageBin = unicode:characters_to_binary( Message ),
-    MobileNumberBin = text_utils:string_to_binary( MobileNumber ),
+    MobileNumberBin = text_utils:ensure_binary( AnyMobileNumber ),
     EncodingEnum = encoding_to_enum( Encoding ),
 
     Args = [ MessageBin, MobileNumberBin, Class, EncodingEnum ],
 
-    %trace_bridge:debug_fmt( "send_multipart_sms/4 sending arguments ~p.",
-    %                        [ Args ] ),
+    cond_utils:if_defined( mobile_debug_driver, trace_bridge:debug_fmt(
+        "send_multipart_sms/4 sending arguments ~p.", [ Args ] ) ),
 
-    seaplus:call_port_for( PortKey, FunctionDriverId, Args ).
+    % Special-casing needed, since as many sending report messages will be sent
+    % by the port as there will be SMS parts seen by the driver sending
+    % callback, whereas we want to return exactly one message to the caller:
+    %
+    process_sending_feedback( PortKey, FunctionDriverId, Args ).
 
 
 
 -doc """
-Sends specified SMS (of class 1), determining automatically the best encoding to
-use, and whether a regular SMS or a multipart one is needed.
+Sends the specified SMS (of class 1), determining automatically the best
+encoding to use, and whether a regular SMS or a multipart one is needed.
 
 Returns whether it succeeded, and the message TPMR reference.
 
-The most advanced SMS-sending primitive, switching automatically to the right
-lower-level one, for the default class 1.
+This is the most advanced SMS-sending primitive, switching automatically to the
+right lower-level one, for the default class 1.
 """.
--spec send_sms( sms_message(), mobile_number() ) -> sms_sending_report().
-send_sms( Message, MobileNumber ) ->
-    send_sms( Message, MobileNumber, _Class=1 ).
+-spec send_sms( sms_message(), any_mobile_number() ) -> sms_sending_report().
+send_sms( Message, AnyMobileNumber ) ->
+    send_sms( Message, AnyMobileNumber, _Class=1 ).
 
 
 
 -doc """
-Sends specified SMS, of specified class, determining automatically the best
-encoding to use, and whether a regular SMS or a multipart one is needed.
+Sends the specified SMS, of the specified class, determining automatically the
+best encoding to use, and whether a regular SMS or a multipart one is needed.
 
-The most advanced SMS-sending primitive, switching automatically to the right
-lower-level one, based on specified class.
+This is the most advanced SMS-sending primitive, switching automatically to the
+right lower-level one, based on the specified class.
 """.
--spec send_sms( sms_message(), mobile_number(), sms_class() ) ->
-                        sms_sending_report().
-send_sms( Message, MobileNumber, Class ) ->
+-spec send_sms( sms_message(), any_mobile_number(), sms_class() ) ->
+                                            sms_sending_report().
+send_sms( Message, AnyMobileNumber, Class ) ->
 
     % Select the right sending primitive to call:
     case scan_characters( Message ) of
@@ -781,7 +821,7 @@ send_sms( Message, MobileNumber, Class ) ->
             %   "class ~B and encoding ~ts.",
             %   [ ReadyMessage, Class, Encoding ] ),
 
-            send_regular_sms( ReadyMessage, MobileNumber, Class, Encoding );
+            send_regular_sms( ReadyMessage, AnyMobileNumber, Class, Encoding );
 
 
         { multiple_sms, Encoding, ReadyMessage } ->
@@ -790,7 +830,7 @@ send_sms( Message, MobileNumber, Class ) ->
             %   "class ~B and encoding ~ts.",
             %   [ ReadyMessage, Class, Encoding ] ),
 
-            send_multipart_sms( ReadyMessage, MobileNumber, Class, Encoding )
+            send_multipart_sms( ReadyMessage, AnyMobileNumber, Class, Encoding )
 
     end.
 
@@ -944,6 +984,135 @@ is_gsm_char( C, GSMCharset ) ->
 
 
 
+-doc """
+Processes the (Erlang) messages that are sent back by the driver after a SMS
+sending.
+
+Should multiple elementary SMSs have to be sent:
+ - if all these sendings are successful, reports `send_success` with the TPMR of
+   the last one sent
+ - otherwise reports `send_failure` with the TPMR of the first to fail
+""".
+% The sending of some SMS messages (at least the multipart ones) results in
+% multiple calls of the (unique) C-level driver sending callback, and these
+% calls result in turn in multiple sending report (Erlang) messages to be sent
+% to the Erlang part (e.g. {send_success, _TPMR=106}, {send_success, 107},
+% etc.). As even the Mobile (Erlang) code has no real way of knowing how many of
+% such messages would have to be received, the callback shall return it, and
+% this part shall wait for all and only return a single, overall message for the
+% whole sending (otherwise it is not tractable for the user code).
+%
+-spec process_sending_feedback( service_key(), function_driver_id(),
+                                function_params() ) -> sms_sending_report().
+process_sending_feedback( ServiceKey, FunctionDriverId, Args ) ->
+
+    % Not just a sms_sending_report() anymore, we need to know how many of them
+    % shall be expected:
+    %
+    { SMSSendingStatus, Tpmr, ReportCount } =
+        seaplus:call_port_for( ServiceKey, FunctionDriverId, Args ),
+
+    cond_utils:if_defined( mobile_debug_driver, trace_bridge:debug_fmt(
+        "Expecting ~B sending feedback messages, "
+        "starting with TPMR ~B.", [ ReportCount, Tpmr ] ) ),
+
+    % Not expected to have vanished after the previous call:
+    TargetPort = process_dictionary:get( ServiceKey ),
+
+    % Note that we used to match incrementing TPMRs, yet the Gammu dummy device
+    % does not manage them properly (they are always equal to 255). So now we
+    % just count messages.
+    %
+    aggregate_sending_feedbacks( SMSSendingStatus, _Current=Tpmr,
+                                 % _Max=Tpmr+ReportCount-1, TargetPort ).
+                                 _RemainingSMSCount=ReportCount-1, TargetPort ).
+
+
+
+% (helper)
+%
+
+% Finished here:
+%aggregate_sending_feedbacks( SMSSendingStatus, _CurrentTpmr=MaxTpmr, MaxTpmr,
+%                             _TargetPort ) ->
+aggregate_sending_feedbacks( SMSSendingStatus, CurrentTpmr,
+                             _RemainingSMSCount=0, _TargetPort ) ->
+
+    cond_utils:if_defined( mobile_debug_driver, trace_bridge:debug_fmt(
+        "(all sending feedback aggregated, with TPMR ~B)", [ CurrentTpmr ] ) ),
+
+    { SMSSendingStatus, CurrentTpmr };
+
+% At least one more:
+%aggregate_sending_feedbacks( SMSSendingStatus, CurrentTpmr, MaxTpmr,
+aggregate_sending_feedbacks( SMSSendingStatus, CurrentTpmr, RemainingSMSCount,
+                             TargetPort ) ->
+
+    % Mostly the same as in seaplus:call_port_for/3:
+    Res = receive
+
+        { TargetPort, { data, BinAnswer } } ->
+            try
+                binary_to_term( BinAnswer )
+            catch
+
+                _:E ->
+                    throw( { sms_sending_deserialisation_failed, E } )
+
+            end
+
+    end,
+
+    cond_utils:if_defined( mobile_debug_driver, trace_bridge:debug_fmt(
+        "Aggregating sending feedback ~p.", [ Res ] ) ),
+
+    case Res of
+
+        % Expected to be CurrentTpmr:
+        { send_success, RecvTpmr, _SameReportCount } ->
+            % Total reported to check it is constant for this series:
+            %trace_bridge:debug_fmt( "Got (success) TPMR ~B (total: ~B).",
+            %                        [ RecvTpmr, SameReportCount ] ),
+
+            NewTpmr = case SMSSendingStatus of
+
+                % Keeping the one of the first failure:
+                send_failure ->
+                     CurrentTpmr;
+
+                % This one is the last success:
+                send_success ->
+                    RecvTpmr
+
+            end,
+            % Keeping the same status:
+            aggregate_sending_feedbacks( SMSSendingStatus, NewTpmr,
+                                         RemainingSMSCount-1, TargetPort );
+
+        { send_failure, RecvTpmr, _SameReportCount } ->
+            %trace_bridge:debug_fmt( "Got (failure) TPMR ~B (total: ~B).",
+            %                        [ RecvTpmr, SameReportCount ] ),
+            NewTpmr = case SMSSendingStatus of
+
+                % Keeping the one of the first failure:
+                send_failure ->
+                     CurrentTpmr;
+
+                % This one is the first failure:
+                send_success ->
+                     RecvTpmr
+
+            end,
+            aggregate_sending_feedbacks( send_failure, NewTpmr,
+                                         RemainingSMSCount-1, TargetPort );
+
+        Other ->
+            throw( { sms_sending_unexpected_message, Other } )
+
+    end.
+
+
+
 
 -doc "Helper; see the enum encoding in the corresponding driver.".
 -spec encoding_to_enum( encoding() ) -> encoding_enum().
@@ -961,7 +1130,7 @@ enum_to_encoding( EncodingEnum ) ->
 
 
 -doc """
-Reads all SMS already received (if any), and, if DeleteOnReading=true is
+Reads all SMS already received (if any), and, if `DeleteOnReading` is true is
 specified, deletes them as soon as they are read.
 
 Does not block.
@@ -976,6 +1145,10 @@ read_all_sms( DeleteOnReading ) ->
 
     PortKey = seaplus:get_service_port_key(),
     FunctionDriverId = seaplus:get_function_driver_id(),
+
+    %trace_bridge:debug_fmt( "Executing read_all_sms "
+    %    "(port key: ~ts; function driver id: ~B).",
+    %    [ PortKey, FunctionDriverId ] ),
 
     DeleteToggle = case DeleteOnReading of
 
