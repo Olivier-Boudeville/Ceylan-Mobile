@@ -1,4 +1,4 @@
-% Copyright (C) 2019-2025 Olivier Boudeville
+% Copyright (C) 2019-2026 Olivier Boudeville
 %
 % This file is part of the Ceylan-Mobile library.
 %
@@ -71,5 +71,8 @@ run() ->
     end,
 
     mobile:stop(),
+
+    % Useful to catch any unexpected driver-sent message left in the mailbox:
+    basic_utils:check_only_normal_exit_pending_messages(),
 
     test_facilities:stop().
