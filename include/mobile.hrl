@@ -30,16 +30,16 @@
 -record( received_sms, {
 
     % The mobile number of the SMS sender (as a binary):
-    sender_number :: bin_mobile_number(),
+    sender_number :: mobile:bin_mobile_number(),
 
     % The encoding used for the transmitted text:
-    encoding :: encoding(),
+    encoding :: mobile:encoding(),
 
     % The corresponding text:
-    text :: bin_sms_message(),
+    text :: mobile:bin_sms_message(),
 
     % The GSM network message reference:
-    message_reference :: sms_tpmr(),
+    message_reference :: mobile:sms_tpmr(),
 
     % The best sending timestamp determined for this message:
-    timestamp :: sms_timestamp() } ).
+    timestamp :: mobile:sms_timestamp() } ).
