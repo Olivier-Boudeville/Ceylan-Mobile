@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2025 Olivier Boudeville
+ * Copyright (C) 2018-2026 Olivier Boudeville
  *
  * This file is part of the Ceylan-Mobile library.
  *
@@ -93,10 +93,10 @@ typedef int sms_tpmr ;
 
 // Matches the encoding_table() in mobile_encoding_key:
 enum encoding { unicode_uncompressed=1,
-				unicode_compressed,
-				gsm_uncompressed,
-				gsm_compressed,
-				eight_bit } ;
+                unicode_compressed,
+                gsm_uncompressed,
+                gsm_compressed,
+                eight_bit } ;
 
 
 // Forward declarations:
@@ -200,6 +200,13 @@ const size_t main_buffer_size = 10000 ;
 //const sms_count max_sms_read = 500 ;
 
 
+/* Static variable, whose address will be sent as user data of the next
+ * callback:
+ *
+ */
+static unsigned int message_count = 0 ;
+
+
 /*
  * Callback triggered by Gammu after a request to send an SMS was issued.
  *
@@ -217,9 +224,11 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
    *
    */
   if ( interrupt_in_use )
-	raise_gammu_error( gammu_fsm, "Unexpected nested interrupt" ) ;
+    raise_gammu_error( gammu_fsm, "Unexpected nested interrupt" ) ;
 
   interrupt_in_use = true ;
+
+  unsigned int * msg_count_ptr = (unsigned int *) user_data;
 
   // Only active in the course of this callback (cleared at its end):
   init_output_buffer( &interrupt_sm_buf ) ;
@@ -227,35 +236,37 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
   sms_send_status = ERR_NONE ;
 
 
-  /* In case of success, returning {send_success, SMSRef}, otherwise returning
-   * {send_failure, SMSRef}:
+  /* In case of success, returning {send_success, SMSRef, TotalSMSCount},
+   * otherwise returning {send_failure, SMSRef, TotalSMSCount}:
    *
    */
 
-  write_tuple_header_result( &interrupt_sm_buf, 2 ) ;
+  write_tuple_header_result( &interrupt_sm_buf, 3 ) ;
 
   if ( send_status == 0 )
   {
 
-	LOG_DEBUG( "Received a success notification regarding the sending of "
-	  "the SMS whose reference is #%i on device %s.", ref,
-	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
+    LOG_DEBUG( "Received a success notification regarding the sending of "
+      "the SMS whose reference is #%i on device %s.", ref,
+      GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
 
-	write_atom_result( &interrupt_sm_buf, "send_success" ) ;
+    write_atom_result( &interrupt_sm_buf, "send_success" ) ;
 
   }
   else
   {
 
-	LOG_DEBUG( "Received a failure notification regarding the sending of "
-	  "the SMS whose reference is #%i on device %s.", ref,
-	  GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
+    LOG_DEBUG( "Received a failure notification regarding the sending of "
+      "the SMS whose reference is #%i on device %s.", ref,
+      GSM_GetConfig( gammu_fsm, -1 )->Device ) ;
 
-	write_atom_result( &interrupt_sm_buf, "send_failure" ) ;
+    write_atom_result( &interrupt_sm_buf, "send_failure" ) ;
 
   }
 
   write_int_result( &interrupt_sm_buf, ref ) ;
+
+  write_unsigned_int_result( &interrupt_sm_buf, *msg_count_ptr ) ;
 
   finalize_command_after_writing( &interrupt_sm_buf ) ;
 
@@ -289,12 +300,12 @@ int main( int argc, char *argv[] )
    */
   if ( argc != 1 )
   {
-	printf( "This is a Ceylan-Seaplus driver generated for service "
-	  "Ceylan-Mobile. It is not meant to be executed by itself, "
-	  "but to be run by the Erlang-based Seaplus integration logic. "
-	  "Exiting now.\n" ) ;
+    printf( "This is a Ceylan-Seaplus driver generated for service "
+      "Ceylan-Mobile. It is not meant to be executed by itself, "
+      "but to be run by the Erlang-based Seaplus integration logic. "
+      "Exiting now.\n" ) ;
 
-	return EXIT_SUCCESS ;
+    return EXIT_SUCCESS ;
   }
 
   // Provided by the Seaplus library:
@@ -306,7 +317,7 @@ int main( int argc, char *argv[] )
   start_seaplus_driver( read_buf ) ;
 
   LOG_TRACE( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
-	"now running>" ) ;
+    "now running>" ) ;
 
 
   // Gammu uses strings in the local encoding:
@@ -316,20 +327,20 @@ int main( int argc, char *argv[] )
   GSM_StateMachine * gammu_fsm = GSM_AllocStateMachine() ;
 
   if ( gammu_fsm == NULL )
-	raise_gammu_error( gammu_fsm, "Unable to allocate Gammu state machine." ) ;
+    raise_gammu_error( gammu_fsm, "Unable to allocate Gammu state machine." ) ;
 
   // Pre-allocations:
 
   string_buffer = malloc( main_buffer_size * sizeof(char) ) ;
 
   if ( string_buffer == NULL )
-	raise_error( "Allocation of main string buffer failed." ) ;
+    raise_error( "Allocation of main string buffer failed." ) ;
 
   // Secondary buffer to store temporary strings:
   char * aux_string_buffer = malloc( 250 * sizeof(char) ) ;
 
   if ( aux_string_buffer == NULL )
-	raise_error( "Allocation of auxiliary string buffer failed." ) ;
+    raise_error( "Allocation of auxiliary string buffer failed." ) ;
 
   GSM_Error gammu_error ;
 
@@ -360,355 +371,355 @@ int main( int argc, char *argv[] )
   while ( read_command( read_buf ) > 0 )
   {
 
-	LOG_TRACE( "New command received." ) ;
+    LOG_TRACE( "New command received." ) ;
 
-	// Relevant default, as most operations will send directly an answer:
-	answer_sent = true ;
+    // Relevant default, as most operations will send directly an answer:
+    answer_sent = true ;
 
-	// Current index in the input buffer (for decoding purpose):
-	buffer_index index = 0 ;
+    // Current index in the input buffer (for decoding purpose):
+    buffer_index index = 0 ;
 
-	/* Will be set to the corresponding Seaplus-defined function identifier
-	 * (e.g. whose value is FOO_1_ID):
-	 *
-	 */
-	fun_id current_fun_id ;
+    /* Will be set to the corresponding Seaplus-defined function identifier
+     * (e.g. whose value is FOO_1_ID):
+     *
+     */
+    fun_id current_fun_id ;
 
-	/* Will be set to the number of parameters obtained from Erlang for the
-	 * function whose identifier has been transmitted:
-	 *
-	 */
-	arity param_count ;
+    /* Will be set to the number of parameters obtained from Erlang for the
+     * function whose identifier has been transmitted:
+     *
+     */
+    arity param_count ;
 
-	read_function_information( read_buf, &index, &current_fun_id,
-	  &param_count ) ;
+    read_function_information( read_buf, &index, &current_fun_id,
+      &param_count ) ;
 
-	LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
-	  current_fun_id, param_count, index ) ;
+    LOG_DEBUG( "Function identifier is %u, arity is %u (new index is %u).",
+      current_fun_id, param_count, index ) ;
 
-	prepare_for_command( &output_sm_buf ) ;
+    prepare_for_command( &output_sm_buf ) ;
 
 
-	// Now, taking care of the corresponding function call:
-	switch( current_fun_id )
-	{
+    // Now, taking care of the corresponding function call:
+    switch( current_fun_id )
+    {
 
 
-	case GET_BACKEND_INFORMATION_0_ID:
+    case GET_BACKEND_INFORMATION_0_ID:
 
-		/* -spec get_backend_information() ->
-		 *    { backend_type(), backend_version() }.
-		 */
+        /* -spec get_backend_information() ->
+         *    { backend_type(), backend_version() }.
+         */
 
-		LOG_DEBUG( "Executing get_backend_information/0." ) ;
-		check_arity_is( 0, param_count, GET_BACKEND_INFORMATION_0_ID ) ;
+        LOG_DEBUG( "Executing get_backend_information/0." ) ;
+        check_arity_is( 0, param_count, GET_BACKEND_INFORMATION_0_ID ) ;
 
-		// Returning for example: {gammu, "1.40.0"}:
+        // Returning for example: {gammu, "1.40.0"}:
 
-		write_tuple_header_result( &output_sm_buf, 2 ) ;
+        write_tuple_header_result( &output_sm_buf, 2 ) ;
 
-		write_atom_result( &output_sm_buf, "gammu" ) ;
-		write_string_result( &output_sm_buf, GetGammuVersion() ) ;
+        write_atom_result( &output_sm_buf, "gammu" ) ;
+        write_string_result( &output_sm_buf, GetGammuVersion() ) ;
 
-		break ;
+        break ;
 
 
-	case GET_DEVICE_NAME_0_ID:
+    case GET_DEVICE_NAME_0_ID:
 
-		// -spec get_device_name() -> device_name().
+        // -spec get_device_name() -> device_name().
 
-		LOG_DEBUG( "Executing get_device_name/0." ) ;
-		check_arity_is( 0, param_count, GET_DEVICE_NAME_0_ID ) ;
+        LOG_DEBUG( "Executing get_device_name/0." ) ;
+        check_arity_is( 0, param_count, GET_DEVICE_NAME_0_ID ) ;
 
-		// Internal field, not owned:
-		const char * device_name = GSM_GetConfig( gammu_fsm, -1 )->Device ;
+        // Internal field, not owned:
+        const char * device_name = GSM_GetConfig( gammu_fsm, -1 )->Device ;
 
-		write_binary_string_result( &output_sm_buf, device_name ) ;
+        write_binary_string_result( &output_sm_buf, device_name ) ;
 
-		break ;
+        break ;
 
 
-	case GET_DEVICE_MANUFACTURER_0_ID:
+    case GET_DEVICE_MANUFACTURER_0_ID:
 
-		// -spec get_device_manufacturer() -> manufacturer_name().
+        // -spec get_device_manufacturer() -> manufacturer_name().
 
-		LOG_DEBUG( "Executing get_device_manufacturer/0." ) ;
-		check_arity_is( 0, param_count, GET_DEVICE_MANUFACTURER_0_ID ) ;
+        LOG_DEBUG( "Executing get_device_manufacturer/0." ) ;
+        check_arity_is( 0, param_count, GET_DEVICE_MANUFACTURER_0_ID ) ;
 
-		// Life-cycle of a global string buffer, not to manage here:
-		gammu_error = GSM_GetManufacturer( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, "get manufacturer", gammu_fsm ) ;
+        // Life-cycle of a global string buffer, not to manage here:
+        gammu_error = GSM_GetManufacturer( gammu_fsm, string_buffer ) ;
+        check_gammu_error( gammu_error, "get manufacturer", gammu_fsm ) ;
 
-		write_binary_string_result( &output_sm_buf, string_buffer ) ;
+        write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		break ;
+        break ;
 
 
-	case GET_DEVICE_MODEL_0_ID:
+    case GET_DEVICE_MODEL_0_ID:
 
-		// -spec get_device_model() -> model_name().
+        // -spec get_device_model() -> model_name().
 
-		LOG_DEBUG( "Executing get_device_model/0." ) ;
-		check_arity_is( 0, param_count, GET_DEVICE_MODEL_0_ID ) ;
+        LOG_DEBUG( "Executing get_device_model/0." ) ;
+        check_arity_is( 0, param_count, GET_DEVICE_MODEL_0_ID ) ;
 
-		// Life-cycle of a global string buffer, not to manage here:
-		gammu_error = GSM_GetModel( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, "get model", gammu_fsm ) ;
+        // Life-cycle of a global string buffer, not to manage here:
+        gammu_error = GSM_GetModel( gammu_fsm, string_buffer ) ;
+        check_gammu_error( gammu_error, "get model", gammu_fsm ) ;
 
-		write_binary_string_result( &output_sm_buf, string_buffer ) ;
+        write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		break ;
+        break ;
 
 
-	case GET_FIRMWARE_INFORMATION_0_ID:
+    case GET_FIRMWARE_INFORMATION_0_ID:
 
-		/* -spec get_firmware_information() ->
-		 *   { revision_text(), date_text(), revision_number() }.
-		 */
+        /* -spec get_firmware_information() ->
+         *   { revision_text(), date_text(), revision_number() }.
+         */
 
-		LOG_DEBUG( "Executing get_firmware_information/0." ) ;
-		check_arity_is( 0, param_count, GET_FIRMWARE_INFORMATION_0_ID ) ;
+        LOG_DEBUG( "Executing get_firmware_information/0." ) ;
+        check_arity_is( 0, param_count, GET_FIRMWARE_INFORMATION_0_ID ) ;
 
-		double rev_number ;
+        double rev_number ;
 
-		// Life-cycle of global string buffers, not to manage here:
-		gammu_error = GSM_GetFirmware( gammu_fsm, string_buffer,
-		  aux_string_buffer, &rev_number ) ;
+        // Life-cycle of global string buffers, not to manage here:
+        gammu_error = GSM_GetFirmware( gammu_fsm, string_buffer,
+          aux_string_buffer, &rev_number ) ;
 
-		check_gammu_error( gammu_error, "get firmware information",
-		  gammu_fsm ) ;
+        check_gammu_error( gammu_error, "get firmware information",
+          gammu_fsm ) ;
 
-		write_tuple_header_result( &output_sm_buf, 3 ) ;
+        write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_binary_string_result( &output_sm_buf, string_buffer ) ;
-		write_binary_string_result( &output_sm_buf, aux_string_buffer ) ;
-		write_double_result( &output_sm_buf, rev_number ) ;
+        write_binary_string_result( &output_sm_buf, string_buffer ) ;
+        write_binary_string_result( &output_sm_buf, aux_string_buffer ) ;
+        write_double_result( &output_sm_buf, rev_number ) ;
 
-		break ;
+        break ;
 
 
-	case GET_IMEI_CODE_0_ID:
+    case GET_IMEI_CODE_0_ID:
 
-		// -spec get_imei_code() -> imei().
+        // -spec get_imei_code() -> imei().
 
-		LOG_DEBUG( "Executing get_imei_code/0." ) ;
-		check_arity_is( 0, param_count, GET_IMEI_CODE_0_ID ) ;
+        LOG_DEBUG( "Executing get_imei_code/0." ) ;
+        check_arity_is( 0, param_count, GET_IMEI_CODE_0_ID ) ;
 
-		// Life-cycle of a global string buffer, not to manage here:
-		gammu_error = GSM_GetIMEI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, "get IMEI code", gammu_fsm ) ;
+        // Life-cycle of a global string buffer, not to manage here:
+        gammu_error = GSM_GetIMEI( gammu_fsm, string_buffer ) ;
+        check_gammu_error( gammu_error, "get IMEI code", gammu_fsm ) ;
 
-		write_binary_string_result( &output_sm_buf, string_buffer ) ;
+        write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		break ;
+        break ;
 
 
-	case GET_HARDWARE_INFORMATION_0_ID:
+    case GET_HARDWARE_INFORMATION_0_ID:
 
-		// -spec get_hardware_information() -> hardware_info().
+        // -spec get_hardware_information() -> hardware_info().
 
-		LOG_DEBUG( "Executing get_hardware_information/0." ) ;
+        LOG_DEBUG( "Executing get_hardware_information/0." ) ;
 
-		check_arity_is( 0, param_count, GET_HARDWARE_INFORMATION_0_ID ) ;
+        check_arity_is( 0, param_count, GET_HARDWARE_INFORMATION_0_ID ) ;
 
-		// Life-cycle of a global string buffer, not to manage here:
-		gammu_error = GSM_GetHardware( gammu_fsm, string_buffer ) ;
+        // Life-cycle of a global string buffer, not to manage here:
+        gammu_error = GSM_GetHardware( gammu_fsm, string_buffer ) ;
 
-		if ( gammu_error == ERR_NONE )
-		{
+        if ( gammu_error == ERR_NONE )
+        {
 
-		  write_binary_string_result( &output_sm_buf, string_buffer ) ;
+          write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		}
-		else
-		{
+        }
+        else
+        {
 
-		  /*
-		   * Returning a string instead (convention here is that an exception is
-		   * thrown by mobile.erl should a non-binary result be received):
-		   *
-		   */
+          /*
+           * Returning a string instead (convention here is that an exception is
+           * thrown by mobile.erl should a non-binary result be received):
+           *
+           */
 
-		  int res = sprintf( string_buffer, "Gammu error: %s",
-			GSM_ErrorString( gammu_error ) ) ;
+          int res = sprintf( string_buffer, "Gammu error: %s",
+            GSM_ErrorString( gammu_error ) ) ;
 
-		  if ( res < 0 )
-			raise_gammu_error( gammu_fsm, "Error reporting failed" ) ;
+          if ( res < 0 )
+            raise_gammu_error( gammu_fsm, "Error reporting failed" ) ;
 
-		  write_binary_string_result( &output_sm_buf, string_buffer ) ;
+          write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		}
+        }
 
-		break ;
+        break ;
 
 
-	case GET_IMSI_CODE_0_ID:
+    case GET_IMSI_CODE_0_ID:
 
-		// -spec get_imsi_code() -> imsi_code().
+        // -spec get_imsi_code() -> imsi_code().
 
-		LOG_DEBUG( "Executing get_imsi_code/0." ) ;
-		check_arity_is( 0, param_count, GET_IMSI_CODE_0_ID ) ;
+        LOG_DEBUG( "Executing get_imsi_code/0." ) ;
+        check_arity_is( 0, param_count, GET_IMSI_CODE_0_ID ) ;
 
-		// Life-cycle of a global string buffer, not to manage here:
-		gammu_error = GSM_GetSIMIMSI( gammu_fsm, string_buffer ) ;
-		check_gammu_error( gammu_error, "get IMSI code", gammu_fsm ) ;
+        // Life-cycle of a global string buffer, not to manage here:
+        gammu_error = GSM_GetSIMIMSI( gammu_fsm, string_buffer ) ;
+        check_gammu_error( gammu_error, "get IMSI code", gammu_fsm ) ;
 
-		write_binary_string_result( &output_sm_buf, string_buffer ) ;
+        write_binary_string_result( &output_sm_buf, string_buffer ) ;
 
-		break ;
+        break ;
 
 
-	case GET_SIGNAL_QUALITY_0_ID:
+    case GET_SIGNAL_QUALITY_0_ID:
 
-		/* -spec get_signal_quality() ->
-		 *    { signal_strength(), signal_strength_percent(), error_rate() }.
-		 */
+        /* -spec get_signal_quality() ->
+         *    { signal_strength(), signal_strength_percent(), error_rate() }.
+         */
 
-		LOG_DEBUG( "Executing get_signal_quality/0." ) ;
-		check_arity_is( 0, param_count, GET_SIGNAL_QUALITY_0_ID ) ;
+        LOG_DEBUG( "Executing get_signal_quality/0." ) ;
+        check_arity_is( 0, param_count, GET_SIGNAL_QUALITY_0_ID ) ;
 
-		GSM_SignalQuality sq ;
-		gammu_error = GSM_GetSignalQuality( gammu_fsm, &sq ) ;
-		check_gammu_error( gammu_error, "get signal quality", gammu_fsm ) ;
+        GSM_SignalQuality sq ;
+        gammu_error = GSM_GetSignalQuality( gammu_fsm, &sq ) ;
+        check_gammu_error( gammu_error, "get signal quality", gammu_fsm ) ;
 
-		write_tuple_header_result( &output_sm_buf, 3 ) ;
+        write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_int_result( &output_sm_buf, sq.SignalStrength ) ;
-		write_int_result( &output_sm_buf, sq.SignalPercent ) ;
-		write_int_result( &output_sm_buf, sq.BitErrorRate ) ;
+        write_int_result( &output_sm_buf, sq.SignalStrength ) ;
+        write_int_result( &output_sm_buf, sq.SignalPercent ) ;
+        write_int_result( &output_sm_buf, sq.BitErrorRate ) ;
 
-		LOG_DEBUG( "get_signal_quality/0 executed." ) ;
+        LOG_DEBUG( "get_signal_quality/0 executed." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_REGULAR_SMS_2_ID:
+    case SEND_REGULAR_SMS_2_ID:
 
-		/* No SEND_REGULAR_SMS_2_ID case: the Erlang part is to trigger only the
-		 * SEND_REGULAR_SMS_4_ID version ultimately.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_regular_sms/2." ) ;
+        /* No SEND_REGULAR_SMS_2_ID case: the Erlang part is to trigger only the
+         * SEND_REGULAR_SMS_4_ID version ultimately.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_regular_sms/2." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_REGULAR_SMS_3_ID:
+    case SEND_REGULAR_SMS_3_ID:
 
-		/* No SEND_REGULAR_SMS_3_ID case: the Erlang part is to trigger only the
-		 * SEND_REGULAR_SMS_4_ID version ultimately.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_regular_sms/3." ) ;
+        /* No SEND_REGULAR_SMS_3_ID case: the Erlang part is to trigger only the
+         * SEND_REGULAR_SMS_4_ID version ultimately.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_regular_sms/3." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_REGULAR_SMS_4_ID:
+    case SEND_REGULAR_SMS_4_ID:
 
-		/* -spec send_regular_sms( message(), recipient_number(), class(),
-		 *                         encoding() ) -> sms_id().
-		 *
-		 */
+        /* -spec send_regular_sms( message(), recipient_number(), class(),
+         *                         encoding() ) -> sms_id().
+         *
+         */
 
-		LOG_DEBUG( "Executing send_regular_sms/4." ) ;
-		check_arity_is( 4, param_count, SEND_REGULAR_SMS_4_ID ) ;
+        LOG_DEBUG( "Executing send_regular_sms/4." ) ;
+        check_arity_is( 4, param_count, SEND_REGULAR_SMS_4_ID ) ;
 
-		send_regular_sms( read_buf, &index, gammu_fsm ) ;
+        send_regular_sms( read_buf, &index, gammu_fsm ) ;
 
-		// Sending operation to be finalized by the interrupt handler:
-		answer_sent = false ;
+        // Sending operation to be finalized by the interrupt handler:
+        answer_sent = false ;
 
-		break ;
+        break ;
 
 
-	case SEND_MULTIPART_SMS_2_ID:
+    case SEND_MULTIPART_SMS_2_ID:
 
-		/* No SEND_MULTIPART_SMS_2_ID case: the Erlang part is to trigger only
-		 * the SEND_MULTIPART_SMS_4_ID version ultimately.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_multipart_sms/2." ) ;
+        /* No SEND_MULTIPART_SMS_2_ID case: the Erlang part is to trigger only
+         * the SEND_MULTIPART_SMS_4_ID version ultimately.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_multipart_sms/2." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_MULTIPART_SMS_3_ID:
+    case SEND_MULTIPART_SMS_3_ID:
 
-		/* No SEND_MULTIPART_SMS_3_ID case: the Erlang part is to trigger only
-		 * the SEND_MULTIPART_SMS_4_ID version ultimately.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_multipart_sms/3." ) ;
+        /* No SEND_MULTIPART_SMS_3_ID case: the Erlang part is to trigger only
+         * the SEND_MULTIPART_SMS_4_ID version ultimately.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_multipart_sms/3." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_MULTIPART_SMS_4_ID:
+    case SEND_MULTIPART_SMS_4_ID:
 
-		/* -spec send_multipart_sms( message(), recipient_number(),
-		 *                           class(), encoding() ) -> sms_id().
-		 *
-		 */
+        /* -spec send_multipart_sms( message(), recipient_number(),
+         *                           class(), encoding() ) -> sms_id().
+         *
+         */
 
-		LOG_DEBUG( "Executing send_multipart_sms/4." ) ;
-		check_arity_is( 4, param_count, SEND_MULTIPART_SMS_4_ID ) ;
+        LOG_DEBUG( "Executing send_multipart_sms/4." ) ;
+        check_arity_is( 4, param_count, SEND_MULTIPART_SMS_4_ID ) ;
 
-		send_multipart_sms( read_buf, &index, gammu_fsm ) ;
+        send_multipart_sms( read_buf, &index, gammu_fsm ) ;
 
-		// Sending operation to be finalized by the interrupt handler:
-		answer_sent = false ;
+        // Sending operation to be finalized by the interrupt handler:
+        answer_sent = false ;
 
-		break ;
+        break ;
 
 
-	case SEND_SMS_2_ID:
+    case SEND_SMS_2_ID:
 
-		/* No SEND_SMS_2_ID case: the Erlang part is to select the right version
-		 * among the SEND_*_SMS_4_ID.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_sms/2." ) ;
+        /* No SEND_SMS_2_ID case: the Erlang part is to select the right version
+         * among the SEND_*_SMS_4_ID.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_sms/2." ) ;
 
-		break ;
+        break ;
 
 
-	case SEND_SMS_3_ID:
+    case SEND_SMS_3_ID:
 
-		/* No SEND_SMS_3_ID case: the Erlang part is to select the right version
-		 * among the SEND_*_SMS_4_ID ultimately.
-		 *
-		 */
-		raise_error( "Unexpected call to driver-level send_sms/3." ) ;
+        /* No SEND_SMS_3_ID case: the Erlang part is to select the right version
+         * among the SEND_*_SMS_4_ID ultimately.
+         *
+         */
+        raise_error( "Unexpected call to driver-level send_sms/3." ) ;
 
-		break ;
+        break ;
 
 
-	case READ_ALL_SMS_1_ID:
+    case READ_ALL_SMS_1_ID:
 
-		/* -spec -spec read_all_sms( boolean() ) -> [mobile:received_sms()].
-		 *
-		 */
+        /* -spec -spec read_all_sms( boolean() ) -> [mobile:received_sms()].
+         *
+         */
 
-		LOG_DEBUG( "Executing read_all_sms/1." ) ;
-		check_arity_is( 1, param_count, READ_ALL_SMS_1_ID ) ;
+        LOG_DEBUG( "Executing read_all_sms/1." ) ;
+        check_arity_is( 1, param_count, READ_ALL_SMS_1_ID ) ;
 
-		read_all_sms( read_buf, &index, gammu_fsm ) ;
+        read_all_sms( read_buf, &index, gammu_fsm ) ;
 
-		LOG_DEBUG( "read_all_sms/1 executed." ) ;
+        LOG_DEBUG( "read_all_sms/1 executed." ) ;
 
-		break ;
+        break ;
 
 
-	default:
-		// Hopefully no 'break' has been forgotten above!
-		raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
-		  current_fun_id ) ;
+    default:
+        // Hopefully no 'break' has been forgotten above!
+        raise_gammu_error( gammu_fsm, "Unknown function identifier: %u",
+          current_fun_id ) ;
 
-	}
+    }
 
-	if ( answer_sent )
-	  finalize_command_after_writing( &output_sm_buf ) ;
+    if ( answer_sent )
+      finalize_command_after_writing( &output_sm_buf ) ;
 
   }
 
@@ -744,32 +755,32 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   if ( enable_gammu_logging )
   {
 
-	if ( log_file != NULL )
-	{
+    if ( log_file != NULL )
+    {
 
-	  LOG_DEBUG( "Directing Gammu logs to Seaplus ones." ) ;
-	  debug_file = log_file ;
+      LOG_DEBUG( "Directing Gammu logs to Seaplus ones." ) ;
+      debug_file = log_file ;
 
-	}
-	else
-	{
+    }
+    else
+    {
 
-	  LOG_DEBUG( "Gammu logs directed to standard error." ) ;
-	  debug_file = stderr ;
-	}
+      LOG_DEBUG( "Gammu logs directed to standard error." ) ;
+      debug_file = stderr ;
+    }
 
-	// Internal pointer, not to be deallocated afterwards:
-	debug_info = GSM_GetGlobalDebug() ;
+    // Internal pointer, not to be deallocated afterwards:
+    debug_info = GSM_GetGlobalDebug() ;
 
-	GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
+    GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
 
-	GSM_SetDebugLevel( "textall", debug_info ) ;
+    GSM_SetDebugLevel( "textall", debug_info ) ;
 
   }
   else
   {
 
-	LOG_DEBUG( "No Gammu logs requested." ) ;
+    LOG_DEBUG( "No Gammu logs requested." ) ;
 
   }
 
@@ -777,34 +788,34 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   if ( enable_gammu_state_machine_logging )
   {
 
-	if ( log_file != NULL )
-	{
+    if ( log_file != NULL )
+    {
 
-	  LOG_DEBUG( "Directing Gammu state machine logs to Seaplus ones." ) ;
-	  debug_file = log_file ;
+      LOG_DEBUG( "Directing Gammu state machine logs to Seaplus ones." ) ;
+      debug_file = log_file ;
 
-	}
-	else
-	{
+    }
+    else
+    {
 
-	  LOG_DEBUG( "Gammu state machine logs directed to standard error." ) ;
-	  debug_file = stderr ;
+      LOG_DEBUG( "Gammu state machine logs directed to standard error." ) ;
+      debug_file = stderr ;
 
-	}
+    }
 
-	debug_info = GSM_GetDebug( gammu_fsm ) ;
+    debug_info = GSM_GetDebug( gammu_fsm ) ;
 
-	GSM_SetDebugGlobal( false, debug_info ) ;
+    GSM_SetDebugGlobal( false, debug_info ) ;
 
-	GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
+    GSM_SetDebugFileDescriptor( debug_file, false, debug_info ) ;
 
-	GSM_SetDebugLevel( "textall", debug_info ) ;
+    GSM_SetDebugLevel( "textall", debug_info ) ;
 
   }
   else
   {
 
-	LOG_DEBUG( "No Gammu state machine logs requested." ) ;
+    LOG_DEBUG( "No Gammu state machine logs requested." ) ;
 
   }
 
@@ -838,8 +849,9 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
   check_gammu_error( error, "init connection", gammu_fsm ) ;
 
-  // No user data:
-  GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback, NULL ) ;
+  // User data set so that the callback can fetch the SMS counts:
+  GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback,
+								&message_count ) ;
 
   // We need to know the SMSC number:
   device_smsc.Location = 1 ;
@@ -876,8 +888,8 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   char * message = read_binary_parameter( read_buf, index ) ;
 
   if ( message == NULL )
-	raise_gammu_error( gammu_fsm,
-	  "SMS message could not be obtained (regular)." ) ;
+    raise_gammu_error( gammu_fsm,
+      "SMS message could not be obtained (regular)." ) ;
 
   /* Clean-up the struct; presumably better than
    * 'memset(&sms, 0, sizeof(sms);':
@@ -890,8 +902,8 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   char * recipient_number = read_binary_parameter( read_buf, index ) ;
 
   if ( recipient_number == NULL )
-	raise_gammu_error( gammu_fsm,
-	  "SMS recipient mobile number could not be obtained." ) ;
+    raise_gammu_error( gammu_fsm,
+      "SMS recipient mobile number could not be obtained." ) ;
 
   EncodeUnicode( sms.Number, recipient_number, strlen( recipient_number ) ) ;
 
@@ -904,7 +916,7 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   sms.Class = read_int_parameter( read_buf, index ) ;
 
   sms.Coding = get_gammu_encoding(
-	read_int_parameter( read_buf, index ) ) ;
+    read_int_parameter( read_buf, index ) ) ;
 
 
   // Sets the SMSC number in message:
@@ -912,6 +924,12 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
 
   // Resets it first, some phones might give instant response:
   sms_send_status = ERR_TIMEOUT ;
+
+  /* Set for the upcoming sms_sending_callback call (a single SMS part for
+   * a regular SMS):
+   *
+   */
+  message_count = 1 ;
 
   // Finally:
   GSM_Error gammu_error = GSM_SendSMS( gammu_fsm, &sms ) ;
@@ -929,22 +947,25 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
   while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
   {
 
-	LOG_DEBUG( "Reading device..." ) ;
+    LOG_DEBUG( "Reading device..." ) ;
 
-	/* Expected to trigger sms_sending_callback/4 (true: wait for reply;
-	 * number of read bytes ignored):
-	 *
-	 */
-	GSM_ReadDevice( gammu_fsm, true ) ;
+    /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+     * number of read bytes ignored):
+     *
+     */
+    GSM_ReadDevice( gammu_fsm, true ) ;
 
-	/* Answer to be sent by the callback, just ensuring here we read the device
-	 * until an answer is known.
-	 *
-	 * Loops as long as the status is ERR_TIMEOUT:
-	 *
-	 */
+    /* Answer to be sent by the callback, just ensuring here we read the device
+     * until an answer is known.
+     *
+     * Loops as long as the status is ERR_TIMEOUT:
+     *
+     */
 
   }
+
+  // Safer:
+  message_count = 0 ;
 
   free( recipient_number ) ;
   free( message ) ;
@@ -967,15 +988,15 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   char * message = read_binary_parameter( read_buf, index ) ;
 
   if ( message == NULL )
-	raise_gammu_error( gammu_fsm,
-	  "SMS message could not be obtained (multipart)." ) ;
+    raise_gammu_error( gammu_fsm,
+      "SMS message could not be obtained (multipart)." ) ;
 
    // Message recipient:
   char * recipient_number = read_binary_parameter( read_buf, index ) ;
 
   if ( recipient_number == NULL )
-	raise_gammu_error( gammu_fsm,
-	  "SMS recipient mobile number could not be obtained." ) ;
+    raise_gammu_error( gammu_fsm,
+      "SMS recipient mobile number could not be obtained." ) ;
 
   size_t msg_size = strlen( message ) ;
 
@@ -989,7 +1010,7 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   unsigned char * msg_buffer = (unsigned char *) malloc( buf_size ) ;
 
   if ( msg_buffer == NULL )
-	raise_error( "Multipart message buffer could not be allocated." ) ;
+    raise_error( "Multipart message buffer could not be allocated." ) ;
 
   GSM_MultiPartSMSInfo SMSInfo ;
   GSM_ClearMultiPartSMSInfo( &SMSInfo ) ;
@@ -1007,18 +1028,18 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
 
   case unicode_uncompressed:
   case unicode_compressed:
-	SMSInfo.UnicodeCoding = true ;
-	break ;
+    SMSInfo.UnicodeCoding = true ;
+    break ;
 
   case gsm_uncompressed:
   case gsm_compressed:
   case eight_bit:
-	SMSInfo.UnicodeCoding = false ;
-	break ;
+    SMSInfo.UnicodeCoding = false ;
+    break ;
 
   default:
-	raise_error( "Unexpected encoding: %i", e ) ;
-	break ;
+    raise_error( "Unexpected encoding: %i", e ) ;
+    break ;
 
   }
 
@@ -1031,75 +1052,83 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
   SMSInfo.Entries[0].Buffer = msg_buffer ;
 
   LOG_DEBUG( "Message once encoded in UCS-2: '%s'.",
-	DecodeUnicodeConsole( SMSInfo.Entries[0].Buffer ) ) ;
+    DecodeUnicodeConsole( SMSInfo.Entries[0].Buffer ) ) ;
 
   GSM_MultiSMSMessage MultiSMS ;
 
   // Encode message into PDU parts:
   GSM_Error gammu_error = GSM_EncodeMultiPartSMS( debug_info, &SMSInfo,
-	&MultiSMS ) ;
+    &MultiSMS ) ;
 
   check_gammu_error( gammu_error, "encode multipart SMS", gammu_fsm ) ;
 
   size_t recipient_number_len = strlen( recipient_number ) ;
 
+  /* Set once for all for this call, for the upcoming sms_sending_callback
+   * calls:
+   *
+   */
+  message_count = MultiSMS.Number ;
 
   // Now sending the message parts:
   for ( sms_count i = 0; i < MultiSMS.Number; i++)
   {
 
-	LOG_DEBUG( "Sending SMS part %i/%i", i+1, MultiSMS.Number ) ;
+    LOG_DEBUG( "Sending SMS part %i/%i", i+1, MultiSMS.Number ) ;
 
-	// Sets the SMSC number in the current SMS:
-	CopyUnicodeString( MultiSMS.SMS[i].SMSC.Number, device_smsc.Number ) ;
+    // Sets the SMSC number in the current SMS:
+    CopyUnicodeString( MultiSMS.SMS[i].SMSC.Number, device_smsc.Number ) ;
 
-	// Encodes the recipient number:
-	EncodeUnicode( MultiSMS.SMS[i].Number, recipient_number,
-	  recipient_number_len ) ;
+    // Encodes the recipient number:
+    EncodeUnicode( MultiSMS.SMS[i].Number, recipient_number,
+      recipient_number_len ) ;
 
-	// We want to submit message:
-	MultiSMS.SMS[i].PDU = SMS_Submit ;
+    // We want to submit message:
+    MultiSMS.SMS[i].PDU = SMS_Submit ;
 
-	/*
-	 * Sets flag before calling SendSMS, as some phones might give instant
-	 * response:
-	 */
-	sms_send_status = ERR_TIMEOUT ;
+    /*
+     * Sets flag before calling SendSMS, as some phones might give instant
+     * response:
+     */
+    sms_send_status = ERR_TIMEOUT ;
 
-	// Send this message:
-	gammu_error = GSM_SendSMS( gammu_fsm, &MultiSMS.SMS[i] ) ;
-	check_gammu_error( gammu_error, "send SMS", gammu_fsm ) ;
+    // Send this message:
+    gammu_error = GSM_SendSMS( gammu_fsm, &MultiSMS.SMS[i] ) ;
+    check_gammu_error( gammu_error, "send SMS", gammu_fsm ) ;
 
-	/* We do not have yet anything to return, but the callback will. */
-	//write_XXX_result( output_sm_buffer, ... ) ;
+    /* We do not have yet anything to return, but the callback will. */
+    //write_XXX_result( output_sm_buffer, ... ) ;
 
-	/* However, using real devices (not the dummy one), we see that the callback
-	 * is never triggered unless we poll explicitly from a network reply.
-	 *
-	 * Loops as long as the status is ERR_TIMEOUT:
-	 *
-	 */
-	while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
-	{
+    /* However, using real devices (not the dummy one), we see that the callback
+     * is never triggered unless we poll explicitly from a network reply.
+     *
+     * Loops as long as the status is ERR_TIMEOUT:
+     *
+     */
+    while ( ( ! shutdown_requested ) && ( sms_send_status == ERR_TIMEOUT ) )
+    {
 
-	  LOG_DEBUG( "Reading device..." ) ;
+      LOG_DEBUG( "Reading device..." ) ;
 
-	  /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
-	   * number of read bytes ignored):
-	   *
-	   */
-	  GSM_ReadDevice( gammu_fsm, true ) ;
+      /* Expected to trigger sms_sending_callback/4 (true: wait for reply;
+       * number of read bytes ignored):
+       *
+       */
+      GSM_ReadDevice( gammu_fsm, true ) ;
 
-	  /* Answer to be sent by the callback, just ensuring here we read the
-	   * device until an answer is known.
-	   *
-	   */
+      /* Answer to be sent by the callback, just ensuring here we read the
+       * device until an answer is known.
+       *
+       */
 
-	}
+    }
 
-	LOG_DEBUG( "Device read." ) ;
+    LOG_DEBUG( "Device read." ) ;
 
   }
+
+  // Safer:
+  message_count = 0 ;
 
   free( msg_buffer ) ;
   free( recipient_number ) ;
@@ -1117,28 +1146,28 @@ GSM_Coding_Type get_gammu_encoding( enum encoding e )
   {
 
   case unicode_uncompressed:
-	return SMS_Coding_Unicode_No_Compression ;
-	break ;
+    return SMS_Coding_Unicode_No_Compression ;
+    break ;
 
   case unicode_compressed:
-	return SMS_Coding_Unicode_Compression ;
-	break ;
+    return SMS_Coding_Unicode_Compression ;
+    break ;
 
   case gsm_uncompressed:
-	return SMS_Coding_Default_No_Compression ;
-	break ;
+    return SMS_Coding_Default_No_Compression ;
+    break ;
 
   case gsm_compressed:
-	return SMS_Coding_Default_Compression ;
-	break ;
+    return SMS_Coding_Default_Compression ;
+    break ;
 
   case eight_bit:
-	return SMS_Coding_8bit ;
-	break ;
+    return SMS_Coding_8bit ;
+    break ;
 
   default:
-	raise_error( "Unexpected Mobile encoding: %i", e ) ;
-	break ;
+    raise_error( "Unexpected Mobile encoding: %i", e ) ;
+    break ;
 
   }
 
@@ -1158,28 +1187,28 @@ enum encoding get_mobile_encoding( GSM_Coding_Type e )
   {
 
   case SMS_Coding_Unicode_No_Compression :
-	return unicode_uncompressed ;
-	break ;
+    return unicode_uncompressed ;
+    break ;
 
   case SMS_Coding_Unicode_Compression:
-	return unicode_compressed ;
-	break ;
+    return unicode_compressed ;
+    break ;
 
   case SMS_Coding_Default_No_Compression:
-	return gsm_uncompressed;
-	break ;
+    return gsm_uncompressed;
+    break ;
 
   case SMS_Coding_Default_Compression:
-	return gsm_compressed ;
-	break ;
+    return gsm_compressed ;
+    break ;
 
   case SMS_Coding_8bit:
-	return eight_bit ;
-	break ;
+    return eight_bit ;
+    break ;
 
   default:
-	raise_error( "Unexpected Gammu encoding: %i", e ) ;
-	break ;
+    raise_error( "Unexpected Gammu encoding: %i", e ) ;
+    break ;
 
   }
 
@@ -1233,18 +1262,18 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   {
 
   case 0:
-	LOG_DEBUG( "Read SMS will be kept." ) ;
-	delete_on_reading = false ;
-	break;
+    LOG_DEBUG( "Read SMS will be kept." ) ;
+    delete_on_reading = false ;
+    break;
 
   case 1:
-	LOG_DEBUG( "Read SMS will be deleted." ) ;
-	delete_on_reading = true ;
-	break;
+    LOG_DEBUG( "Read SMS will be deleted." ) ;
+    delete_on_reading = true ;
+    break;
 
   default:
-	raise_error( "Unexpected deletion parameter: %i", delete_int ) ;
-	break ;
+    raise_error( "Unexpected deletion parameter: %i", delete_int ) ;
+    break ;
 
   }
 
@@ -1269,339 +1298,339 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
   {
 
-	LOG_DEBUG( "Trying to read a new multi-SMS message from device..." ) ;
-
-	/* Actually we are looping here over (multi-SMS) messages, themselves having
-	 * potentially multiple SMS, themselves having potentially multiple parts;
-	 * however then there is no double nesting: we just iterate, for a given
-	 * message, on SMS, each corresponding either to an autonomous SMS, or to a
-	 * part of a multipart one.
-	 *
-	 * So we are message-level here.
-	 *
-	 * In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
-	 * gammu/smsd/core.c.
-	 *
-	 */
-	read_error = GSM_GetNextSMS( gammu_fsm, &received_sms, is_first ) ;
-
-	// Terminates the consing:
-	if ( read_error == ERR_EMPTY )
-	{
-
-	  LOG_DEBUG( "Empty read, no more SMS to read." ) ;
-
-	  /* No need to special-case the empty read SMS list: this function finishes
-	   * by writing an empty list.
-	   *
-	   */
-
-	  // Try to overcome any partial reading:
-	  if (copy_index > 0)
-	  {
-
-		LOG_DEBUG( "Empty read, SMS tuple closed; final text: '%s'.",
-		  string_buffer ) ;
-
-		// Proper UTF-8 obtained for all characters:
-		write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
-
-	  }
-
-	  break;
-
-	}
-
-	check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
-
-	// Regarding messages (not per-message SMS):
-	is_first = false ;
-
-	LOG_DEBUG( "Reading a new multi-SMS message." ) ;
-
-
-	/* Interpreting now each SMS of that message; if it is a SMS part, we
-	 * concatenate the text of the overall SMS.
-	 *
-	 * Note, that, apparently (in our tests), even when sending longer SMS,
-	 * messages have only one SMS (1/1, i.e. received_sms.Number == 1) - but
-	 * then each SMS may correspond to a part (as if the next number had no
-	 * meaning).
-	 *
-	 */
+    LOG_DEBUG( "Trying to read a new multi-SMS message from device..." ) ;
+
+    /* Actually we are looping here over (multi-SMS) messages, themselves having
+     * potentially multiple SMS, themselves having potentially multiple parts;
+     * however then there is no double nesting: we just iterate, for a given
+     * message, on SMS, each corresponding either to an autonomous SMS, or to a
+     * part of a multipart one.
+     *
+     * So we are message-level here.
+     *
+     * In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
+     * gammu/smsd/core.c.
+     *
+     */
+    read_error = GSM_GetNextSMS( gammu_fsm, &received_sms, is_first ) ;
+
+    // Terminates the consing:
+    if ( read_error == ERR_EMPTY )
+    {
+
+      LOG_DEBUG( "Empty read, no more SMS to read." ) ;
+
+      /* No need to special-case the empty read SMS list: this function finishes
+       * by writing an empty list.
+       *
+       */
+
+      // Try to overcome any partial reading:
+      if (copy_index > 0)
+      {
+
+        LOG_DEBUG( "Empty read, SMS tuple closed; final text: '%s'.",
+          string_buffer ) ;
+
+        // Proper UTF-8 obtained for all characters:
+        write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
+
+      }
+
+      break;
+
+    }
+
+    check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
+
+    // Regarding messages (not per-message SMS):
+    is_first = false ;
+
+    LOG_DEBUG( "Reading a new multi-SMS message." ) ;
+
+
+    /* Interpreting now each SMS of that message; if it is a SMS part, we
+     * concatenate the text of the overall SMS.
+     *
+     * Note, that, apparently (in our tests), even when sending longer SMS,
+     * messages have only one SMS (1/1, i.e. received_sms.Number == 1) - but
+     * then each SMS may correspond to a part (as if the next number had no
+     * meaning).
+     *
+     */
 
-	if (must_initiate_tuple)
-	{
+    if (must_initiate_tuple)
+    {
 
-	  /* Here we do not know from the start the size of the list of SMS tuples
-	   * ("messages") to return, so instead of creating [R_SMS1, R_SMS2, R_SMS3]
-	   * we create it from cons': [R_SMS1 | [R_SMS2 | [R_SMS3 | []]]].
-	   *
-	   * (refer to https://www.erlang.org/docs/25/man/ei#ei_encode_list_header
-	   * for a better understanding)
-	   *
-	   * So we are cons'ing a single element, said tuple:
-	   */
-	  write_list_header_result( &output_sm_buf, 1 ) ;
+      /* Here we do not know from the start the size of the list of SMS tuples
+       * ("messages") to return, so instead of creating [R_SMS1, R_SMS2, R_SMS3]
+       * we create it from cons': [R_SMS1 | [R_SMS2 | [R_SMS3 | []]]].
+       *
+       * (refer to https://www.erlang.org/docs/25/man/ei#ei_encode_list_header
+       * for a better understanding)
+       *
+       * So we are cons'ing a single element, said tuple:
+       */
+      write_list_header_result( &output_sm_buf, 1 ) ;
 
-	  /* In all cases (autonomous, single SMS or multipart one), a SMS term will
-	   * be returned. So now a 5-tuple will have to be written for this SMS.
-	   *
-	   * For each multi-SMS message, the Erlang counterpart expects a
-	   * received_sms_tuple() term, i.e. a {BinSenderNumber, EncodingValue,
-	   * MessageReference, Timestamp, BinText} 5-tuple (so: not one tuple per
-	   * SMS/part message).
-	   *
-	   * Fields of interest currently not returned here: SMS, PDU, Class.
-	   *
-	   * BinText is better aggregated (from the various SMS-as-a-part involved,
-	   * if any) directly here, in the C part, and written last in the created
-	   * tuple; as the other tuple elements are expected to be the same in all
-	   * SMS-as-a-part, we write them once, from the first SMS part.
-	   *
-	   */
-	  write_tuple_header_result( &output_sm_buf, 5 ) ;
+      /* In all cases (autonomous, single SMS or multipart one), a SMS term will
+       * be returned. So now a 5-tuple will have to be written for this SMS.
+       *
+       * For each multi-SMS message, the Erlang counterpart expects a
+       * received_sms_tuple() term, i.e. a {BinSenderNumber, EncodingValue,
+       * MessageReference, Timestamp, BinText} 5-tuple (so: not one tuple per
+       * SMS/part message).
+       *
+       * Fields of interest currently not returned here: SMS, PDU, Class.
+       *
+       * BinText is better aggregated (from the various SMS-as-a-part involved,
+       * if any) directly here, in the C part, and written last in the created
+       * tuple; as the other tuple elements are expected to be the same in all
+       * SMS-as-a-part, we write them once, from the first SMS part.
+       *
+       */
+      write_tuple_header_result( &output_sm_buf, 5 ) ;
 
-	  /* Starts by writing the beginning of a 5-tuple, whether single or
-	   * multipart SMS message:
-	   *
-	   */
+      /* Starts by writing the beginning of a 5-tuple, whether single or
+       * multipart SMS message:
+       *
+       */
 
-	}
+    }
 
 
-	for ( sms_count i = 0; i < received_sms.Number; i++ )
-	{
+    for ( sms_count i = 0; i < received_sms.Number; i++ )
+    {
 
-	  // Most probably 1/1; anyway we aggregate:
-	  LOG_DEBUG( "Reading SMS %i/%i for that message...", i+1,
-		received_sms.Number ) ;
+      // Most probably 1/1; anyway we aggregate:
+      LOG_DEBUG( "Reading SMS %i/%i for that message...", i+1,
+        received_sms.Number ) ;
 
 
-	  /* Except the actual payload (text/data), we expect the metadata of the
-	   * various SMS parts to be equal (e.g. for SMS classes) or roughly the
-	   * same (e.g. for sending timestamp), so we record them only once, for the
-	   * first SMS part (the only one known to exist in all cases):
-	   *
-	   */
+      /* Except the actual payload (text/data), we expect the metadata of the
+       * various SMS parts to be equal (e.g. for SMS classes) or roughly the
+       * same (e.g. for sending timestamp), so we record them only once, for the
+       * first SMS part (the only one known to exist in all cases):
+       *
+       */
 
-	  // Has to be fetched in all cases:
-	  GSM_Coding_Type encoding = received_sms.SMS[i].Coding ;
+      // Has to be fetched in all cases:
+      GSM_Coding_Type encoding = received_sms.SMS[i].Coding ;
 
-	  if (must_initiate_tuple)
-	  {
+      if (must_initiate_tuple)
+      {
 
-		LOG_DEBUG( "Initiating SMS tuple." ) ;
+        LOG_DEBUG( "Initiating SMS tuple." ) ;
 
-		// First tuple element, BinSenderNumber :: bin_phone_number():
+        // First tuple element, BinSenderNumber :: bin_phone_number():
 
-		// See, in gammu/include/gammu-message.h, GSM_SMSMessage:
+        // See, in gammu/include/gammu-message.h, GSM_SMSMessage:
 
-		/* DecodeUnicodeString defined in gammu/libgammu/misc/coding/coding.c
-		 * (search for 'char *DecodeUnicodeString'); its static buffer is quite
-		 * small (500 bytes), so we use our considerably larger string_buffer,
-		 * notably for texts.
-		 *
-		 */
+        /* DecodeUnicodeString defined in gammu/libgammu/misc/coding/coding.c
+         * (search for 'char *DecodeUnicodeString'); its static buffer is quite
+         * small (500 bytes), so we use our considerably larger string_buffer,
+         * notably for texts.
+         *
+         */
 
-		decoded_string = DecodeUnicodeString( received_sms.SMS[i].Number ) ;
+        decoded_string = DecodeUnicodeString( received_sms.SMS[i].Number ) ;
 
-		// Number of bytes (not characters):
-		size_t decoded_len = strlen( decoded_string ) ;
+        // Number of bytes (not characters):
+        size_t decoded_len = strlen( decoded_string ) ;
 
-		LOG_DEBUG( "  - sender number (%i bytes): '%s'", decoded_len,
-		  decoded_string ) ;
+        LOG_DEBUG( "  - sender number (%i bytes): '%s'", decoded_len,
+          decoded_string ) ;
 
-		/* As length is already known; not incremented as the null terminator
-		 * shall not end up in the resulting binary:
-		 *
-		 */
-		write_binary_result( &output_sm_buf, decoded_string, decoded_len ) ;
+        /* As length is already known; not incremented as the null terminator
+         * shall not end up in the resulting binary:
+         *
+         */
+        write_binary_result( &output_sm_buf, decoded_string, decoded_len ) ;
 
-		/* Second tuple element, EncodingValue :: encoding_enum() (needed
-		 * afterwards for all parts, hence the scope):
-		 *
-		 */
+        /* Second tuple element, EncodingValue :: encoding_enum() (needed
+         * afterwards for all parts, hence the scope):
+         *
+         */
 
 
-		// Generally 1 (unicode_uncompressed) or 3 (gsm_uncompressed):
-		LOG_DEBUG( "  - encoding: %i", encoding ) ;
+        // Generally 1 (unicode_uncompressed) or 3 (gsm_uncompressed):
+        LOG_DEBUG( "  - encoding: %i", encoding ) ;
 
-		write_int_result( &output_sm_buf, get_mobile_encoding( encoding ) ) ;
+        write_int_result( &output_sm_buf, get_mobile_encoding( encoding ) ) ;
 
 
-		// Information not sent back (little interest):
-		LOG_DEBUG( "  - class: %i", received_sms.SMS[i].Class + 1 ) ; // 0
+        // Information not sent back (little interest):
+        LOG_DEBUG( "  - class: %i", received_sms.SMS[i].Class + 1 ) ; // 0
 
-		LOG_DEBUG( "  - PDU type: %i", received_sms.SMS[i].PDU ) ; // 1
+        LOG_DEBUG( "  - PDU type: %i", received_sms.SMS[i].PDU ) ; // 1
 
-		// Then third tuple element, MessageReference :: sms_tpmr():
+        // Then third tuple element, MessageReference :: sms_tpmr():
 
-		sms_tpmr msg_ref = received_sms.SMS[i].MessageReference ;
+        sms_tpmr msg_ref = received_sms.SMS[i].MessageReference ;
 
-		// Always 0 in our tests:
-		LOG_DEBUG( "  - message reference: %i", msg_ref ) ; // 0
+        // Always 0 in our tests:
+        LOG_DEBUG( "  - message reference: %i", msg_ref ) ; // 0
 
-		write_int_result( &output_sm_buf, msg_ref ) ;
+        write_int_result( &output_sm_buf, msg_ref ) ;
 
 
-		/* Then Timestamp :: sms_timestamp(); we directly convert the struct
-		 * into its time_utils:timestamp/0 counterpart, which is {date(),
-		 * time()}, namely: {{Year, Month, Day}, {Hour, Minute, Second}}.
-		 *
-		 * (Timezone not used here)
-		 *
-		 */
+        /* Then Timestamp :: sms_timestamp(); we directly convert the struct
+         * into its time_utils:timestamp/0 counterpart, which is {date(),
+         * time()}, namely: {{Year, Month, Day}, {Hour, Minute, Second}}.
+         *
+         * (Timezone not used here)
+         *
+         */
 
-		// Note that GSM_DateTime is defined in gammu/include/gammu-datetime.h.
+        // Note that GSM_DateTime is defined in gammu/include/gammu-datetime.h.
 
-		// For {date(), time()}:
-		write_tuple_header_result( &output_sm_buf, 2 ) ;
+        // For {date(), time()}:
+        write_tuple_header_result( &output_sm_buf, 2 ) ;
 
-		// For date(), hence {Year, Month, Day}:
-		write_tuple_header_result( &output_sm_buf, 3 ) ;
+        // For date(), hence {Year, Month, Day}:
+        write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Year ) ;
-		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Month ) ;
-		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Day ) ;
+        write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Year ) ;
+        write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Month ) ;
+        write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Day ) ;
 
-		// For time(), hence {Hour, Minute, Second}:
-		write_tuple_header_result( &output_sm_buf, 3 ) ;
+        // For time(), hence {Hour, Minute, Second}:
+        write_tuple_header_result( &output_sm_buf, 3 ) ;
 
-		write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Hour ) ;
+        write_int_result( &output_sm_buf, received_sms.SMS[i].DateTime.Hour ) ;
 
-		write_int_result( &output_sm_buf,
-		  received_sms.SMS[i].DateTime.Minute ) ;
+        write_int_result( &output_sm_buf,
+          received_sms.SMS[i].DateTime.Minute ) ;
 
-		write_int_result( &output_sm_buf,
-		  received_sms.SMS[i].DateTime.Second ) ;
+        write_int_result( &output_sm_buf,
+          received_sms.SMS[i].DateTime.Second ) ;
 
-		/* All tuple elements written, but the BinText :: bin_string(), which
-		 * shall be first aggregated across the SMS parts involved.
-		 *
-		 */
+        /* All tuple elements written, but the BinText :: bin_string(), which
+         * shall be first aggregated across the SMS parts involved.
+         *
+         */
 
-	  } // if (must_initiate_tuple)
+      } // if (must_initiate_tuple)
 
-	  /* Section evaluated for each of the SMS, aggregating BinText across them
-	   * all:
-	   *
-	   */
+      /* Section evaluated for each of the SMSs, aggregating BinText across them
+       * all:
+       *
+       */
 
-	  // Generally true:
-	  if ( encoding != SMS_Coding_8bit
-		&& received_sms.SMS[i].UDH.Type != UDH_UserUDH )
-	  {
+      // Generally true:
+      if ( encoding != SMS_Coding_8bit
+        && received_sms.SMS[i].UDH.Type != UDH_UserUDH )
+      {
 
-		// Does not seem to induce any difference:
-		decoded_string = DecodeUnicodeString( received_sms.SMS[i].Text ) ;
-		//DecodeUnicode( received_sms.SMS[i].Text, decoded_string ) ;
+        // Does not seem to induce any difference:
+        decoded_string = DecodeUnicodeString( received_sms.SMS[i].Text ) ;
+        //DecodeUnicode( received_sms.SMS[i].Text, decoded_string ) ;
 
-		size_t decoded_len = strlen( decoded_string ) ;
+        size_t decoded_len = strlen( decoded_string ) ;
 
-		LOG_DEBUG( "  - adding text (%i bytes): '%s'", decoded_len,
-		  decoded_string ) ;
+        LOG_DEBUG( "  - adding text (%i bytes): '%s'", decoded_len,
+          decoded_string ) ;
 
-		size_t new_copy_index = copy_index + decoded_len ;
+        size_t new_copy_index = copy_index + decoded_len ;
 
-		if ( new_copy_index > main_buffer_size )
-		  raise_error( "Length of main buffer exceeded." ) ;
+        if ( new_copy_index > main_buffer_size )
+          raise_error( "Length of main buffer exceeded." ) ;
 
-		strncpy( string_buffer + copy_index, decoded_string, decoded_len ) ;
+        strncpy( string_buffer + copy_index, decoded_string, decoded_len ) ;
 
-		copy_index = new_copy_index ;
+        copy_index = new_copy_index ;
 
-	  }
-	  else
-	  {
+      }
+      else
+      {
 
-		// Both could be true; no writing done:
+        // Both could be true; no writing done:
 
-		if ( encoding == SMS_Coding_8bit )
-		  LOG_DEBUG( "  - no text read (8-bit encoded)" ) ;
+        if ( encoding == SMS_Coding_8bit )
+          LOG_DEBUG( "  - no text read (8-bit encoded)" ) ;
 
-		if ( received_sms.SMS[i].UDH.Type == UDH_UserUDH )
-		  LOG_DEBUG( "  - no text read (UDH type: user)" ) ;
+        if ( received_sms.SMS[i].UDH.Type == UDH_UserUDH )
+          LOG_DEBUG( "  - no text read (UDH type: user)" ) ;
 
-	  }
+      }
 
-	  /* Now we have to determine whether this is the final SMS of the target
-	   * message:
-	   *
-	   */
+      /* Now we have to determine whether this is the final SMS of the target
+       * message:
+       *
+       */
 
-	  // UDH (User Data Header):
-	  GSM_UDHHeader udh = received_sms.SMS[i].UDH ;
+      // UDH (User Data Header):
+      GSM_UDHHeader udh = received_sms.SMS[i].UDH ;
 
-	  int part_number = udh.PartNumber ;
-	  int final_part_number = udh.AllParts ;
+      int part_number = udh.PartNumber ;
+      int final_part_number = udh.AllParts ;
 
-	  LOG_DEBUG( "  - part number %i/%i", part_number, final_part_number ) ;
+      LOG_DEBUG( "  - part number %i/%i", part_number, final_part_number ) ;
 
-	  /* For a single-part SMS, having only: -1/0.
-	   * For a multipart one, having for example: 1/3, 2/3, 3/3
-	   *
-	   */
-	  bool final_part = (part_number == -1 && final_part_number == 0)
-		|| (part_number == final_part_number ) ;
+      /* For a single-part SMS, having only: -1/0.
+       * For a multipart one, having for example: 1/3, 2/3, 3/3
+       *
+       */
+      bool final_part = (part_number == -1 && final_part_number == 0)
+        || (part_number == final_part_number ) ;
 
-	  if (final_part)
-	  {
+      if (final_part)
+      {
 
-		/* Here we went through all SMS parts, their texts have been aggregated
-		 * in BinText, so we write it, and this 5-tuple is over.
-		 *
-		 */
+        /* Here we went through all SMS parts, their texts have been aggregated
+         * in BinText, so we write it, and this 5-tuple is over.
+         *
+         */
 
-		// Null-terminated overall string:
-		//string_buffer[ copy_index ] = 0 ;
+        // Null-terminated overall string:
+        //string_buffer[ copy_index ] = 0 ;
 
-		/* Does not preserve less usual characters such as "è", "€", etc.:
-		write_string_with_length_result( &output_sm_buf, string_buffer,
-		  copy_index ) ;
-		*/
+        /* Does not preserve less usual characters such as "è", "€", etc.:
+        write_string_with_length_result( &output_sm_buf, string_buffer,
+          copy_index ) ;
+        */
 
-		string_buffer[ copy_index ] = 0 ;
-		LOG_DEBUG( "SMS tuple closed; final text: '%s'.", string_buffer ) ;
+        string_buffer[ copy_index ] = 0 ;
+        LOG_DEBUG( "SMS tuple closed; final text: '%s'.", string_buffer ) ;
 
-		// Proper UTF-8 obtained for all characters:
-		write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
+        // Proper UTF-8 obtained for all characters:
+        write_binary_result( &output_sm_buf, string_buffer, copy_index ) ;
 
 
-		// Prepare for the next message:
-		must_initiate_tuple = true ;
-		copy_index = 0 ;
+        // Prepare for the next message:
+        must_initiate_tuple = true ;
+        copy_index = 0 ;
 
-		// If ever reached n/n, but there was at least one more SMS:
-		// Does not seem relevant after all: break ;
+        // If ever reached n/n, but there was at least one more SMS:
+        // Does not seem relevant after all: break ;
 
-	  }
-	  else
-	  {
+      }
+      else
+      {
 
-		string_buffer[ copy_index ] = 0 ;
+        string_buffer[ copy_index ] = 0 ;
 
-		// Probably with garbage (no null terminator):
-		LOG_DEBUG( "Still building the SMS text (now %i bytes), which is '%s'.",
-		  copy_index, string_buffer ) ;
+        // Probably with garbage (no null terminator):
+        LOG_DEBUG( "Still building the SMS text (now %i bytes), which is '%s'.",
+          copy_index, string_buffer ) ;
 
-		must_initiate_tuple = false;
+        must_initiate_tuple = false;
 
-	  }
+      }
 
-	  if ( delete_on_reading )
-	  {
+      if ( delete_on_reading )
+      {
 
-		LOG_DEBUG( "Deleting SMS %i/%i", i+1, received_sms.Number ) ;
+        LOG_DEBUG( "Deleting SMS %i/%i", i+1, received_sms.Number ) ;
 
-		GSM_Error gammu_error =
-		  GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
+        GSM_Error gammu_error =
+          GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
 
-		check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+        check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
 
-	  }
+      }
 
-	} // for ( sms_count i = 0; i < received_sms.Number; i++ )
+    } // for ( sms_count i = 0; i < received_sms.Number; i++ )
 
 
   } // while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
@@ -1622,15 +1651,15 @@ void check_gammu_error( GSM_Error error, const char * step_description,
 
   if ( error != ERR_NONE )
   {
-	raise_gammu_error( gammu_fsm, "Gammu error in the '%s' step: '%s'.",
-	  step_description, GSM_ErrorString( error ) ) ;
+    raise_gammu_error( gammu_fsm, "Gammu error in the '%s' step: '%s'.",
+      step_description, GSM_ErrorString( error ) ) ;
   }
 
   // Uncomment in case of need for heavy debugging:
   /*
   else
   {
-	LOG_TRACE( "Step '%s' did not trigger a Gammu error.", step_description );
+    LOG_TRACE( "Step '%s' did not trigger a Gammu error.", step_description );
   }
   */
 
@@ -1648,8 +1677,8 @@ void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
   if ( gammu_fsm != NULL )
   {
 
-	if ( GSM_IsConnected( gammu_fsm ) )
-	  GSM_TerminateConnection( gammu_fsm ) ;
+    if ( GSM_IsConnected( gammu_fsm ) )
+      GSM_TerminateConnection( gammu_fsm ) ;
   }
 
   // Uses Seaplus service, variadic-forwarding by forwarding these values:
@@ -1674,8 +1703,8 @@ void stop_gammu( GSM_StateMachine * gammu_fsm )
   if ( GSM_IsConnected( gammu_fsm ) )
   {
 
-	GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
-	check_gammu_error( error, "stop Gammu", gammu_fsm ) ;
+    GSM_Error error = GSM_TerminateConnection( gammu_fsm ) ;
+    check_gammu_error( error, "stop Gammu", gammu_fsm ) ;
 
   }
 
