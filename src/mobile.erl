@@ -1,4 +1,4 @@
-% Copyright (C) 2019-2025 Olivier Boudeville
+% Copyright (C) 2019-2026 Olivier Boudeville
 %
 % This file is part of the Ceylan-Mobile library.
 %
@@ -31,7 +31,9 @@
 Module implementing the **Ceylan-Mobile services**, in charge of controlling
 mobile devices (smartphones, dongles), 2G/3G, possibly 4G or more recent.
 
-Refer to `send_sms/2` for the most useful, integrated sending function.
+Refer to `send_sms/2` / `send_sms_multi/2` for the most useful, integrated
+sending functions (with single/multiple recipients), and `read_all_sms/1` to
+read any received SMSs.
 
 Operates through a Seaplus-based interface to the Gammu backend library.
 
@@ -115,6 +117,8 @@ For example `<<"208150030213526">>`.
 
 
 -type bin_sms_message() :: bin_string().
+
+-type any_sms_message() :: any_string().
 
 
 
@@ -230,7 +234,8 @@ parts automatically aggregated.
                hardware_info/0, imsi_code/0,
                signal_strength/0, signal_strength_percent/0,
                error_rate/0,
-               sms_message/0, bin_sms_message/0, sms_class/0,
+               sms_message/0, bin_sms_message/0, any_sms_message/0,
+               sms_class/0,
 
                phone_number/0, bin_phone_number/0, any_phone_number/0,
                mobile_number/0, bin_mobile_number/0, any_mobile_number/0,
@@ -271,6 +276,7 @@ parts automatically aggregated.
 
 -type ustring() :: text_utils:ustring().
 -type bin_string() :: text_utils:bin_string().
+-type any_string() :: text_utils:any_string().
 
 -type integer_percent() :: math_utils:integer_percent().
 
@@ -605,32 +611,41 @@ has_actual_device() ->
     get_device_manufacturer() =/= <<"Gammu">>.
 
 
+
+
 % For the (key) sending of SMS, we override a lot the default Seaplus
 % behaviours.
 
 
--doc """
-Sends the specified, regular (that is non-multipart) SMS (of class 1), using an
-automatically-detected encoding.
 
-Returns whether it succeeded, and the message TPMR reference.
-""".
--spec send_regular_sms( sms_message(), any_mobile_number() ) ->
-                                            sms_sending_report().
-send_regular_sms( Message, AnyMobileNumber ) ->
-    send_regular_sms( Message, AnyMobileNumber, _Class=1 ).
 
+% Regular (mono-part) section.
 
 
 -doc """
-Sends a regular (non-multipart) SMS, using the specified class and an
-automatically-detected encoding.
+Sends the specified, regular (that is non-multipart) SMS (of class 1) to the
+specified recipient, using an automatically-detected encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_regular_sms( sms_message(), any_mobile_number(), sms_class() ) ->
+-spec send_regular_sms( any_sms_message(), any_mobile_number() ) ->
                                             sms_sending_report().
-send_regular_sms( Message, AnyMobileNumber, Class ) ->
+send_regular_sms( AnyMessage, AnyMobileNumber ) ->
+    send_regular_sms( AnyMessage, AnyMobileNumber, _Class=1 ).
+
+
+
+-doc """
+Sends a regular (non-multipart) SMS to the specified recipient, using the
+specified class and an automatically-detected encoding.
+
+Returns whether it succeeded, and the message TPMR reference.
+""".
+-spec send_regular_sms( any_sms_message(), any_mobile_number(), sms_class() ) ->
+                                            sms_sending_report().
+send_regular_sms( AnyMessage, AnyMobileNumber, Class ) ->
+
+    Message = text_utils:ensure_string( AnyMessage ),
 
     % We directly branch to the more complete version, the only one to be known
     % of the driver:
@@ -661,7 +676,8 @@ send_regular_sms( Message, AnyMobileNumber, Class ) ->
 
 
 -doc """
-Sends a regular (non-multipart) SMS, using the specified class and encoding.
+Sends a regular (non-multipart) plain-string SMS to the specified recipient,
+using the specified class and encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
@@ -698,15 +714,48 @@ send_regular_sms( Message, AnyMobileNumber, Class, Encoding )
 
 
 -doc """
+Sends a regular (non-multipart) SMS to the specified recipients, using the
+specified class and encoding.
+
+Returns (in-order), for each sending, whether it succeeded, and the
+corresponding message TPMR reference.
+""".
+-spec send_regular_sms_multi( any_sms_message(), [ any_mobile_number() ],
+    sms_class(), encoding() ) -> [ sms_sending_report() ].
+send_regular_sms_multi( AnyMessage, AnyMobileNumbers, Class, Encoding )
+        % Extraneous early checkings, but more user-friendly that way:
+        when is_list( AnyMobileNumbers ) andalso is_integer( Class )
+             andalso is_atom( Encoding ) ->
+
+    % Better done once for all:
+    Message = text_utils:ensure_string( AnyMessage ),
+
+    % Cannot factor much here as PortKey/FunctionDriverId auto-set by Seaplus:
+    RevReports = lists:foldl(
+        fun( AnyMobNumber, AccReports ) ->
+            Report = send_regular_sms( Message, AnyMobNumber, Class, Encoding ),
+            [ Report | AccReports ]
+        end,
+        _Acc0=[],
+        _List=AnyMobileNumbers ),
+
+    lists:reverse( RevReports ).
+
+
+
+
+% Multipart section.
+
+-doc """
 Sends a multipart SMS, using default class 1 and an automatically-detected
 encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), any_mobile_number() ) ->
+-spec send_multipart_sms( any_sms_message(), any_mobile_number() ) ->
                                             sms_sending_report().
-send_multipart_sms( Message, AnyMobileNumber ) ->
-    send_multipart_sms( Message, AnyMobileNumber, _Class=1 ).
+send_multipart_sms( AnyMessage, AnyMobileNumber ) ->
+    send_multipart_sms( AnyMessage, AnyMobileNumber, _Class=1 ).
 
 
 
@@ -716,9 +765,11 @@ encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), any_mobile_number(), sms_class() ) ->
-                                            sms_sending_report().
-send_multipart_sms( Message, AnyMobileNumber, Class ) ->
+-spec send_multipart_sms( any_sms_message(), any_mobile_number(),
+                          sms_class() ) -> sms_sending_report().
+send_multipart_sms( AnyMessage, AnyMobileNumber, Class ) ->
+
+    Message = text_utils:ensure_string( AnyMessage ),
 
     % We directly branch to the more complete version, the only one to be known
     % of the driver:
@@ -749,13 +800,15 @@ send_multipart_sms( Message, AnyMobileNumber, Class ) ->
 
 
 -doc """
-Sends the specified SMS, using the specified class and encoding.
+Sends the specified multipart plain-string SMS to the specified recipient, using
+the specified class and encoding.
 
 Returns whether it succeeded, and the message TPMR reference.
 """.
--spec send_multipart_sms( sms_message(), any_mobile_number(), sms_class(),
-                          encoding() ) -> sms_sending_report().
+-spec send_multipart_sms( sms_message(), any_mobile_number(),
+            sms_class(), encoding() ) -> sms_sending_report().
 send_multipart_sms( Message, AnyMobileNumber, Class, Encoding )
+        % Extraneous early checkings, but more user-friendly that way:
         when is_list( Message ) andalso is_integer( Class )
              andalso is_atom( Encoding ) ->
 
@@ -787,30 +840,73 @@ send_multipart_sms( Message, AnyMobileNumber, Class, Encoding )
 
 
 -doc """
-Sends the specified SMS (of class 1), determining automatically the best
-encoding to use, and whether a regular SMS or a multipart one is needed.
+Sends the specified SMS to the specified recipients, using the specified class
+and encoding.
 
-Returns whether it succeeded, and the message TPMR reference.
-
-This is the most advanced SMS-sending primitive, switching automatically to the
-right lower-level one, for the default class 1.
+Returns (in-order), for each sending, whether it succeeded, and the
+corresponding message TPMR reference.
 """.
--spec send_sms( sms_message(), any_mobile_number() ) -> sms_sending_report().
-send_sms( Message, AnyMobileNumber ) ->
-    send_sms( Message, AnyMobileNumber, _Class=1 ).
+-spec send_multipart_sms_multi( sms_message(), [ any_mobile_number() ],
+        sms_class(), encoding() ) -> sms_sending_report().
+send_multipart_sms_multi( AnyMessage, AnyMobileNumbers, Class, Encoding )
+        % Extraneous early checkings, but more user-friendly that way:
+        when is_list( AnyMobileNumbers ) andalso is_integer( Class )
+             andalso is_atom( Encoding ) ->
+
+    % Better done once for all:
+    Message = text_utils:ensure_string( AnyMessage ),
+
+    % Cannot factor much here as PortKey/FunctionDriverId auto-set by Seaplus:
+    RevReports = lists:foldl(
+        fun( AnyMobNumber, AccReports ) ->
+            Report = send_multipart_sms( Message, AnyMobNumber, Class,
+                                         Encoding ),
+            [ Report | AccReports ]
+        end,
+        _Acc0=[],
+        _List=AnyMobileNumbers ),
+
+    lists:reverse( RevReports ).
+
+
+
+% Higher-level sendings.
+
+
+-doc """
+Sends the specified SMS (of class 1) to the specified recipient, determining
+automatically the best encoding to use, and whether a regular SMS or a multipart
+one is needed.
+
+Returns whether this sending succeeded, and the corresponding message TPMR
+reference.
+
+This is the most advanced single-recipient SMS-sending primitive, switching
+automatically to the right lower-level one, for the default class 1.
+""".
+-spec send_sms( any_sms_message(), any_mobile_number() ) ->
+                                            sms_sending_report().
+send_sms( AnyMessage, AnyMobileNumber ) ->
+    send_sms( AnyMessage, AnyMobileNumber, _Class=1 ).
 
 
 
 -doc """
-Sends the specified SMS, of the specified class, determining automatically the
-best encoding to use, and whether a regular SMS or a multipart one is needed.
+Sends the specified SMS, of the specified class to the specified recipient,
+determining automatically the best encoding to use, and whether a regular SMS or
+a multipart one is needed.
 
-This is the most advanced SMS-sending primitive, switching automatically to the
-right lower-level one, based on the specified class.
+Returns whether this sending succeeded, and the corresponding message TPMR
+reference.
+
+This is the most advanced single-recipient SMS-sending primitive, switching
+automatically to the right lower-level one, based on the specified class.
 """.
--spec send_sms( sms_message(), any_mobile_number(), sms_class() ) ->
+-spec send_sms( any_sms_message(), any_mobile_number(), sms_class() ) ->
                                             sms_sending_report().
-send_sms( Message, AnyMobileNumber, Class ) ->
+send_sms( AnyMessage, AnyMobileNumber, Class ) ->
+
+    Message = text_utils:ensure_string( AnyMessage ),
 
     % Select the right sending primitive to call:
     case scan_characters( Message ) of
@@ -937,7 +1033,7 @@ scan_characters( _Message=[ _C | H ], _ZeroGSMUCharCount, UCS2UCharCount,
 
 -doc """
 Tells whether the specified character may be encoded in the default GSM
-non-espaced alphabet.
+non-escaped alphabet.
 
 We were initially considering to rely on a well-crafted list, however a set is
 by far more appropriate here.
@@ -1020,7 +1116,7 @@ process_sending_feedback( ServiceKey, FunctionDriverId, Args ) ->
     TargetPort = process_dictionary:get( ServiceKey ),
 
     % Note that we used to match incrementing TPMRs, yet the Gammu dummy device
-    % does not manage them properly (they are always equal to 255). So now we
+    % does not manage them properly (they are always equal to 255); so now we
     % just count messages.
     %
     aggregate_sending_feedbacks( SMSSendingStatus, _Current=Tpmr,
@@ -1110,6 +1206,103 @@ aggregate_sending_feedbacks( SMSSendingStatus, CurrentTpmr, RemainingSMSCount,
             throw( { sms_sending_unexpected_message, Other } )
 
     end.
+
+
+
+-doc """
+Sends the specified SMS (of class 1) to the specified recipients, determining
+automatically the best encoding to use, and whether a regular SMS or a multipart
+one is needed.
+
+Returns whether these sendings succeeded, and the corresponding message TPMR
+references.
+
+This is the most advanced multi-recipient SMS-sending primitive, switching
+automatically to the right lower-level one, for the default class 1.
+""".
+-spec send_sms_multi( sms_message(), [ any_mobile_number() ] ) ->
+                                            [ sms_sending_report() ].
+send_sms_multi( Message, AnyMobileNumbers ) ->
+    send_sms_multi( Message, AnyMobileNumbers, _Class=1 ).
+
+
+
+-doc """
+Sends the specified SMS, of the specified class to the specified recipients,
+determining automatically the best encoding to use, and whether a regular SMS or
+a multipart one is needed.
+
+Returns whether these sendings succeeded, and the corresponding message TPMR
+references.
+
+This is the most advanced multi-recipient SMS-sending primitive, switching
+automatically to the right lower-level one, based on the specified class.
+""".
+-spec send_sms_multi( any_sms_message(), [ any_mobile_number() ],
+                      sms_class() ) -> [ sms_sending_report() ].
+send_sms_multi( AnyMessage, AnyMobileNumber, Class ) ->
+
+    Message = text_utils:ensure_string( AnyMessage ),
+
+    % Select the right sending primitive to call:
+    case scan_characters( Message ) of
+
+        { single_sms, Encoding, ReadyMessage } ->
+
+            %trace_bridge:debug_fmt( "Sending '~ts' as a single SMS, with "
+            %   "class ~B and encoding ~ts.",
+            %   [ ReadyMessage, Class, Encoding ] ),
+
+            send_regular_sms_multi( ReadyMessage, AnyMobileNumber, Class,
+                                    Encoding );
+
+
+        { multiple_sms, Encoding, ReadyMessage } ->
+
+            %trace_bridge:debug_fmt( "Sending '~ts' as a multipart SMS, with "
+            %   "class ~B and encoding ~ts.",
+            %   [ ReadyMessage, Class, Encoding ] ),
+
+            send_multipart_sms_multi( ReadyMessage, AnyMobileNumber, Class,
+                                      Encoding )
+
+    end.
+
+
+
+-doc """
+Tells whether, among the specified reports, failed sendings are found: returns a
+(possibly empty) list of the mobile numbers (in the same form as specified; in
+reverse order) to which the corresponding sending failed.
+""".
+-spec detect_failed_sendings( [ sms_sending_report() ],
+        [ any_mobile_number() ] ) -> [ any_mobile_number() ].
+detect_failed_sendings( Reports, Numbers ) ->
+    detect_failed_sendings( Reports, Numbers, _AccNums=[] ).
+
+
+% (helper)
+detect_failed_sendings( _Reports=[], _Numbers=[], AccNum ) ->
+    % Order does not matter:
+    AccNum;
+
+detect_failed_sendings( _Reports=[], Numbers, _AccNum ) ->
+    throw( { unexpected_mobile_numbers, Numbers } );
+
+detect_failed_sendings( Reports, _Numbers=[], _AccNum ) ->
+    throw( { unexpected_sending_reports, Reports } );
+
+detect_failed_sendings( _Reports=[ { send_success, _Tpmr } | TRep ],
+                        _Numbers=[ _AnyNum | TNum ], AccNum ) ->
+    detect_failed_sendings( TRep, TNum, AccNum );
+
+detect_failed_sendings( _Reports=[ { send_failure, _Tpmr } | TRep ],
+                        _Numbers=[ AnyNum | TNum ], AccNum ) ->
+    NewAccNum= [ AnyNum | AccNum ],
+    detect_failed_sendings( TRep, TNum, NewAccNum );
+
+detect_failed_sendings( _Reports=[ R | _TRep ], _Numbers, _AccNum ) ->
+    throw( { invalid_sending_report, R } ).
 
 
 
