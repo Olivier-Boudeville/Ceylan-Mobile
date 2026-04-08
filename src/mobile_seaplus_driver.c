@@ -1341,6 +1341,15 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
     }
 
+    if ( read_error ==  ERR_CORRUPTED )
+    {
+
+		LOG_WARNING( "Skipping corrupted SMS." ) ;
+
+		continue;
+
+	}
+
     check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
 
     // Regarding messages (not per-message SMS):
@@ -1352,7 +1361,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
     /* Interpreting now each SMS of that message; if it is a SMS part, we
      * concatenate the text of the overall SMS.
      *
-     * Note, that, apparently (in our tests), even when sending longer SMS,
+     * Note, that, apparently (in our tests), even when sending longer SMSs,
      * messages have only one SMS (1/1, i.e. received_sms.Number == 1) - but
      * then each SMS may correspond to a part (as if the next number had no
      * meaning).
@@ -1408,9 +1417,9 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 
       /* Except the actual payload (text/data), we expect the metadata of the
-       * various SMS parts to be equal (e.g. for SMS classes) or roughly the
-       * same (e.g. for sending timestamp), so we record them only once, for the
-       * first SMS part (the only one known to exist in all cases):
+       * various SMS parts to be indentical (e.g. for SMS classes) or roughly
+       * the same (e.g. for sending timestamp), so we record them only once, for
+       * the first SMS part (the only one known to exist in all cases):
        *
        */
 
@@ -1572,7 +1581,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
        *
        */
       bool final_part = (part_number == -1 && final_part_number == 0)
-        || (part_number == final_part_number ) ;
+        || (part_number == final_part_number) ;
 
       if (final_part)
       {
@@ -1623,10 +1632,20 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
         LOG_DEBUG( "Deleting SMS %i/%i", i+1, received_sms.Number ) ;
 
-        GSM_Error gammu_error =
-          GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
 
-        check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+        GSM_Error gammu_error =
+			GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
+
+		/* Some devices only allow to remove the main, first message (not the
+		   next ones), or report faulty Location information, or the message is
+		   in a non-clearable area (e.g SIM), etc.
+
+		   So this should not be a fatal error:
+		*/
+		//check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+		if ( gammu_error != ERR_NONE )
+			log_error("Gammu error when deleting SMS %i/%i: %s", i+1,
+			  received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
 
       }
 
@@ -1667,8 +1686,11 @@ void check_gammu_error( GSM_Error error, const char * step_description,
 
 
 
-/* Raises specified error: reports it in logs, shutdowns relevant phone
+/* Raises the specified error: reports it in logs, shutdowns relevant phone
  * services, and halts.
+ *
+ * Of course crashing the Seaplus driver will impact (freeze/time-out) any
+ * Mobile-using process.
  *
  */
 void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
