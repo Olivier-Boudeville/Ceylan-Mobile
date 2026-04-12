@@ -731,7 +731,8 @@ int main( int argc, char *argv[] )
 
         LOG_DEBUG( "delete_all_sms/0 executed." ) ;
 
-		write_tuple_header_result( &interrupt_sm_buf, 2 ) ;
+		write_tuple_header_result( &output_sm_buf, 2 ) ;
+
         write_unsigned_int_result( &output_sm_buf, deletion_count ) ;
         write_unsigned_int_result( &output_sm_buf, error_count ) ;
 
