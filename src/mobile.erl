@@ -32,8 +32,8 @@ Module implementing the **Ceylan-Mobile services**, in charge of controlling
 mobile devices (smartphones, dongles), 2G/3G, possibly 4G or more recent.
 
 Refer to `send_sms/2` / `send_sms_multi/2` for the most useful, integrated
-sending functions (with single/multiple recipients), and `read_all_sms/1` to
-read any received SMSs.
+sending functions (with single/multiple recipients), `read_all_sms/1` to
+read any received SMS, and `delete_all_sms/0` to delete them all.
 
 Operates through a Seaplus-based interface to the Gammu backend library.
 
@@ -272,6 +272,7 @@ parts automatically aggregated.
 
 % Type shorthands:
 
+-type count() :: basic_utils:count().
 -type three_digit_version() :: basic_utils:three_digit_version().
 
 -type ustring() :: text_utils:ustring().
@@ -707,7 +708,7 @@ send_regular_sms( Message, AnyMobileNumber, Class, Encoding )
     %                        [ Args ] ),
 
     % Applies also for the regular SMS, as it is using the same callback as for
-    % the multipart SMSs:
+    % the multipart SMS:
     %
     process_sending_feedback( PortKey, FunctionDriverId, Args ).
 
@@ -1084,7 +1085,7 @@ is_gsm_char( C, GSMCharset ) ->
 Processes the (Erlang) messages that are sent back by the driver after a SMS
 sending.
 
-Should multiple elementary SMSs have to be sent:
+Should multiple elementary SMS have to be sent:
  - if all these sendings are successful, reports `send_success` with the TPMR of
    the last one sent
  - otherwise reports `send_failure` with the TPMR of the first to fail
@@ -1326,10 +1327,13 @@ enum_to_encoding( EncodingEnum ) ->
 Reads all SMS already received (if any), and, if `DeleteOnReading` is true is
 specified, deletes them as soon as they are read.
 
-Does not block.
+Does not block to wait for any new SMS.
 
-Specialised here to transform conveniently its outputs.
+Note that on some devices and at least Gammu version 1.43.2, these selective
+deletions may not work (SMS then remaining despite `DeleteOnReading` being
+requested).
 """.
+% Specialised here to transform conveniently its outputs:
 -spec read_all_sms( boolean() ) -> [ received_sms() ].
 read_all_sms( DeleteOnReading ) ->
 
@@ -1365,6 +1369,15 @@ read_all_sms( DeleteOnReading ) ->
     end,
 
     [ to_sms( E ) || E <- SMSList ].
+
+
+
+% doc: Deletes all SMS found on the device.
+%
+% Returns the number of SMS deleted, and the number of errors detected
+% (e.g. corrupted SMS, deletion failure).
+%
+-spec delete_all_sms() -> { DeletionCount :: count(), ErrorCount :: count() }.
 
 
 

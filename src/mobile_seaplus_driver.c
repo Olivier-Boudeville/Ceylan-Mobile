@@ -112,6 +112,9 @@ void send_multipart_sms( input_buffer read_buf, buffer_index * index,
 void read_all_sms( input_buffer read_buf, buffer_index * index,
   GSM_StateMachine * gammu_fsm ) ;
 
+void delete_all_sms( unsigned int * deletion_count, unsigned int * error_count,
+  input_buffer read_buf, buffer_index * index, GSM_StateMachine * gammu_fsm ) ;
+
 
 GSM_Coding_Type get_gammu_encoding( enum encoding e ) ;
 enum encoding get_mobile_encoding( GSM_Coding_Type e ) ;
@@ -667,7 +670,7 @@ int main( int argc, char *argv[] )
 
         send_multipart_sms( read_buf, &index, gammu_fsm ) ;
 
-        // Sending operation to be finalized by the interrupt handler:
+        // Sending operation to be finalised by the interrupt handler:
         answer_sent = false ;
 
         break ;
@@ -697,7 +700,7 @@ int main( int argc, char *argv[] )
 
     case READ_ALL_SMS_1_ID:
 
-        /* -spec -spec read_all_sms( boolean() ) -> [mobile:received_sms()].
+        /* -spec read_all_sms( boolean() ) -> [mobile:received_sms()].
          *
          */
 
@@ -707,6 +710,30 @@ int main( int argc, char *argv[] )
         read_all_sms( read_buf, &index, gammu_fsm ) ;
 
         LOG_DEBUG( "read_all_sms/1 executed." ) ;
+
+        break ;
+
+
+    case DELETE_ALL_SMS_0_ID:
+
+        /* -spec delete_all_sms() ->
+		 *  { DeletionCount :: count(), ErrorCount :: count() }.
+         *
+         */
+
+        LOG_DEBUG( "Executing delete_all_sms/0." ) ;
+        check_arity_is( 0, param_count, DELETE_ALL_SMS_0_ID ) ;
+
+		unsigned int deletion_count, error_count ;
+
+        delete_all_sms( &deletion_count, &error_count, read_buf,
+		  &index, gammu_fsm ) ;
+
+        LOG_DEBUG( "delete_all_sms/0 executed." ) ;
+
+		write_tuple_header_result( &interrupt_sm_buf, 2 ) ;
+        write_unsigned_int_result( &output_sm_buf, deletion_count ) ;
+        write_unsigned_int_result( &output_sm_buf, error_count ) ;
 
         break ;
 
@@ -723,7 +750,7 @@ int main( int argc, char *argv[] )
 
   }
 
-  LOG_DEBUG( "No more command to read." ) ;
+  LOG_DEBUG( "Empty read, no more SMS to read." ) ;
 
   // output_sm_buf internally already freed appropriately.
 
@@ -838,20 +865,20 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   INI_Free( iniConfig ) ;
 
   // We care only about the first configuration:
-  int section_id = 1 ;
+  int section_id = 1 ; // perform full initialisation sequence
 
   GSM_SetConfigNum( gammu_fsm, section_id ) ;
   check_gammu_error( error, "set configuration number", gammu_fsm ) ;
 
   // Number of replies to wait for:
-  int reply_count = 3 ;
+  int reply_count = 1 ; // 3 ;
 
   error = GSM_InitConnection( gammu_fsm, reply_count ) ;
   check_gammu_error( error, "init connection", gammu_fsm ) ;
 
   // User data set so that the callback can fetch the SMS counts:
   GSM_SetSendSMSStatusCallback( gammu_fsm, sms_sending_callback,
-								&message_count ) ;
+                                &message_count ) ;
 
   // We need to know the SMSC number:
   device_smsc.Location = 1 ;
@@ -891,8 +918,8 @@ void send_regular_sms( input_buffer read_buf, buffer_index * index,
     raise_gammu_error( gammu_fsm,
       "SMS message could not be obtained (regular)." ) ;
 
-  /* Clean-up the struct; presumably better than
-   * 'memset(&sms, 0, sizeof(sms);':
+  /* Clean-up the struct; performs for SMS sendings more than 'memset(&sms, 0,
+     sizeof(sms);':
    */
   GSM_SetDefaultSMSData( &sms ) ;
 
@@ -1248,7 +1275,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
    * - gammu/docs/examples/sms-read.c, using, here, DecodeUnicodeString
    *
    * - gammu/smsd/core.c, using GSM_DecodeMultiPartSMS - which is higher-level,
-   *    hence preferred here
+   *   hence preferred here
    *
    */
 
@@ -1261,24 +1288,25 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   switch( delete_int )
   {
 
-  case 0:
-    LOG_DEBUG( "Read SMS will be kept." ) ;
-    delete_on_reading = false ;
-    break;
+    case 0:
+      LOG_DEBUG( "Read SMS will be kept." ) ;
+      delete_on_reading = false ;
+      break ;
 
-  case 1:
-    LOG_DEBUG( "Read SMS will be deleted." ) ;
-    delete_on_reading = true ;
-    break;
+    case 1:
+      LOG_DEBUG( "Read SMS will be deleted." ) ;
+      delete_on_reading = true ;
+      break ;
 
-  default:
-    raise_error( "Unexpected deletion parameter: %i", delete_int ) ;
-    break ;
+    default:
+      raise_error( "Unexpected deletion parameter: %i", delete_int ) ;
+      break ;
 
   }
 
 
   // Second, execute the SMS reading logic, generating the result list:
+
 
   GSM_MultiSMSMessage received_sms ;
 
@@ -1295,10 +1323,26 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
   bool must_initiate_tuple = true ;
   size_t copy_index = 0 ;
 
+  // Probably not strictly needed (see below):
+  memset( &received_sms, 0, sizeof(received_sms) );
+
+  // Apparently sufficient if done once for all, and without a full memset:
+  received_sms.Number = 0 ; /* From start */
+  received_sms.SMS[0].Location = 0 ;
+
   while ( ( read_error == ERR_NONE ) && ( ! shutdown_requested ) )
   {
 
     LOG_DEBUG( "Trying to read a new multi-SMS message from device..." ) ;
+
+    // Clean-up before calling GSM_GetNextSMS:
+
+    /* Not GSM_SetDefaultSMSData(), as it is meant for sent SMS, not received
+     * ones:
+     *
+     */
+
+    received_sms.SMS[0].Folder = 0 ; /* All folders */
 
     /* Actually we are looping here over (multi-SMS) messages, themselves having
      * potentially multiple SMS, themselves having potentially multiple parts;
@@ -1311,6 +1355,8 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
      * In the future we might use here GSM_DecodeMultiPartSMS/4, as done in
      * gammu/smsd/core.c.
      *
+     * Some sources say that is_first / flags=0 is a more common and reliable.
+     *
      */
     read_error = GSM_GetNextSMS( gammu_fsm, &received_sms, is_first ) ;
 
@@ -1318,7 +1364,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
     if ( read_error == ERR_EMPTY )
     {
 
-      LOG_DEBUG( "Empty read, no more SMS to read." ) ;
+      LOG_DEBUG( "No more SMS to read." ) ;
 
       /* No need to special-case the empty read SMS list: this function finishes
        * by writing an empty list.
@@ -1341,14 +1387,14 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
     }
 
-    if ( read_error ==  ERR_CORRUPTED )
+    if ( read_error == ERR_CORRUPTED )
     {
 
-		LOG_WARNING( "Skipping corrupted SMS." ) ;
+        LOG_WARNING( "Skipping corrupted SMS." ) ;
 
-		continue;
+        continue;
 
-	}
+    }
 
     check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
 
@@ -1395,7 +1441,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
        * BinText is better aggregated (from the various SMS-as-a-part involved,
        * if any) directly here, in the C part, and written last in the created
        * tuple; as the other tuple elements are expected to be the same in all
-       * SMS-as-a-part, we write them once, from the first SMS part.
+       * SMS-as-a-part, we write them once, as found in the first SMS part.
        *
        */
       write_tuple_header_result( &output_sm_buf, 5 ) ;
@@ -1417,9 +1463,9 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
 
       /* Except the actual payload (text/data), we expect the metadata of the
-       * various SMS parts to be indentical (e.g. for SMS classes) or roughly
-       * the same (e.g. for sending timestamp), so we record them only once, for
-       * the first SMS part (the only one known to exist in all cases):
+       * various SMS parts to be identical (e.g. for SMS classes) or roughly the
+       * same (e.g. for sending timestamp), so we record them only once, for the
+       * first SMS part (the only one known to exist in all cases):
        *
        */
 
@@ -1627,27 +1673,50 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
       }
 
+
       if ( delete_on_reading )
       {
 
         LOG_DEBUG( "Deleting SMS %i/%i", i+1, received_sms.Number ) ;
 
+        /* Now deleting only the first part of the series, but this still does
+         not work properly ("Invalid location. Maybe too high?.").
 
-        GSM_Error gammu_error =
-			GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
+           Even on the command-line, for an INBOX folder equal to 3, "gammu
+           deletesms 3 1" deletes the second SMS, not the first, and "gammu
+           deletesms 3 0" results in "Error: Please enumerate locations from 1".
 
-		/* Some devices only allow to remove the main, first message (not the
-		   next ones), or report faulty Location information, or the message is
-		   in a non-clearable area (e.g SIM), etc.
+           The best option we currently see is to read all SMS without
+           attempting to delete any, and then to perform an overall operation
+           akin to "gammu deleteallsms".
+        */
 
-		   So this should not be a fatal error:
+		GSM_Error gammu_error =
+          //GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[0] ) ;
+          GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
+
+        /* Some devices only allow to remove the main, first message (not the
+           next ones), or report faulty Location information, or the message is
+           in a non-clearable area (e.g. SIM), etc.
+
+           So this should not be a fatal error:
 		*/
-		//check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
-		if ( gammu_error != ERR_NONE )
-			log_error("Gammu error when deleting SMS %i/%i: %s", i+1,
-			  received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
 
-      }
+		//check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+        if ( gammu_error != ERR_NONE )
+		{
+
+          log_error( "Gammu error when deleting SMS %i/%i: %s", i+1,
+			received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
+		}
+        else
+        {
+
+		  LOG_DEBUG( "SMS %i/%i deleted.", i+1, received_sms.Number ) ;
+
+		}
+
+	  }
 
     } // for ( sms_count i = 0; i < received_sms.Number; i++ )
 
@@ -1660,6 +1729,69 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 }
 
 
+
+
+void delete_all_sms(unsigned int * deletion_count, unsigned int * error_count,
+  input_buffer read_buf, buffer_index * index, GSM_StateMachine * gammu_fsm )
+{
+
+    /* Mostly like gammu/message.c:DeleteAllSMS or, better,
+	 * gammu/backupsms.c:BackupSMS:
+	 *
+	 */
+
+    GSM_MultiSMSMessage sms ;
+    bool start = true ;
+
+	*deletion_count = 0 ;
+	*error_count = 0 ;
+
+	GSM_Error gammu_error = ERR_NONE ;
+
+    while ( gammu_error == ERR_NONE )
+	{
+        sms.SMS[0].Folder = 0x00 ;
+        gammu_error = GSM_GetNextSMS( gammu_fsm, &sms, start ) ;
+
+        switch (gammu_error) {
+
+		  case ERR_EMPTY:
+              break;
+
+          case ERR_CORRUPTED:
+			  // Not a failed deletion per se.
+			  log_error( "Skipping corrupted message." ) ;
+			  (*error_count)++ ;
+			  gammu_error = ERR_NONE;
+			  continue;
+
+          default:
+			sms.SMS[0].Folder = 0x00 ;
+            gammu_error = GSM_DeleteSMS( gammu_fsm, &sms.SMS[0] );
+            if ( gammu_error != ERR_NONE )
+			{
+
+			  log_error( "Gammu error when deleting SMS: %s",
+				GSM_ErrorString( gammu_error ) ) ;
+			  (*error_count)++ ;
+			  gammu_error = ERR_NONE;
+
+			}
+			else
+			{
+
+				LOG_DEBUG( "SMS deleted." ) ;
+				(*deletion_count)++ ;
+
+			}
+
+		}
+
+        start = false ;
+
+    }
+
+}
 
 
 

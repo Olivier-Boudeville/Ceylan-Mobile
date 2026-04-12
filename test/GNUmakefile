@@ -5,6 +5,7 @@ MOBILE_TOP = ..
 		mobile-test mobile-test-debug mobile-test-terse                   \
 		mobile-class-test mobile-class-test-debug mobile-class-test-terse \
 		mobile-read-test mobile-read-test-debug mobile-read-test-terse    \
+		test test-local test-gammu                                        \
 		clean clean-local clean-logs                                      \
 		info-vars
 
@@ -114,6 +115,9 @@ test-local:
 	@echo "Error, run: 'make mobile-all-tests' instead." 1>&2
 	@exit 5
 
+
+test-gammu: test-gammu.c
+	@gcc -o $@ $< $$(pkg-config --cflags --libs gammu)
 
 
 clean: clean-local
