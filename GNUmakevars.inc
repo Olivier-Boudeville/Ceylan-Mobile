@@ -38,9 +38,17 @@ endif
 
 
 ifeq ($(ENABLE_DEBUG),true)
+
+    # Add -Dmobile_debug_mode_for_gammu to additionally collect the very
+    # detailed Gammu logs:
+    #
+	#ENABLE_MOBILE_DEBUG_OPT = -Dmobile_debug_mode -Dmobile_debug_mode_for_gammu
 	ENABLE_MOBILE_DEBUG_OPT = -Dmobile_debug_mode
+
 else
+
 	ENABLE_MOBILE_DEBUG_OPT =
+
 endif
 
 

@@ -133,11 +133,28 @@ void stop_gammu( GSM_StateMachine * gammu_fsm ) ;
 // Defined and used by Seaplus:
 extern FILE * log_file ;
 
-// If wanting to enable global debugging of Gammu in Seaplus logs:
+
+/* If wanting to enable global debugging of Gammu in Seaplus logs (warning: very
+ * verbose):
+ *
+ */
+#ifdef mobile_debug_mode_for_gammu
+
 bool enable_gammu_logging = true ;
 
-// If wanting to enable FSM-level debugging of Gammu in Seaplus logs:
+#else // mobile_debug_mode_for_gammu
+
+bool enable_gammu_logging = false ;
+
+#endif // mobile_debug_mode_for_gammu
+
+
+/* If wanting to enable FSM-level debugging of Gammu in Seaplus logs:
+ * (even more verbose)
+ *
+ */
 bool enable_gammu_state_machine_logging = false ;
+
 
 
 // Typically for a sending:
@@ -284,7 +301,7 @@ void sms_sending_callback( GSM_StateMachine * gammu_fsm, status send_status,
 void mobile_interrupt( signal_reported sign )
 {
 
-  LOG_WARNING( "Signal #%i caught, shutting down Ceylan-Mobile.", sign ) ;
+  log_warning( "Signal #%i caught, shutting down Ceylan-Mobile.", sign ) ;
 
   signal( sign, SIG_IGN ) ;
 
@@ -319,7 +336,7 @@ int main( int argc, char *argv[] )
   // No driver log before this point:
   start_seaplus_driver( read_buf ) ;
 
-  LOG_TRACE( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
+  log_trace( "<Ceylan-Seaplus driver for service Ceylan-Mobile "
     "now running>" ) ;
 
 
@@ -717,21 +734,21 @@ int main( int argc, char *argv[] )
     case DELETE_ALL_SMS_0_ID:
 
         /* -spec delete_all_sms() ->
-		 *  { DeletionCount :: count(), ErrorCount :: count() }.
+         *  { DeletionCount :: count(), ErrorCount :: count() }.
          *
          */
 
         LOG_DEBUG( "Executing delete_all_sms/0." ) ;
         check_arity_is( 0, param_count, DELETE_ALL_SMS_0_ID ) ;
 
-		unsigned int deletion_count, error_count ;
+        unsigned int deletion_count, error_count ;
 
         delete_all_sms( &deletion_count, &error_count, read_buf,
-		  &index, gammu_fsm ) ;
+          &index, gammu_fsm ) ;
 
         LOG_DEBUG( "delete_all_sms/0 executed." ) ;
 
-		write_tuple_header_result( &output_sm_buf, 2 ) ;
+        write_tuple_header_result( &output_sm_buf, 2 ) ;
 
         write_unsigned_int_result( &output_sm_buf, deletion_count ) ;
         write_unsigned_int_result( &output_sm_buf, error_count ) ;
@@ -772,7 +789,7 @@ int main( int argc, char *argv[] )
 void start_gammu( GSM_StateMachine * gammu_fsm )
 {
 
-  LOG_DEBUG( "Starting Gammu." ) ;
+  log_trace( "Starting Gammu." ) ;
 
   // Registering our signal handler:
   signal( SIGINT, mobile_interrupt ) ;
@@ -786,14 +803,14 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
     if ( log_file != NULL )
     {
 
-      LOG_DEBUG( "Directing Gammu logs to Seaplus ones." ) ;
+      log_debug( "Directing Gammu logs to Seaplus ones." ) ;
       debug_file = log_file ;
 
     }
     else
     {
 
-      LOG_DEBUG( "Gammu logs directed to standard error." ) ;
+      log_debug( "Gammu logs directed to standard error." ) ;
       debug_file = stderr ;
     }
 
@@ -808,7 +825,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   else
   {
 
-    LOG_DEBUG( "No Gammu logs requested." ) ;
+    log_debug( "No Gammu logs requested." ) ;
 
   }
 
@@ -819,14 +836,14 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
     if ( log_file != NULL )
     {
 
-      LOG_DEBUG( "Directing Gammu state machine logs to Seaplus ones." ) ;
+      log_debug( "Directing Gammu state machine logs to Seaplus ones." ) ;
       debug_file = log_file ;
 
     }
     else
     {
 
-      LOG_DEBUG( "Gammu state machine logs directed to standard error." ) ;
+      log_debug( "Gammu state machine logs directed to standard error." ) ;
       debug_file = stderr ;
 
     }
@@ -843,7 +860,7 @@ void start_gammu( GSM_StateMachine * gammu_fsm )
   else
   {
 
-    LOG_DEBUG( "No Gammu state machine logs requested." ) ;
+    log_debug( "No Gammu state machine logs requested." ) ;
 
   }
 
@@ -1397,6 +1414,17 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
 
     }
 
+    // Refer to https://github.com/gammu/gammu/issues/1067:
+    if ( read_error == ERR_UNKNOWNRESPONSE )
+    {
+
+        log_error( "Unknown response while reading multi-SMS message, "
+          "ignoring it." ) ;
+
+        continue;
+
+    }
+
     check_gammu_error( read_error, "read multi-SMS message", gammu_fsm ) ;
 
     // Regarding messages (not per-message SMS):
@@ -1692,7 +1720,7 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
            akin to "gammu deleteallsms".
         */
 
-		GSM_Error gammu_error =
+        GSM_Error gammu_error =
           //GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[0] ) ;
           GSM_DeleteSMS( gammu_fsm, &received_sms.SMS[i] ) ;
 
@@ -1701,23 +1729,23 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
            in a non-clearable area (e.g. SIM), etc.
 
            So this should not be a fatal error:
-		*/
+        */
 
-		//check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+        //check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
         if ( gammu_error != ERR_NONE )
-		{
+        {
 
           log_error( "Gammu error when deleting SMS %i/%i: %s", i+1,
-			received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
-		}
+            received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
+        }
         else
         {
 
-		  LOG_DEBUG( "SMS %i/%i deleted.", i+1, received_sms.Number ) ;
+          LOG_DEBUG( "SMS %i/%i deleted.", i+1, received_sms.Number ) ;
 
-		}
+        }
 
-	  }
+      }
 
     } // for ( sms_count i = 0; i < received_sms.Number; i++ )
 
@@ -1737,56 +1765,56 @@ void delete_all_sms(unsigned int * deletion_count, unsigned int * error_count,
 {
 
     /* Mostly like gammu/message.c:DeleteAllSMS or, better,
-	 * gammu/backupsms.c:BackupSMS:
-	 *
-	 */
+     * gammu/backupsms.c:BackupSMS:
+     *
+     */
 
     GSM_MultiSMSMessage sms ;
     bool start = true ;
 
-	*deletion_count = 0 ;
-	*error_count = 0 ;
+    *deletion_count = 0 ;
+    *error_count = 0 ;
 
-	GSM_Error gammu_error = ERR_NONE ;
+    GSM_Error gammu_error = ERR_NONE ;
 
     while ( gammu_error == ERR_NONE )
-	{
+    {
         sms.SMS[0].Folder = 0x00 ;
         gammu_error = GSM_GetNextSMS( gammu_fsm, &sms, start ) ;
 
         switch (gammu_error) {
 
-		  case ERR_EMPTY:
+          case ERR_EMPTY:
               break;
 
           case ERR_CORRUPTED:
-			  // Not a failed deletion per se.
-			  log_error( "Skipping corrupted message." ) ;
-			  (*error_count)++ ;
-			  gammu_error = ERR_NONE;
-			  continue;
+              // Not a failed deletion per se.
+              log_error( "Skipping corrupted message." ) ;
+              (*error_count)++ ;
+              gammu_error = ERR_NONE;
+              continue;
 
           default:
-			sms.SMS[0].Folder = 0x00 ;
+            sms.SMS[0].Folder = 0x00 ;
             gammu_error = GSM_DeleteSMS( gammu_fsm, &sms.SMS[0] );
             if ( gammu_error != ERR_NONE )
-			{
+            {
 
-			  log_error( "Gammu error when deleting SMS: %s",
-				GSM_ErrorString( gammu_error ) ) ;
-			  (*error_count)++ ;
-			  gammu_error = ERR_NONE;
+              log_error( "Gammu error when deleting SMS: %s",
+                GSM_ErrorString( gammu_error ) ) ;
+              (*error_count)++ ;
+              gammu_error = ERR_NONE;
 
-			}
-			else
-			{
+            }
+            else
+            {
 
-				LOG_DEBUG( "SMS deleted." ) ;
-				(*deletion_count)++ ;
+                LOG_DEBUG( "SMS deleted." ) ;
+                (*deletion_count)++ ;
 
-			}
+            }
 
-		}
+        }
 
         start = false ;
 
@@ -1853,7 +1881,7 @@ void raise_gammu_error( GSM_StateMachine * gammu_fsm, const char * format, ... )
 void stop_gammu( GSM_StateMachine * gammu_fsm )
 {
 
-  LOG_DEBUG( "Stopping Gammu." ) ;
+  log_trace( "Stopping Gammu." ) ;
 
   if ( GSM_IsConnected( gammu_fsm ) )
   {
