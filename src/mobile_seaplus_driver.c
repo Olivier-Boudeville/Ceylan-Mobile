@@ -227,6 +227,10 @@ const size_t main_buffer_size = 10000 ;
 static unsigned int message_count = 0 ;
 
 
+// To report this error only once:
+bool empty_entry_on_deletion_found = false ;
+
+
 /*
  * Callback triggered by Gammu after a request to send an SMS was issued.
  *
@@ -1732,11 +1736,30 @@ void read_all_sms( input_buffer read_buf, buffer_index * index,
         */
 
         //check_gammu_error( gammu_error, "delete SMS", gammu_fsm ) ;
+
         if ( gammu_error != ERR_NONE )
         {
 
-          log_error( "Gammu error when deleting SMS %i/%i: %s", i+1,
-            received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
+			bool do_log = true ;
+
+			if ( gammu_error == ERR_EMPTY )
+			{
+
+				/* Not wanting thousands of "Gammu error when deleting SMS:
+				 * Empty entry." messages, so report it only once:
+				 *
+				 */
+				if ( empty_entry_on_deletion_found )
+					do_log = false;
+				else
+					empty_entry_on_deletion_found = true ;
+
+			}
+
+			if ( do_log )
+				log_error( "Gammu error when deleting SMS %i/%i: %s", i+1,
+				  received_sms.Number, GSM_ErrorString( gammu_error ) ) ;
+
         }
         else
         {
