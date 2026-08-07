@@ -5,8 +5,18 @@ MOBILE_TOP = ..
 		info info-compile-mobile info-libs info-exec
 
 
+# If wanting to enable the traces ("extended logs") specifically sent by this
+# driver (SEAPLUS_ENABLE_LOG being set by default):
+#
+#C_COMPILER_OPT_FOR_OBJ += -DDEBUG_SEAPLUS
+
+
+# Run this target directly to check the flags, otherwise 'make' is in silent
+# (-s) mode, and will not display the compiler command-line:
+
+#
 %.o: %.c
-	@echo "   Compiling $<"
+	@echo "   Compiling Ceylan-Mobile $<"
 	@$(C_COMPILER) $(C_COMPILER_OPT_FOR_OBJ) $(INC) $(MOBILE_INC_OPT) -o $@ -c $<
 
 
@@ -33,7 +43,7 @@ mobile.beam: mobile.erl
 
 
 $(TARGET_DRIVER_EXEC): mobile_seaplus_driver.o $(SEAPLUS_LIB_PATH) $(GAMMU_LIB_PATH)
-	@echo "   Linking driver $@"
+	@echo "   Linking Ceylan-Mobile driver $@"
 	@$(C_LINKER) -o $(TARGET_DRIVER_EXEC) $(TARGET_DRIVER_OBJ) \
 	 $(SEAPLUS_LIB_OPT) $(C_LINKER_OPT) -L$(GAMMU_LIB_DIR) $(GAMMU_LIBS)
 
