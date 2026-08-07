@@ -72,6 +72,16 @@ ifeq ($(EXECUTION_TARGET),development)
 endif
 
 
+# If wanting to enable the Seaplus extended logs, as emitted by the Mobile
+# driver (note that the Seaplus base logs, which are emitted directly by the
+# Seaplus library, can be enabled by building this libseaplus-x.y.z.so with
+# ENABLE_SEAPLUS_DEBUG):
+#
+# (notably results in this driver being built with -DDEBUG_SEAPLUS)
+#
+#ENABLE_SEAPLUS_DEBUG = true
+
+
 ERLANG_COMPILER_OPT_BASE += -Dmobile_version=\"$(MOBILE_VERSION)\" \
 							$(MOBILE_DEBUG_FLAGS)                  \
 							$(MOBILE_CHECK_FLAGS)
